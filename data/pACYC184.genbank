@@ -1,0 +1,133 @@
+LOCUS       X06403                  4245 bp    DNA     circular SYN 14-NOV-2006
+DEFINITION  Cloning vector pACYC184.
+ACCESSION   X06403
+VERSION     X06403.1  GI:58255
+KEYWORDS    chloramphenicol resistance; cloning vector; plasmid; tetracycline
+            resistance.
+SOURCE      synthetic construct
+  ORGANISM  synthetic construct
+            other sequences; artificial sequences.
+REFERENCE   1  (bases 1 to 944; 946 to 4245)
+  AUTHORS   Rose,R.E.
+  TITLE     The nucleotide sequence of pACYC184
+  JOURNAL   Nucleic Acids Res. 16 (1), 355 (1988)
+   PUBMED   3340533
+REFERENCE   2  (bases 945 to 945)
+  AUTHORS   Mok,Y.K., Clark,D.R., Kam,K.M. and Shaw,P.C.
+  TITLE     BsiY I, a novel thermophilic restriction endonuclease that
+            recognizes 5' CCNNNNNNNGG 3' and the discovery of a wrongly
+            sequenced site in pACYC177
+  JOURNAL   Nucleic Acids Res. 19 (9), 2321-2323 (1991)
+   PUBMED   2041772
+REFERENCE   3
+  AUTHORS   Li,J.K. and Tu,J.
+  TITLE     Ssp RF1, a novel class-II restriction endonuclease from
+            Synechococcus RF-1 recognizing 5'TT/CGAA-3'
+  JOURNAL   Nucleic Acids Res. 19 (17), 4770 (1991)
+   PUBMED   1909785
+REFERENCE   4  (bases 1 to 4244)
+  AUTHORS   Rose,R.E.
+  TITLE     Direct Submission
+  JOURNAL   Submitted (15-DEC-1987) Rose R.E., Calgene Inc., 1920 Fifth St.,
+            Davis, CA 95616, USA
+COMMENT     The sequence is circular, however the sequence begins with a unique
+            EcoRI site. Bases 426-706, 1153-1583 and 2918 to 3735 were
+            determined while the rest of the sequence was taken from the
+            published sequence of pSC101, Tn9 and p15A.
+FEATURES             Location/Qualifiers
+     source          1..3252
+                     /dnas_title="pACYC184"
+                     /organism="synthetic construct"
+                     /mol_type="other DNA"
+                     /db_xref="taxon:32630"
+                     /plasmid="pACYC184"
+     misc_feature    1..141
+                     /note="part of IS1 from Tn9"
+     rep_origin      complement(139..1051)
+                     /note="p15A origin of replication"
+     misc_feature    complement(143..3089)
+                     /note="Tn9 HaeII fragment"
+     conflict        502..504
+                     /citation=[1]
+                     /citation=[4]
+                     /replace="tc"
+     misc_feature    1053..2834
+                     /note="pSC101 fragment"
+     gene            1139..2329
+                     /note="tetracycline resistance gene"
+     gene            complement(3363..4022)
+                     /note="CmR"
+ORIGIN      
+        1 ggtgatgctg ccaacttact gatttagtgt atgatggtgt ttttgaggtg ctccagtggc
+       61 ttctgtttct atcagctgtc cctcctgttc agctactgac ggggtggtgc gtaacggcaa
+      121 aagcaccgcc ggacatcagc gctagcggag tgtatactgg cttactatgt tggcactgat
+      181 gagggtgtca gtgaagtgct tcatgtggca ggagaaaaaa ggctgcaccg gtgcgtcagc
+      241 agaatatgtg atacaggata tattccgctt cctcgctcac tgactcgcta cgctcggtcg
+      301 ttcgactgcg gcgagcggaa atggcttacg aacggggcgg agatttcctg gaagatgcca
+      361 ggaagatact taacagggaa gtgagagggc cgcggcaaag ccgtttttcc ataggctccg
+      421 cccccctgac aagcatcacg aaatctgacg ctcaaatcag tggtggcgaa acccgacagg
+      481 actataaaga taccaggcgt ttccccctgg cggctccctc gtgcgctctc ctgttcctgc
+      541 ctttcggttt accggtgtca ttccgctgtt atggccgcgt ttgtctcatt ccacgcctga
+      601 cactcagttc cgggtaggca gttcgctcca agctggactg tatgcacgaa ccccccgttc
+      661 agtccgaccg ctgcgcctta tccggtaact atcgtcttga gtccaacccg gaaagacatg
+      721 caaaagcacc actggcagca gccactggta attgatttag aggagttagt cttgaagtca
+      781 tgcgccggtt aaggctaaac tgaaaggaca agttttggtg actgcgctcc tccaagccag
+      841 ttacctcggt tcaaagagtt ggtagctcag agaaccttcg aaaaaccgcc ctgcaaggcg
+      901 gttttttcgt tttcagagca agagattacg cgcagaccaa aacgatctca agaagatcat
+      961 cttattaatc agataaaata tttctagatt tcagtgcaat ttatctcttc aaatgtagca
+     1021 cctgaagtca gccccatacg atataagttg taattctcat gtttgacagc ttatcatcga
+     1081 taagctttaa tgcggtagtt tatcacagtt aaattgctaa cgcagtcagg caccgtgtat
+     1141 gaaatctaac aatgcgctca tcgtcatcct cggcaccgtc accctggatg ctgtaggcat
+     1201 aggcttggtt atgccggtac tgccgggcct cttgcgggat atcgtccatt ccgacagcat
+     1261 cgccagtcac tatggcgtgc tgctagcgct atatgcgttg atgcaatttc tatgcgcacc
+     1321 cgttctcgga gcactgtccg accgctttgg ccgccgccca gtcctgctcg cttcgctact
+     1381 tggagccact atcgactacg cgatcatggc gaccacaccc gtcctgtgga tcctctacgc
+     1441 cggacgcatc gtggccggca tcaccggcgc cacaggtgcg gttgctggcg cctatatcgc
+     1501 cgacatcacc gatggggaag atcgggctcg ccacttcggg ctcatgagcg cttgtttcgg
+     1561 cgtgggtatg gtggcaggcc ccgtggccgg gggactgttg ggcgccatct ccttgcatgc
+     1621 accattcctt gcggcggcgg tgctcaacgg cctcaaccta ctactgggct gcttcctaat
+     1681 gcaggagtcg cataagggag agcgtcgacc gatgcccttg agagccttca acccagtcag
+     1741 ctccttccgg tgggcgcggg gcatgactat cgtcgccgca cttatgactg tcttctttat
+     1801 catgcaactc gtaggacagg tgccggcagc gctctgggtc attttcggcg aggaccgctt
+     1861 tcgctggagc gcgacgatga tcggcctgtc gcttgcggta ttcggaatct tgcacgccct
+     1921 cgctcaagcc ttcgtcactg gtcccgccac caaacgtttc ggcgagaagc aggccattat
+     1981 cgccggcatg gcggccgacg cgctgggcta cgtcttgctg gcgttcgcga cgcgaggctg
+     2041 gatggccttc cccattatga ttcttctcgc ttccggcggc atcgggatgc ccgcgttgca
+     2101 ggccatgctg tccaggcagg tagatgacga ccatcaggga cagcttcaag gatcgctcgc
+     2161 ggctcttacc agcctaactt cgatcactgg accgctgatc gtcacggcga tttatgccgc
+     2221 ctcggcgagc acatggaacg ggttggcatg gattgtaggc gccgccctat accttgtctg
+     2281 cctccccgcg ttgcgtcgcg gtgcatggag ccgggccacc tcgacctgaa tggaagccgg
+     2341 cggcacctcg ctaacggatt caccactcca agaattggag ccaatcaatt cttgcggaga
+     2401 actgtgaatg cgcaaaccaa cccttggcag aacatatcca tcgcgtccgc catctccagc
+     2461 agccgcacgc ggcgcatctc gggcagcgtt gggtcctggc cacgggtgcg catgatcgtg
+     2521 ctcctgtcgt tgaggacccg gctaggctgg cggggttgcc ttactggtta gcagaatgaa
+     2581 tcaccgatac gcgagcgaac gtgaagcgac tgctgctgca aaacgtctgc gacctgagca
+     2641 acaacatgaa tggtcttcgg tttccgtgtt tcgtaaagtc tggaaacgcg gaagtcccct
+     2701 acgtgctgct gaagttgccc gcaacagaga gtggaaccaa ccggtgatac cacgatacta
+     2761 tgactgagag tcaacgccat gagcggcctc atttcttatt ctgagttaca acagtccgca
+     2821 ccgctgtccg gtagctcctt ccggtgggcg cggggcatga ctatcgtcgc cgcacttatg
+     2881 actgtcttct ttatcatgca actcgtagga caggtgccgg cagcgcccaa cagtcccccg
+     2941 gccacggggc ctgccaccat acccacgccg aaacaagcgc cctgcaccat tatgttccgg
+     3001 atctgcatcg caggatgctg ctggctaccc tgtggaacac ctacatctgt attaacgaag
+     3061 cgctaaccgt ttttatcagg ctctgggagg cagaataaat gatcatatcg tcaattatta
+     3121 cctccacggg gagagcctga gcaaactggc ctcaggcatt tgagaagcac acggtcacac
+     3181 tgcttccggt agtcaataaa ccggtaaacc agcaatagac ataagcggct atttaacgac
+     3241 cctgccctga accgacgacc gggtcgaatt tgctttcgaa tttctgccat tcatccgctt
+     3301 attatcactt attcaggcgt agcaccaggc gtttaagggc accaataact gccttaaaaa
+     3361 aattacgccc cgccctgcca ctcatcgcag tactgttgta attcattaag cattctgccg
+     3421 acatggaagc catcacagac ggcatgatga acctgaatcg ccagcggcat cagcaccttg
+     3481 tcgccttgcg tataatattt gcccatggtg aaaacggggg cgaagaagtt gtccatattg
+     3541 gccacgttta aatcaaaact ggtgaaactc acccagggat tggctgagac gaaaaacata
+     3601 ttctcaataa accctttagg gaaataggcc aggttttcac cgtaacacgc cacatcttgc
+     3661 gaatatatgt gtagaaactg ccggaaatcg tcgtggtatt cactccagag cgatgaaaac
+     3721 gtttcagttt gctcatggaa aacggtgtaa caagggtgaa cactatccca tatcaccagc
+     3781 tcaccgtctt tcattgccat acggaattcc ggatgagcat tcatcaggcg ggcaagaatg
+     3841 tgaataaagg ccggataaaa cttgtgctta tttttcttta cggtctttaa aaaggccgta
+     3901 atatccagct gaacggtctg gttataggta cattgagcaa ctgactgaaa tgcctcaaaa
+     3961 tgttctttac gatgccattg ggatatatca acggtggtat atccagtgat ttttttctcc
+     4021 attttagctt ccttagctcc tgaaaatctc gataactcaa aaaatacgcc cggtagtgat
+     4081 cttatttcat tatggtgaaa gttggaacct cttacgtgcc gatcaacgtc tcattttcgc
+     4141 caaaagttgg cccagggctt cccggtatca acagggacac caggatttat ttattctgcg
+     4201 aagtgatctt ccgtcacagg tatttattcg gcgcaaagtg cgtcg
+//
+
