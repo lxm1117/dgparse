@@ -74,3 +74,8 @@ as the input to a template file. Python is full of rich templating languages and
 we have found this to be a very extensible way of outputting an exotic format.
 Otherwise, one can simply use the standard JSON, YAML, or msgpack libraries to
 obtain very compact, portable serializations of the above object.
+
+## Specifications
+Specifications for a format, where available, are located in the spec directory.
+ However as with most biological data file formats, the specifications are often
+ not existent. 
