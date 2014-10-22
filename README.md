@@ -49,7 +49,7 @@ Example:
     dnafeatures': [
         # array of dnafeatures
       - 
-        name: "Name of the DNA Feature",
+        name: "Name of the DNA Feature"
         start: 0, # in the sequence
         end: 1 # integer start and end positions,
         strand: -1 0, 1 # -1 is the compliment strand
