@@ -35,24 +35,23 @@ portable between systems, libraries, and languages.
 
 Example:
 
-```yaml 
-  - # This outer array accomidates multi-record fasta files and similar formats 
+```
+---
+  - # This outer array accommodates multi-record fasta files and similar formats 
     name: pBR322
     accession: 'A unique, curated identifier'
     namespace: 'Where that unique identifier comes from'
     description: 'Text Blob'
     is_circular: True or False
-    properties: {},  # assorted key value pairs
+    properties: {}  # assorted key value pairs
     sequence:
-      bases': "ACGT"
-      sha1': "The 40 char sha1 hexdigest of the sequence"
-    dnafeatures': [
-        # array of dnafeatures
-      - 
-        name: "Name of the DNA Feature"
+      bases: "ACGT..."
+      sha1: "The 40 char sha1 hexdigest of the sequence"
+    dnafeatures: # array of dnafeatures
+      - name: "Name of the DNA Feature"
         start: 0 # in the sequence
         end: 1 # integer start and end positions,
-        strand: -1 # -1 is the compliment strand, 1 is the postive/top strand
+        strand: -1 # -1 is the compliment strand, 1 is the positive/top strand
         feat_type: 'the type of this feature'
         pattern: 'Bases of the DNA'
         description: 'description of the feature'
