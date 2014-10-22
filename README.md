@@ -50,9 +50,9 @@ Example:
         # array of dnafeatures
       - 
         name: "Name of the DNA Feature"
-        start: 0, # in the sequence
+        start: 0 # in the sequence
         end: 1 # integer start and end positions,
-        strand: -1 0, 1 # -1 is the compliment strand
+        strand: -1 # -1 is the compliment strand, 1 is the postive/top strand
         feat_type: 'the type of this feature'
         pattern: 'Bases of the DNA'
         description: 'description of the feature'
