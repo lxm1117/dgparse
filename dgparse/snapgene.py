@@ -197,22 +197,60 @@ def decode(seg, data, parsers):
     data = func(data)
     return data
 
+class snapgene:
+    def __init__(self, fl):
+        self.DNA = None
+        self.descriptor = None
+        self.features = None
+        self.primers = None
+        self.otherProperties = None
+        self.notes = None
+        self.translationTable = {0: self.DNA,
+                                9: self.descriptor,
+                                10: self.features,
+                                5: self.primers,
+                                8: self.otherProperties,
+                                6: self.notes}
+        with open(fl, "rb") as f:
+            segment = f.read(5)
+            while segment:
+                seg, seg_len = struct.unpack('>BI', segment)
+                #print binascii.hexlify(segment)
+                print seg, seg_len
+                data = f.read(seg_len)
+                #print data
+                snoof = decode(seg, data, decode_dict)
+                if seg in self.translationTable:
+                    thing = self.translationTable[seg]
+                    thing = snoof 
+                #if seg == 0:
+                #    print snoof
+                segment = f.read(5)
+
+
 
 def main():
     # TODO
     # standardize return 
-    with open("../data/snapgene/pDONR223 empty vector.dna", "rb") as f:
-        segment = f.read(5)
-        while segment:
-            seg, seg_len = struct.unpack('>BI', segment)
-            #print binascii.hexlify(segment)
-            print seg, seg_len
-            data = f.read(seg_len)
-            #print data
-            snoof = decode(seg, data, decode_dict)
-            #if seg == 0:
-            #    print snoof
-            segment = f.read(5)
+    mySnapgene = snapgene("../data/snapgene/pDONR223 empty vector.dna")
+    print mySnapgene.DNA
+    print mySnapgene.descriptor
+    print mySnapgene.features
+    print mySnapgene.primers
+    print mySnapgene.otherProperties
+    print mySnapgene.notes
+    # with open("../data/snapgene/pDONR223 empty vector.dna", "rb") as f:
+    #     segment = f.read(5)
+    #     while segment:
+    #         seg, seg_len = struct.unpack('>BI', segment)
+    #         #print binascii.hexlify(segment)
+    #         print seg, seg_len
+    #         data = f.read(seg_len)
+    #         #print data
+    #         snoof = decode(seg, data, decode_dict)
+    #         #if seg == 0:
+    #         #    print snoof
+    #         segment = f.read(5)
 
 if __name__ == '__main__':
     sys.exit(main())
