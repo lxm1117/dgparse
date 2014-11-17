@@ -67,9 +67,6 @@ def parseDNA(data):
     else:
         DNA_properties["EcoK1"] = False
 
-    #print DNA
-    #print properties
-    #print DNA_properties
     return DNA_properties
 
 def parseDescriptor(data):
@@ -144,11 +141,6 @@ def parseProperties(data):
     notes_dict = {}
     features = ET.fromstring(data)
     for feature in features:
-        #print feature, "tag = ", feature.tag
-        #if feature.tag == "AdditionalSequenceProperties":
-        #    "Found it!!!"
-        #    properties = {}
-        #    for feat in feature:
         for item, func in level_0.iteritems():
             if item in feature.tag:
                 notes_dict[item] = func(feature.attrib)
@@ -187,24 +179,14 @@ def parsePrimers(data):
             primer_dict["HybridizationParams"] = feature_dict
 
         if feature.tag == "Primer":
-            #print feature
             primer = {}
             for item, func in level_0.iteritems():
                 if item in feature.attrib:
                     primer[item] = func(feature.attrib[item])
                 for feat in feature:
-                #segment_dict = {}
-                #notes = []
-                #genes = {}
-                #print feat
-                #print feat.tag
-                #print feat.attrib
-                #if feat.tag == "Segment":
                     for item, func in level_1.iteritems():
                         if item in feat.attrib:
-                            #print item, "here!"
                             primer[item] = func(feat.attrib[item])
-                #feature_dict["Segment"] = segment_dict
             primers.append(primer)
     primer_dict["primers"] = primers
     return primer_dict
@@ -238,45 +220,21 @@ def parseFeatures(data):
             if item in feature.attrib:
                 feature_dict[item] = func(feature.attrib[item])
         
-        # delete after testing
-        #for att in feature.attrib.iterkeys():
-        #    if att not in feature_dict:
-        #        print "missing ", att
-
         feature_dict["Notes"] = []
         for feat in feature:
             segment_dict = {}
-            #notes = []
-            #genes = {}
-            #print feat
-            #print feat.tag
-            #print feat.attrib
             if feat.tag == "Segment":
                 for item, func in second_level.iteritems():
                     if item in feat.attrib:
-                        #print item, "here!"
                         segment_dict[item] = func(feat.attrib[item])
-                    #else:
-                        #print item, feat.atrib
                 feature_dict["Segment"] = segment_dict
 
             elif feat.tag == "Q":
-                #if feat.attrib["name"] == "note":
                 for f in feat:
-                    # feat.tag, feat.attrib
-                    #print f.tag
-                    #print f.attrib
                     for k, v in f.attrib.iteritems():
-                        #print k, v
-                        #notes[feat.attrib["name"]] = {k:v}
                         feature_dict["Notes"].append((feat.attrib["name"], v))
-            #feature_dict["Notes"] = notes               
-
-
         all_features.append(feature_dict)
 
-    #for dic in all_features:
-    #    print dic
     return all_features
 
 def decode(seg, data, parsers):
@@ -326,6 +284,8 @@ class snapgene:
 def main():
     # TODO
     # standardize return 
+    # fix notes in features: make dict
+    # write tests
     mySnapgene = snapgene("../data/snapgene/pDONR223 empty vector.dna")
     print mySnapgene.DNA
     print mySnapgene.descriptor
@@ -334,18 +294,6 @@ def main():
     print "other:", mySnapgene.otherProperties
     print "notes:", mySnapgene.notes
     #print mySnapgene.unknown
-    # with open("../data/snapgene/pDONR223 empty vector.dna", "rb") as f:
-    #     segment = f.read(5)
-    #     while segment:
-    #         seg, seg_len = struct.unpack('>BI', segment)
-    #         #print binascii.hexlify(segment)
-    #         print seg, seg_len
-    #         data = f.read(seg_len)
-    #         #print data
-    #         snoof = decode(seg, data, decode_dict)
-    #         #if seg == 0:
-    #         #    print snoof
-    #         segment = f.read(5)
 
 if __name__ == '__main__':
     sys.exit(main())
