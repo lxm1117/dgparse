@@ -55,7 +55,7 @@ class TestSnapgeneDNA:
     def testTruncatedSequence(self):
         with pytest.raises(Exception) as excinfo:
             snapgene(truncatedDNA)
-        assert excinfo.value.message == "Badly formed segment or missing segment."
+        assert excinfo.value.message == "Badly formed segment or missing segment. Current segment: 29 Previous Segment: 0" 
 
 
 

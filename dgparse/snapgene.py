@@ -255,8 +255,12 @@ class snapgene:
         
         with open(fl, "rb") as f:
             segment = f.read(5)
+            seg = None
+            lastSeg = None
             while segment:
                 try:
+                    if seg != None:
+                        lastSeg = seg
                     seg, seg_len = struct.unpack('>BI', segment)
                     #print seg, seg_len
                     data = f.read(seg_len)
@@ -280,7 +284,7 @@ class snapgene:
                         self.unknown.append(snoof)
                     segment = f.read(5)
                 except:
-                    raise Exception("Badly formed segment or missing segment.")
+                    raise Exception("Badly formed segment or missing segment. Current segment: %s Previous Segment: %s" %(seg, lastSeg))
 
             if self.descriptor == None:
                 raise Exception("No snapgene Descriptor. Is this a snapgene .dna file?")
