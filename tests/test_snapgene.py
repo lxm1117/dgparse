@@ -12,26 +12,25 @@ from snapgene import snapgene
 # put some fixtures here
 
 # Full dataset
-fulldata = snapgene("testdata/pDONR223 empty vector.dna")
+with open("testdata/pDONR223 empty vector.dna", "rb") as f: 
+    fulldata = snapgene(f)
 len_DNA = 5005
 with open("testdata/sequence.txt", "r") as seq:
     fullSequence = seq.read() 
 
 # Test datasets missing specific sections to test parser error handling
-noDNA = "testdata/test_no0.dna"
-noDescriptor = "testdata/test_no9.dna"
-truncatedDNA = "testdata/truncated.dna"
-noFeatures = snapgene("testdata/test_no10.dna")
-noPrimers = snapgene("testdata/test_no5.dna")
-noOther = snapgene("testdata/test_no6.dna")
-noNotes = snapgene("testdata/test_no8.dna")
+#noFeatures = snapgene("testdata/test_no10.dna")
+#noPrimers = snapgene("testdata/test_no5.dna")
+#noOther = snapgene("testdata/test_no6.dna")
+#noNotes = snapgene("testdata/test_no8.dna")
 
 
 # put some tests here
 class TestSnapgeneDNA:
     def testDNAMissing(self):
         with pytest.raises(Exception) as excinfo:
-            snapgene(noDNA)
+            with open("testdata/test_no0.dna", "rb") as f:
+                noDNA = snapgene(f) 
         assert excinfo.value.message == "No DNA Sequence Provided!"
 
     def testDNAPresent(self):
@@ -51,7 +50,8 @@ class TestSnapgeneDNA:
 
     def testTruncatedSequence(self):
         with pytest.raises(Exception) as excinfo:
-            snapgene(truncatedDNA)
+            with open("testdata/truncated.dna", "rb") as f:
+                truncatedDNA = snapgene(f) 
         assert excinfo.value.message == "Badly formed segment or missing segment. Current segment: 29 Previous Segment: 0" 
 
 class TestSnapgeneDescriptor:
@@ -60,7 +60,8 @@ class TestSnapgeneDescriptor:
 
     def testMissingDescriptor(self):
         with pytest.raises(Exception) as excinfo:
-            snapgene(noDescriptor)
+            with open("testdata/test_no9.dna", "rb") as f:
+                noDescriptor = snapgene(f) 
         assert excinfo.value.message == "No snapgene Descriptor. Is this a snapgene .dna file?"
 
 

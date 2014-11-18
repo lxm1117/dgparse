@@ -3,6 +3,8 @@
 """ Parse SnapGene .dna files. See Docmentation folder for details on the file
 format.
 """
+
+# import relevant modules
 from __future__ import division
 from __future__ import absolute_import
 from __future__ import unicode_literals
@@ -244,7 +246,7 @@ def decode(seg, data, parsers):
     return data
 
 class snapgene:
-    def __init__(self, fl):
+    def __init__(self, f):
         self.DNA = None
         self.descriptor = None
         self.features = None
@@ -253,44 +255,44 @@ class snapgene:
         self.notes = None
         self.unknown = []
         
-        with open(fl, "rb") as f:
-            segment = f.read(5)
-            seg = None
-            lastSeg = None
-            while segment:
-                try:
-                    if seg != None:
-                        lastSeg = seg
-                    seg, seg_len = struct.unpack('>BI', segment)
-                    #print seg, seg_len
-                    data = f.read(seg_len)
-                    snoof = decode(seg, data, decode_dict)
+        
+        segment = f.read(5)
+        seg = None
+        lastSeg = None
+        while segment:
+            try:
+                if seg != None:
+                    lastSeg = seg
+                seg, seg_len = struct.unpack('>BI', segment)
+                #print seg, seg_len
+                data = f.read(seg_len)
+                snoof = decode(seg, data, decode_dict)
 
-                    # assign to correct attribute
-                    # what is a more pythonic way to do this?
-                    if seg == 0:
-                        self.DNA = snoof
-                    elif seg == 9:
-                        self.descriptor = snoof
-                    elif seg == 10:
-                        self.features = snoof
-                    elif seg == 5:
-                        self.primers = snoof
-                    elif seg == 8:
-                        self.otherProperties = snoof
-                    elif seg == 6:
-                        self.notes = snoof
-                    else:
-                        self.unknown.append(snoof)
-                    segment = f.read(5)
-                except:
-                    raise Exception("Badly formed segment or missing segment. Current segment: %s Previous Segment: %s" %(seg, lastSeg))
+                # assign to correct attribute
+                # what is a more pythonic way to do this?
+                if seg == 0:
+                    self.DNA = snoof
+                elif seg == 9:
+                    self.descriptor = snoof
+                elif seg == 10:
+                    self.features = snoof
+                elif seg == 5:
+                    self.primers = snoof
+                elif seg == 8:
+                    self.otherProperties = snoof
+                elif seg == 6:
+                    self.notes = snoof
+                else:
+                    self.unknown.append(snoof)
+                segment = f.read(5)
+            except:
+                raise Exception("Badly formed segment or missing segment. Current segment: %s Previous Segment: %s" %(seg, lastSeg))
 
-            if self.descriptor == None:
-                raise Exception("No snapgene Descriptor. Is this a snapgene .dna file?")
+        if self.descriptor == None:
+            raise Exception("No snapgene Descriptor. Is this a snapgene .dna file?")
 
-            if self.DNA == None:
-                raise Exception("No DNA Sequence Provided!")
+        if self.DNA == None:
+            raise Exception("No DNA Sequence Provided!")
 
 
 
@@ -298,7 +300,8 @@ def main():
     # TODO
     # fix notes in features: make dict
     # write tests
-    mySnapgene = snapgene("../data/snapgene/pDONR223 empty vector.dna")
+    with open("../data/snapgene/pDONR223 empty vector.dna", "r") as f:
+        mySnapgene = snapgene()
     print mySnapgene.DNA
     print mySnapgene.descriptor
     print mySnapgene.features
