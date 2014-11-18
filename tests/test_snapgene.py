@@ -1,6 +1,3 @@
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
 import sys
 
 """
@@ -56,9 +53,6 @@ class TestSnapgeneDNA:
         with pytest.raises(Exception) as excinfo:
             snapgene(truncatedDNA)
         assert excinfo.value.message == "Badly formed segment or missing segment. Current segment: 29 Previous Segment: 0" 
-
-
-
 
 class TestSnapgeneDescriptor:
     def testDescriptorInfo(self):
