@@ -200,7 +200,6 @@ def parseFeatures(data):
                 "translationMW": float,
                 "hitsStopCodon": bool
     }
-
     
     second_level = {"color": str, "range": str, "type": str}
 
@@ -236,6 +235,25 @@ def decode(seg, data, parsers):
     return data
 
 class snapgene:
+    map_dict = {0: "DNA",
+            9: "descriptor",
+            10: "features",
+            5: "primers",
+            8: "otherProperties",
+            6: "notes"
+    
+    }
+
+    decode_dict = {}
+    for i in range(15):
+        decode_dict[i] = lambda x: x
+    decode_dict[0] =  parseDNA
+    decode_dict[9] = parseDescriptor
+    decode_dict[10] = parseFeatures
+    decode_dict[5] = parsePrimers
+    decode_dict[6] = parseNotes
+    decode_dict[8] = parseProperties
+
     def __init__(self, f):
         self.data = {"DNA": None,
                         "descriptor": None,
@@ -244,14 +262,7 @@ class snapgene:
                         "otherProperties": None,
                         "notes": None,
                         "unknown": []}
-        self.DNA = None
-        self.descriptor = None
-        self.features = None
-        self.primers = None
-        self.otherProperties = None
-        self.notes = None
-        self.unknown = []
-             
+            
         segment = f.read(5)
         seg = None
         lastSeg = None
@@ -261,15 +272,15 @@ class snapgene:
             seg, seg_len = struct.unpack('>BI', segment)
             try:
                 data = f.read(seg_len)
-                snoof = decode(seg, data, decode_dict)
+                snoof = decode(seg, data, snapgene.decode_dict)
             except:
                 raise Exception("Badly formed segment or missing segment. Current segment: %s Previous Segment: %s" %(seg, lastSeg))
 
-            if seg in map_dict:
-                if self.data[map_dict[seg]] != None:
+            if seg in snapgene.map_dict:
+                if self.data[snapgene.map_dict[seg]] != None:
                     raise Exception("Duplicate segments. Current segment: %s Previous segment: %s" %(seg, lastSeg))
                 else:
-                    self.data[map_dict[seg]] = snoof
+                    self.data[snapgene.map_dict[seg]] = snoof
             else:
                 self.data["unknown"].append(snoof)
             segment = f.read(5)
@@ -280,26 +291,6 @@ class snapgene:
         if self.data["DNA"] == None:
             raise Exception("No DNA Sequence Provided!")
 
-map_dict = {0: "DNA",
-            9: "descriptor",
-            10: "features",
-            5: "primers",
-            8: "otherProperties",
-            6: "notes"
-    
-}
-
-decode_dict = {}
-for i in range(15):
-    decode_dict[i] = lambda x: x
-decode_dict[0] =  parseDNA
-decode_dict[9] = parseDescriptor
-decode_dict[10] = parseFeatures
-decode_dict[5] = parsePrimers
-decode_dict[6] = parseNotes
-decode_dict[8] = parseProperties
-
-
 def main():
     # TODO
     # write tests
@@ -308,12 +299,6 @@ def main():
 
     with open("../data/snapgene/pDONR223 empty vector.dna", "r") as f:
         mySnapgene = snapgene(f)
-    print mySnapgene.DNA
-    print mySnapgene.descriptor
-    print mySnapgene.features
-    print mySnapgene.primers
-    print "other:", mySnapgene.otherProperties
-    print "notes:", mySnapgene.notes
     for k, v in mySnapgene.data.iteritems():
         print k, v
     print "DNA:", mySnapgene.data["DNA"]
