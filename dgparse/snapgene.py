@@ -256,26 +256,23 @@ class snapgene:
         seg = None
         lastSeg = None
         while segment:
+            if seg != None:
+                lastSeg = seg
+            seg, seg_len = struct.unpack('>BI', segment)
             try:
-                if seg != None:
-                    lastSeg = seg
-                seg, seg_len = struct.unpack('>BI', segment)
-                #print seg, seg_len
                 data = f.read(seg_len)
                 snoof = decode(seg, data, decode_dict)
-
-                if seg in map_dict:
-                    print "seg %s in map dict" % seg
-                    if self.data[map_dict[seg]] == None:
-                        self.data[map_dict[seg]] = snoof
-                    else:
-                        raise Exception("Duplicate segments. Current segment: %s Previous segment: %s" %(seg, lastSeg))
-                else:
-                    print "other seg %s going in other" % seg
-                    self.data["unknown"].append(snoof)
-                segment = f.read(5)
             except:
                 raise Exception("Badly formed segment or missing segment. Current segment: %s Previous Segment: %s" %(seg, lastSeg))
+
+            if seg in map_dict:
+                if self.data[map_dict[seg]] != None:
+                    raise Exception("Duplicate segments. Current segment: %s Previous segment: %s" %(seg, lastSeg))
+                else:
+                    self.data[map_dict[seg]] = snoof
+            else:
+                self.data["unknown"].append(snoof)
+            segment = f.read(5)
 
         if self.data["descriptor"] == None:
             raise Exception("No snapgene Descriptor. Is this a snapgene .dna file?")

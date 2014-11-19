@@ -6,7 +6,7 @@ def main():
     for i in segments:
         fl = "pDONR223 empty vector.dna"
         with open(fl, "rb") as f:
-            with open("truncated.dna", "w") as outfile:
+            with open("duplicate.dna", "w") as outfile:
                 segment = f.read(5)
                 while segment:
                     seg, seg_len = struct.unpack('>BI', segment)
@@ -15,8 +15,9 @@ def main():
                         outfile.write(segment)
                         outfile.write(data)
                     else:
-                        outfile.write(segment)
-                        outfile.write(data[:100])
+                        for s in range(2):
+                            outfile.write(segment)
+                            outfile.write(data)
                     print seg, seg_len
                     segment = f.read(5)
 

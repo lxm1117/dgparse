@@ -61,7 +61,14 @@ class TestSnapgeneDNA:
         with pytest.raises(Exception) as excinfo:
             with open("testdata/truncated.dna", "rb") as f:
                 truncatedDNA = snapgene(f) 
-        assert excinfo.value.message == "Badly formed segment or missing segment. Current segment: 29 Previous Segment: 0" 
+        assert excinfo.value.message == "Badly formed segment or missing segment. Current segment: 29 Previous Segment: 0"
+
+    def testDuplicateSequence(self):
+        with pytest.raises(Exception) as excinfo:
+            with open("testdata/duplicate.dna", "rb") as f:
+                truncatedDNA = snapgene(f) 
+        assert excinfo.value.message == "Duplicate segments. Current segment: 0 Previous segment: 0" 
+ 
 
 class TestSnapgeneDescriptor:
     def testDescriptorInfo(self, fulldata):
