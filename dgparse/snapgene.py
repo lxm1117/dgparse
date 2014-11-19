@@ -15,6 +15,9 @@ import sys
 import struct
 import binascii
 import xml.etree.ElementTree as ET
+import json
+from xml.dom.minidom import parseString
+#from xml.dom import minidom
 
 # setting up a dictionary of parsing functions for each segment
 # if not implemented, returns the original section unparsed
@@ -83,14 +86,14 @@ def parseDescriptor(data):
 def parseNotes(data):
     level_0 = {"Synthetic": bool,
                 "ConfirmedExperimentally": bool,
-                "CustomMapLabel": str,
+                "CustomMapLabel": unicode,
                 "UseCustomMapLabel": bool,
-                "Description": str,
-                "Created": str,
-                "CreatedBy": str,
-                "LastModified": str,
-                "Organism": str,
-                "TransformedInot": str
+                "Description": unicode,
+                "Created": unicode,
+                "CreatedBy": unicode,
+                "LastModified": unicode,
+                "Organism": unicode,
+                "TransformedInot": unicode
 
     }
 
@@ -103,6 +106,8 @@ def parseNotes(data):
 
     notes_dict = {}
     features = ET.fromstring(data)
+    repared_data = parseString(data)
+    #print repared_data.toprettyxml(indent="\t")
     for feature in features:
         if feature.tag == "References":
             references = []
@@ -117,16 +122,17 @@ def parseNotes(data):
             #print feature
             for item, func in level_0.iteritems():
                 if item in feature.tag:
-                    notes_dict[item] = func(feature.attrib)
+                    #print feature.text
+                    notes_dict[item] = func(feature.text)
                
     return notes_dict
 
 def parseProperties(data):
-    level_0 = {"AdditionalSequenceProperties": str,
+    level_0 = {"AdditionalSequenceProperties": unicode,
                 "UpstreamStickiness": bool,
                     "DownstreamStickiness": bool,
-                    "UpstreamModification": str,
-                    "DownstreamModification": str
+                    "UpstreamModification": unicode,
+                    "DownstreamModification": unicode
 
     }
 
@@ -135,7 +141,7 @@ def parseProperties(data):
     for feature in features:
         for item, func in level_0.iteritems():
             if item in feature.tag:
-                properties_dict[item] = func(feature.attrib)
+                properties_dict[item] = func(feature.text)
     return properties_dict
 
 def parsePrimers(data):
@@ -327,13 +333,14 @@ class snapgene:
             if seg != None:
                 lastSeg = seg
             seg, seg_len = struct.unpack('>BI', segment)
-            print seg
+            #print seg
             try:
                 data = f.read(seg_len)
                 parsedData = decode(seg, data, snapgene.decode_dict)
             except:
                 # this is not totally robust: the error is raised because of a key error following the wrong number of bytes in the previous segment. It is possible that this still gives a valid key, despite earlier error.
                 raise Exception("Badly formed segment or missing segment. Current segment: %s Previous Segment: %s" %(seg, lastSeg))
+                #raise
 
             if seg in snapgene.map_dict:
                 if self.data[snapgene.map_dict[seg]] != None:
@@ -352,16 +359,30 @@ class snapgene:
 
 def main():
     # TODO
+    # XML parsing sections parse only those sections included in the file parser (and represented in the example file), so if there are other xml tags / attributes that are not represented here, they will not be included.
 
-    with open("../data/snapgene/pDONR223 empty vector.dna", "r") as f:
+    # Currently derived attributes from only the example file. Search other .dna files for other attributes / features not included.
+
+    # Error handling is poor. Custom exception hides stacktrace from debugging.
+
+    # Test output to json -- is this correct json?
+    import argparse
+    parser = argparse.ArgumentParser(description='Parser for SnapGene .dna files')
+    parser.add_argument('SnapGeneFile', metavar='SnapGeneFile', type=str, help='filepath to SnapGene .dna file.')
+
+    args = parser.parse_args()
+
+    with open(args.SnapGeneFile, "r") as f:
         mySnapgene = snapgene(f)
     
-    print "DNA:", mySnapgene.data["DNA"]
-    print mySnapgene.data["DNA"]["sequence"]
+    #print "DNA:", mySnapgene.data["DNA"]
+    #print mySnapgene.data["DNA"]["sequence"]
     
-    for it in mySnapgene.data["features"]:
-        for k, v in it.iteritems():
-            print k, v
+    #for it in mySnapgene.data["features"]:
+    #    for k, v in it.iteritems():
+    #        print k, v
+
+    print json.dumps(mySnapgene.data, sort_keys=True, indent=4, separators=(',', ': '))
 
 if __name__ == '__main__':
     sys.exit(main())
