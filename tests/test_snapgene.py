@@ -6,36 +6,40 @@ Describe your test, its assumptions, and expected results
 
 # importing required modules (this is very ugly)
 import pytest
-sys.path.append('/home/rebecca/Documents/repos/dgparse/dgparse')
+sys.path.append('../dgparse')
 from snapgene import snapgene
 
 # put some fixtures here
 
-# Full dataset
-# test datasets
+# Full dataset for evaluating 
 @pytest.fixture(scope="module")
 def fulldata():
     with open("testdata/pDONR223 empty vector.dna", "rb") as f: 
         fulldata = snapgene(f)
     return fulldata
 
-    #return smtplib.SMTP("merlinux.eu")
+# parameters of test datasets
+len_DNA = 5005
 
 with open("testdata/sequence.txt", "r") as seq:
     fullSequence = seq.read() 
 
-# parameters of test datasets
-len_DNA = 5005
-
-# Test datasets missing specific sections to test parser error handling
-#noFeatures = snapgene("testdata/test_no10.dna")
-#noPrimers = snapgene("testdata/test_no5.dna")
-#noOther = snapgene("testdata/test_no6.dna")
-#noNotes = snapgene("testdata/test_no8.dna")
-
 
 # put some tests here
 class TestSnapgeneDNA:
+    """
+    Test correct parsing of DNA segment.
+
+    When the correct .dna file is supplied, the sequence length and identity should match "len_DNA" and "fullSequence, the topology is circular, the strandedness is double and the Dam, Dcm and EcoK1 methylation states are all True.
+
+    When the DNA segment is missing, an error should be raised.
+
+    When the DNA segment is duplicated an error should be raised.
+
+    When the segment length does not match the length described in the segment header, the next segment key will be unknown, so an error should be raised.
+    
+    """
+
     def testDNAMissing(self):
         with pytest.raises(Exception) as excinfo:
             with open("testdata/test_no0.dna", "rb") as f:
@@ -71,6 +75,11 @@ class TestSnapgeneDNA:
  
 
 class TestSnapgeneDescriptor:
+    """
+    Test parsing of Descriptor. 
+
+    f_type should be "DNA" when correct .dan file supplied. If there is no descriptor segemnt, raise an error
+    """
     def testDescriptorInfo(self, fulldata):
         assert fulldata.data["descriptor"]["f_type"] == "DNA"
 
@@ -81,6 +90,7 @@ class TestSnapgeneDescriptor:
         assert excinfo.value.message == "No snapgene Descriptor. Is this a snapgene .dna file?"
 
 class TestOtherFeatures:
+    """Test correct handling of missing non-essential segments"""
     def testFeaturesMissing(self):
         with open("testdata/test_no10.dna", "rb") as f:
             noFeatures = snapgene(f) 

@@ -130,13 +130,13 @@ def parseProperties(data):
 
     }
 
-    notes_dict = {}
+    properties_dict = {}
     features = ET.fromstring(data)
     for feature in features:
         for item, func in level_0.iteritems():
             if item in feature.tag:
-                notes_dict[item] = func(feature.attrib)
-    return notes_dict
+                properties_dict[item] = func(feature.attrib)
+    return properties_dict
 
 def parsePrimers(data):
     primer_dict = {}
@@ -186,9 +186,7 @@ def parsePrimers(data):
 
 def parseFeatures(data):
     all_features = []
-
-    # this is hacky -- what is best structure to store parsed data?
-    # dictionary would be better?
+    
     top_level = {"name": str,
                 "swappedSegmentNumbering": bool,
                 "allowSegmentOverlaps": bool,
@@ -235,6 +233,64 @@ def decode(seg, data, parsers):
     return data
 
 class snapgene:
+    """
+    snapgene class holds parsed Snapgene data.
+
+    Arguments: 
+    f: a snapgene .dna file, opened for reading
+
+    Attributes:
+    data (dict): information parsed from the snapgene file.
+    unknown (dict): unknown segments from the snapgene file (not parsed). Key: segment number; Value: Unparsed segment data.
+
+    More information about the data attribute:
+    data has six keys (str): DNA, descriptor, features, primers, otherProperties and notes, which correspond to the six file segments described in the SnapGene specifications. Each of these values is a further dictionary of key:value pairs, except for features, which is a list of feature dictionaries.
+
+    Keys for the DNA dictionary:
+    "sequence": DNA sequence
+    "topology": DNA topology ("circular" or "linear")
+    "strandedness": "single" or "double"
+    "EcoK1": EcoK1 methylation state (True or False)
+    "Dam": Dam methylation state (True or False)
+    "Dcm": Dcm menthylation state (True or False)
+
+    Keys for the descriptor dictionary:
+    "name": Descriptor name ("Snapgene)
+    "f_type": data type ("DNA" or "unknown")
+    "import_version": import version (int)
+    "export_version": export version (int)
+
+    Keys for the primers dictionary:
+    "primers": list of dictionaries containing primer information (keys: description, sequence, meltingTemperature, name, simplified, location, annealedBases, boundStrand, recentID)
+    "HybridizationParams": dictionary of Hybridization Parameters (keys: minMeltingTemperature, minContinuousMatchLen, allowMismatch)
+
+    Keys for the notes dictionary: Description, CreatedBy, LastModified, ConfirmedExperimentally, references, created, CustomMapLabel, Organism, UseCustomMapLabel
+
+    Keys for the otherProperties dictionary: UpstreamModification, UpstreamStickiness, DownstreamModification, DownstreamStickiness
+
+    Keys for the feature dictionaries in the features list:
+    "type": feature type (str)
+    "name": feature name (str)
+    "recentID" ID (int)
+    "consecutiveTranslationNumbering": bool
+    "swappedSegmentNumbering": bool
+    "allowSegmentOverlaps": bool
+    "readingFrame": reading frame (int)
+    "Segment": sement information (dict). Keys: "color", "range", "type"
+
+
+
+    Example usage -- DNA sequence and properties:
+    mySnapgene = snapgene(myfile)
+    myDNASequence = mySnapgene.data["DNA"]["sequence"]
+    myDNATopology = mySnapgene.data["DNA"]["topology"]
+
+    Example usage -- SnapGene file type and version:
+    mySnapgene = snapgene(myfile)
+    myFileType = mySnapgene.data["descriptor"]["f_type"]
+    myFileVesrsion = mySnapgene.data["descriptor"]["import_version"]
+
+    """
     map_dict = {0: "DNA",
             9: "descriptor",
             10: "features",
@@ -245,7 +301,7 @@ class snapgene:
     }
 
     decode_dict = {}
-    for i in range(15):
+    for i in [2, 3, 13]:
         decode_dict[i] = lambda x: x
     decode_dict[0] =  parseDNA
     decode_dict[9] = parseDescriptor
@@ -260,8 +316,9 @@ class snapgene:
                         "features": None,
                         "primers": None,
                         "otherProperties": None,
-                        "notes": None,
-                        "unknown": []}
+                        "notes": None
+                        }
+        self.unknown = {}
             
         segment = f.read(5)
         seg = None
@@ -270,19 +327,21 @@ class snapgene:
             if seg != None:
                 lastSeg = seg
             seg, seg_len = struct.unpack('>BI', segment)
+            print seg
             try:
                 data = f.read(seg_len)
-                snoof = decode(seg, data, snapgene.decode_dict)
+                parsedData = decode(seg, data, snapgene.decode_dict)
             except:
+                # this is not totally robust: the error is raised because of a key error following the wrong number of bytes in the previous segment. It is possible that this still gives a valid key, despite earlier error.
                 raise Exception("Badly formed segment or missing segment. Current segment: %s Previous Segment: %s" %(seg, lastSeg))
 
             if seg in snapgene.map_dict:
                 if self.data[snapgene.map_dict[seg]] != None:
                     raise Exception("Duplicate segments. Current segment: %s Previous segment: %s" %(seg, lastSeg))
                 else:
-                    self.data[snapgene.map_dict[seg]] = snoof
+                    self.data[snapgene.map_dict[seg]] = parsedData
             else:
-                self.data["unknown"].append(snoof)
+                self.unknown[seg] = parsedData
             segment = f.read(5)
 
         if self.data["descriptor"] == None:
@@ -293,17 +352,16 @@ class snapgene:
 
 def main():
     # TODO
-    # write tests
-    # docstrings
-    # description of object types and structure (particularly as this is complex)
 
     with open("../data/snapgene/pDONR223 empty vector.dna", "r") as f:
         mySnapgene = snapgene(f)
-    for k, v in mySnapgene.data.iteritems():
-        print k, v
+    
     print "DNA:", mySnapgene.data["DNA"]
     print mySnapgene.data["DNA"]["sequence"]
-    #print mySnapgene.unknown
+    
+    for it in mySnapgene.data["features"]:
+        for k, v in it.iteritems():
+            print k, v
 
 if __name__ == '__main__':
     sys.exit(main())
