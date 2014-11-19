@@ -24,6 +24,7 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 """ Parse SnapGene .dna files. See Docmentation folder for details on the file
 format.
 """
@@ -239,7 +240,7 @@ def parseFeatures(data):
             if item in feature.attrib:
                 feature_dict[item] = func(feature.attrib[item])
         
-        feature_dict["Notes"] = []
+        feature_dict["Notes"] = {}
         for feat in feature:
             segment_dict = {}
             if feat.tag == "Segment":
@@ -248,10 +249,10 @@ def parseFeatures(data):
                         segment_dict[item] = func(feat.attrib[item])
                 feature_dict["Segment"] = segment_dict
 
-            elif feat.tag == "Q":
+            elif (feat.tag == "Q") or (feat.tag == "Qualifier"):
                 for f in feat:
                     for k, v in f.attrib.iteritems():
-                        feature_dict["Notes"].append({feat.attrib["name"]: v})
+                        feature_dict["Notes"][feat.attrib["name"]] = v
         all_features.append(feature_dict)
 
     return all_features
@@ -357,7 +358,6 @@ class snapgene:
             if seg != None:
                 lastSeg = seg
             seg, seg_len = struct.unpack('>BI', segment)
-            #print seg
             try:
                 data = f.read(seg_len)
                 parsedData = decode(seg, data, snapgene.decode_dict)
@@ -372,6 +372,7 @@ class snapgene:
                 else:
                     self.data[snapgene.map_dict[seg]] = parsedData
             else:
+                # if we don't know how to parse it keep it in "unknown" dictionary
                 self.unknown[seg] = parsedData
             segment = f.read(5)
 
@@ -383,11 +384,11 @@ class snapgene:
 
 def main():
     # TODO
-    # XML parsing sections parse only those sections included in the file parser (and represented in the example file), so if there are other xml tags / attributes that are not represented here, they will not be included.
+    # XML parsing sections parse only those sections included in the file parser (and represented in the example file), so if there are other xml tags / attributes in other SnapGene files that are not represented here, they will not be included.
 
     # Currently derived attributes from only the example file. Search other .dna files for other attributes / features not included.
 
-    # Error handling is poor -- custom exceptions hide stacktrace from debugging.
+    # Error handling is not great -- custom exceptions could hide stacktrace from debugging.
 
     # Test output to json -- is this correct json?
     import argparse
@@ -398,13 +399,6 @@ def main():
 
     with open(args.SnapGeneFile, "r") as f:
         mySnapgene = snapgene(f)
-    
-    #print "DNA:", mySnapgene.data["DNA"]
-    #print mySnapgene.data["DNA"]["sequence"]
-    
-    #for it in mySnapgene.data["features"]:
-    #    for k, v in it.iteritems():
-    #        print k, v
 
     print json.dumps(mySnapgene.data, sort_keys=True, indent=4, separators=(',', ': '))
 
