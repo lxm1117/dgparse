@@ -29,7 +29,7 @@ import sys
 Describe your test, its assumptions, and expected results
 """
 
-# importing required modules (this is very ugly)
+# importing required modules
 import pytest
 sys.path.append('../dgparse')
 from snapgene import snapgene

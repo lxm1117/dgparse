@@ -391,8 +391,9 @@ def main():
     # Error handling is not great -- custom exceptions could hide stacktrace from debugging.
 
     # Test output to json -- is this correct json?
+    
     import argparse
-    parser = argparse.ArgumentParser(description='Parser for SnapGene .dna files')
+    parser = argparse.ArgumentParser(description='Parser for SnapGene .dna files. Usage: python snapgene.py /path/to/my/snapgene.dna')
     parser.add_argument('SnapGeneFile', metavar='SnapGeneFile', type=str, help='filepath to SnapGene .dna file.')
 
     args = parser.parse_args()
