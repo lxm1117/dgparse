@@ -363,7 +363,7 @@ def main():
 
     # Currently derived attributes from only the example file. Search other .dna files for other attributes / features not included.
 
-    # Error handling is poor. Custom exception hides stacktrace from debugging.
+    # Error handling is poor -- custom exceptions hide stacktrace from debugging.
 
     # Test output to json -- is this correct json?
     import argparse
