@@ -17,16 +17,7 @@ import binascii
 import xml.etree.ElementTree as ET
 
 # setting up a dictionary of parsing functions for each segment
-# if not implemented, returns the original section
-decode_dict = {}
-for i in range(15):
-    decode_dict[i] = lambda x: x
-decode_dict[0] = lambda x: parseDNA(x)
-decode_dict[9] = lambda x: parseDescriptor(x)
-decode_dict[10] = lambda x: parseFeatures(x)
-decode_dict[5] = lambda x: parsePrimers(x)
-decode_dict[6] = lambda x: parseNotes(x)
-decode_dict[8] = lambda x: parseProperties(x)
+# if not implemented, returns the original section unparsed
 
 def parseDNA(data):
     # dictionary of DNA properties
@@ -79,7 +70,6 @@ def parseDescriptor(data):
 
     # file type: DNA or something else
     f_type, export_version, import_version = struct.unpack('>HHH', data[8:])
-    #print f_type, export_version, import_version
     if f_type == 1:
         descriptor_properties["f_type"] = "DNA"
     else:
@@ -234,7 +224,7 @@ def parseFeatures(data):
             elif feat.tag == "Q":
                 for f in feat:
                     for k, v in f.attrib.iteritems():
-                        feature_dict["Notes"].append((feat.attrib["name"], v))
+                        feature_dict["Notes"].append({feat.attrib["name"]: v})
         all_features.append(feature_dict)
 
     return all_features
@@ -247,6 +237,13 @@ def decode(seg, data, parsers):
 
 class snapgene:
     def __init__(self, f):
+        self.data = {"DNA": None,
+                        "descriptor": None,
+                        "features": None,
+                        "primers": None,
+                        "otherProperties": None,
+                        "notes": None,
+                        "unknown": []}
         self.DNA = None
         self.descriptor = None
         self.features = None
@@ -254,8 +251,7 @@ class snapgene:
         self.otherProperties = None
         self.notes = None
         self.unknown = []
-        
-        
+             
         segment = f.read(5)
         seg = None
         lastSeg = None
@@ -268,47 +264,65 @@ class snapgene:
                 data = f.read(seg_len)
                 snoof = decode(seg, data, decode_dict)
 
-                # assign to correct attribute
-                # what is a more pythonic way to do this?
-                if seg == 0:
-                    self.DNA = snoof
-                elif seg == 9:
-                    self.descriptor = snoof
-                elif seg == 10:
-                    self.features = snoof
-                elif seg == 5:
-                    self.primers = snoof
-                elif seg == 8:
-                    self.otherProperties = snoof
-                elif seg == 6:
-                    self.notes = snoof
+                if seg in map_dict:
+                    print "seg %s in map dict" % seg
+                    if self.data[map_dict[seg]] == None:
+                        self.data[map_dict[seg]] = snoof
+                    else:
+                        raise Exception("Duplicate segments. Current segment: %s Previous segment: %s" %(seg, lastSeg))
                 else:
-                    self.unknown.append(snoof)
+                    print "other seg %s going in other" % seg
+                    self.data["unknown"].append(snoof)
                 segment = f.read(5)
             except:
                 raise Exception("Badly formed segment or missing segment. Current segment: %s Previous Segment: %s" %(seg, lastSeg))
 
-        if self.descriptor == None:
+        if self.data["descriptor"] == None:
             raise Exception("No snapgene Descriptor. Is this a snapgene .dna file?")
 
-        if self.DNA == None:
+        if self.data["DNA"] == None:
             raise Exception("No DNA Sequence Provided!")
 
+map_dict = {0: "DNA",
+            9: "descriptor",
+            10: "features",
+            5: "primers",
+            8: "otherProperties",
+            6: "notes"
+    
+}
+
+decode_dict = {}
+for i in range(15):
+    decode_dict[i] = lambda x: x
+decode_dict[0] =  parseDNA
+decode_dict[9] = parseDescriptor
+decode_dict[10] = parseFeatures
+decode_dict[5] = parsePrimers
+decode_dict[6] = parseNotes
+decode_dict[8] = parseProperties
 
 
 def main():
     # TODO
-    # fix notes in features: make dict
     # write tests
+    # docstrings
+    # description of object types and structure (particularly as this is complex)
+
     with open("../data/snapgene/pDONR223 empty vector.dna", "r") as f:
-        mySnapgene = snapgene()
+        mySnapgene = snapgene(f)
     print mySnapgene.DNA
     print mySnapgene.descriptor
     print mySnapgene.features
     print mySnapgene.primers
     print "other:", mySnapgene.otherProperties
     print "notes:", mySnapgene.notes
+    for k, v in mySnapgene.data.iteritems():
+        print k, v
+    print "DNA:", mySnapgene.data["DNA"]
+    print mySnapgene.data["DNA"]["sequence"]
     #print mySnapgene.unknown
 
 if __name__ == '__main__':
     sys.exit(main())
+
