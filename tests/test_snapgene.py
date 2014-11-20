@@ -13,14 +13,15 @@
 
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
 
 
 import sys
@@ -36,10 +37,12 @@ from snapgene import snapgene
 
 # put some fixtures here
 
-# Full dataset for evaluating 
+# Full dataset for evaluating
+
+
 @pytest.fixture(scope="module")
 def fulldata():
-    with open("testdata/pDONR223 empty vector.dna", "rb") as f: 
+    with open("testdata/pDONR223 empty vector.dna", "rb") as f:
         fulldata = snapgene(f)
     return fulldata
 
@@ -47,7 +50,7 @@ def fulldata():
 len_DNA = 5005
 
 with open("testdata/sequence.txt", "r") as seq:
-    fullSequence = seq.read() 
+    fullSequence = seq.read()
 
 
 # put some tests here
@@ -55,25 +58,29 @@ class TestSnapgeneDNA:
     """
     Test correct parsing of DNA segment.
 
-    When the correct .dna file is supplied, the sequence length and identity should match "len_DNA" and "fullSequence, the topology is circular, the strandedness is double and the Dam, Dcm and EcoK1 methylation states are all True.
+    When the correct .dna file is supplied, the sequence length and identity
+    should match "len_DNA" and "fullSequence, the topology is circular, the
+    strandedness is double and the Dam, Dcm and EcoK1 methylation states are
+    all True.
 
     When the DNA segment is missing, an error should be raised.
 
     When the DNA segment is duplicated an error should be raised.
 
-    When the segment length does not match the length described in the segment header, the next segment key will be unknown, so an error should be raised.
-    
+    When the segment length does not match the length described in the segment
+    header, the next segment key will be unknown, so an error should be raised.
+
     """
 
     def testDNAMissing(self):
         with pytest.raises(Exception) as excinfo:
             with open("testdata/test_no0.dna", "rb") as f:
-                noDNA = snapgene(f) 
+                noDNA = snapgene(f)
         assert excinfo.value.message == "No DNA Sequence Provided!"
 
     def testDNAPresent(self, fulldata):
-        assert fulldata.data["DNA"] != None
-        
+        assert fulldata.data["DNA"] is not None
+
     def testParsedDNALength(self, fulldata):
         assert len(fulldata.data["DNA"]["sequence"]) == len_DNA
 
@@ -81,7 +88,7 @@ class TestSnapgeneDNA:
         assert fulldata.data["DNA"]["sequence"] == fullSequence
 
     def testMethylation(self, fulldata):
-        assert (fulldata.data["DNA"]["Dam"] == True) and (fulldata.data["DNA"]["Dcm"] == True) and (fulldata.data["DNA"]["EcoK1"] == True)
+        assert (fulldata.data["DNA"]["Dam"] is True) and (fulldata.data["DNA"]["Dcm"] is True) and (fulldata.data["DNA"]["EcoK1"] is True)
 
     def testStrandTopology(self, fulldata):
         assert (fulldata.data["DNA"]["topology"] == "circular") and (fulldata.data["DNA"]["strandedness"] == "double")
@@ -89,61 +96,52 @@ class TestSnapgeneDNA:
     def testTruncatedSequence(self):
         with pytest.raises(Exception) as excinfo:
             with open("testdata/truncated.dna", "rb") as f:
-                truncatedDNA = snapgene(f) 
+                truncatedDNA = snapgene(f)
         assert excinfo.value.message == "Badly formed segment or missing segment. Current segment: 29 Previous Segment: 0"
 
     def testDuplicateSequence(self):
         with pytest.raises(Exception) as excinfo:
             with open("testdata/duplicate.dna", "rb") as f:
-                truncatedDNA = snapgene(f) 
-        assert excinfo.value.message == "Duplicate segments. Current segment: 0 Previous segment: 0" 
- 
+                truncatedDNA = snapgene(f)
+        assert excinfo.value.message == "Duplicate segments. Current segment: 0 Previous segment: 0"
+
 
 class TestSnapgeneDescriptor:
     """
-    Test parsing of Descriptor. 
+    Test parsing of Descriptor.
 
-    f_type should be "DNA" when correct .dan file supplied. If there is no descriptor segemnt, raise an error
+    f_type should be "DNA" when correct .dan file supplied. If there is no \
+    descriptor segemnt, raise an error
     """
+
     def testDescriptorInfo(self, fulldata):
         assert fulldata.data["descriptor"]["f_type"] == "DNA"
 
     def testMissingDescriptor(self):
         with pytest.raises(Exception) as excinfo:
             with open("testdata/test_no9.dna", "rb") as f:
-                noDescriptor = snapgene(f) 
+                noDescriptor = snapgene(f)
         assert excinfo.value.message == "No snapgene Descriptor. Is this a snapgene .dna file?"
+
 
 class TestOtherFeatures:
     """Test correct handling of missing non-essential segments"""
     def testFeaturesMissing(self):
         with open("testdata/test_no10.dna", "rb") as f:
-            noFeatures = snapgene(f) 
-        assert noFeatures.data["features"] == None
+            noFeatures = snapgene(f)
+        assert noFeatures.data["features"] is None
 
     def testPrimersMissing(self):
         with open("testdata/test_no5.dna", "rb") as f:
-            noPrimers = snapgene(f) 
-        assert noPrimers.data["primers"] == None
+            noPrimers = snapgene(f)
+        assert noPrimers.data["primers"] is None
 
     def testOtherMissing(self):
         with open("testdata/test_no8.dna", "rb") as f:
-            noOther = snapgene(f) 
-        assert noOther.data["otherProperties"] == None
+            noOther = snapgene(f)
+        assert noOther.data["otherProperties"] is None
 
     def testNotesMissing(self):
         with open("testdata/test_no6.dna", "rb") as f:
-            noNotes = snapgene(f) 
-        assert noNotes.data["notes"] == None
-
-
-
-
-
-
-
-#noFeatures = snapgene()
-#noPrimers = snapgene("testdata/test_no5.dna")
-#noOther = snapgene("testdata/test_no6.dna")
-#noNotes = snapgene("testdata/test_no8.dna")
-    
+            noNotes = snapgene(f)
+        assert noNotes.data["notes"] is None
