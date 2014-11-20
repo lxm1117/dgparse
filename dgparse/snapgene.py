@@ -266,7 +266,7 @@ def decode(seg, data, parsers):
     return data
 
 
-class snapgene:
+class snapgene(object):
     """
     snapgene class holds parsed Snapgene data.
 

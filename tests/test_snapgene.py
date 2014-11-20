@@ -54,7 +54,7 @@ with open("testdata/sequence.txt", "r") as seq:
 
 
 # put some tests here
-class TestSnapgeneDNA:
+class TestSnapgeneDNA(object):
     """
     Test correct parsing of DNA segment.
 
@@ -106,7 +106,7 @@ class TestSnapgeneDNA:
         assert excinfo.value.message == "Duplicate segments. Current segment: 0 Previous segment: 0"
 
 
-class TestSnapgeneDescriptor:
+class TestSnapgeneDescriptor(object):
     """
     Test parsing of Descriptor.
 
@@ -124,7 +124,7 @@ class TestSnapgeneDescriptor:
         assert excinfo.value.message == "No snapgene Descriptor. Is this a snapgene .dna file?"
 
 
-class TestOtherFeatures:
+class TestOtherFeatures(object):
     """Test correct handling of missing non-essential segments"""
     def testFeaturesMissing(self):
         with open("testdata/test_no10.dna", "rb") as f:
