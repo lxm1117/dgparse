@@ -49,6 +49,7 @@ from xml.dom.minidom import parseString
 # if not implemented, returns the original section unparsed
 
 
+
 def parseDNA(data):
     # dictionary of DNA properties
     DNA_properties = {}
@@ -336,28 +337,7 @@ class Snapgene(object):
     myFileVesrsion = mySnapgene.data["descriptor"]["import_version"]
 
     """
-    map_dict = {0: "DNA",
-                9: "descriptor",
-                10: "features",
-                5: "primers",
-                8: "otherProperties",
-                6: "notes"
 
-                }
-
-    noop = lambda x: x
-
-    decode_dict = {
-        0: parseDNA,
-        2: noop,
-        3: noop,
-        5: parsePrimers,
-        6: parseNotes,
-        8: parseProperties,
-        0: parseDNA,
-        9: parseDescriptor,
-        10: parseFeatures,
-    }
 
     def __init__(self, f):
         self.data = {"DNA": None,
@@ -378,7 +358,7 @@ class Snapgene(object):
             seg, seg_len = struct.unpack('>BI', segment)
             try:
                 data = f.read(seg_len)
-                parsedData = decode(seg, data, snapgene.decode_dict)
+                parsedData = decode(seg, data, SEGMENT_PARSERRS)
             except:
                 # this is not totally robust: the error is raised because of a
                 # key error following the wrong number of bytes in the previous
@@ -386,12 +366,12 @@ class Snapgene(object):
                 # despite earlier error.
                 raise Exception("Badly formed segment or missing segment. Current segment: %s Previous Segment: %s" % (seg, lastSeg))
 
-            if seg in snapgene.map_dict:
-                if self.data[snapgene.map_dict[seg]] is not None:
+            if seg in SEGMENT_NAME:
+                if self.data[SEGMENT_NAME[seg]] is not None:
                     errMsg = "Duplicate segments. Current segment: %s Previous segment: %s" % (seg, lastSeg)
                     raise Exception(errMsg)
                 else:
-                    self.data[snapgene.map_dict[seg]] = parsedData
+                    self.data[SEGMENT_NAME[seg]] = parsedData
             else:
                 # if we don't know how to parse it keep in "unknown" dictionary
                 self.unknown[seg] = parsedData
@@ -432,6 +412,29 @@ def main():
 
     print json.dumps(mySnapgene.data, sort_keys=True, indent=4,
                      separators=(',', ': '))
+
+noop = lambda x: x
+
+SEGMENT_PARSERRS = {
+    0: parseDNA,
+    2: noop,
+    3: noop,
+    5: parsePrimers,
+    6: parseNotes,
+    8: parseProperties,
+    0: parseDNA,
+    9: parseDescriptor,
+    10: parseFeatures,
+}
+
+SEGMENT_NAME = {
+    0: 'DNA',
+    5: 'primers',
+    8: 'otherProperties',
+    6: 'notes',
+    9: 'descriptor',
+    10: 'features',
+}
 
 if __name__ == '__main__':
     sys.exit(main())
