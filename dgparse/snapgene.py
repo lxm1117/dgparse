@@ -267,7 +267,7 @@ def decode(seg, data, parsers):
     return data
 
 
-class Snapgene(object):
+def snapgene(f):
     """
     snapgene class holds parsed Snapgene data.
 
@@ -337,51 +337,50 @@ class Snapgene(object):
     myFileVesrsion = mySnapgene.data["descriptor"]["import_version"]
 
     """
+    data = {
+        "DNA": None,
+        "descriptor": None,
+        "features": None,
+        "primers": None,
+        "otherProperties": None,
+        "notes": None
+    }
+    unknown = {}
 
+    segment = f.read(5)
+    seg = None
+    lastSeg = None
+    while segment:
+        if seg is not None:
+            lastSeg = seg
+        seg, seg_len = struct.unpack('>BI', segment)
+        try:
+            data = f.read(seg_len)
+            parsedData = decode(seg, data, SEGMENT_PARSERRS)
+        except:
+            # this is not totally robust: the error is raised because of a
+            # key error following the wrong number of bytes in the previous
+            # segment. It is possible that this still gives a valid key,
+            # despite earlier error.
+            raise Exception("Badly formed segment or missing segment. Current segment: %s Previous Segment: %s" % (seg, lastSeg))
 
-    def __init__(self, f):
-        self.data = {"DNA": None,
-                     "descriptor": None,
-                     "features": None,
-                     "primers": None,
-                     "otherProperties": None,
-                     "notes": None
-                     }
-        self.unknown = {}
-
-        segment = f.read(5)
-        seg = None
-        lastSeg = None
-        while segment:
-            if seg is not None:
-                lastSeg = seg
-            seg, seg_len = struct.unpack('>BI', segment)
-            try:
-                data = f.read(seg_len)
-                parsedData = decode(seg, data, SEGMENT_PARSERRS)
-            except:
-                # this is not totally robust: the error is raised because of a
-                # key error following the wrong number of bytes in the previous
-                # segment. It is possible that this still gives a valid key,
-                # despite earlier error.
-                raise Exception("Badly formed segment or missing segment. Current segment: %s Previous Segment: %s" % (seg, lastSeg))
-
-            if seg in SEGMENT_NAME:
-                if self.data[SEGMENT_NAME[seg]] is not None:
-                    errMsg = "Duplicate segments. Current segment: %s Previous segment: %s" % (seg, lastSeg)
-                    raise Exception(errMsg)
-                else:
-                    self.data[SEGMENT_NAME[seg]] = parsedData
+        if seg in SEGMENT_NAME:
+            if data[SEGMENT_NAME[seg]] is not None:
+                errMsg = "Duplicate segments. Current segment: %s Previous segment: %s" % (seg, lastSeg)
+                raise Exception(errMsg)
             else:
-                # if we don't know how to parse it keep in "unknown" dictionary
-                self.unknown[seg] = parsedData
-            segment = f.read(5)
+                data[SEGMENT_NAME[seg]] = parsedData
+        else:
+            # if we don't know how to parse it keep in "unknown" dictionary
+            unknown[seg] = parsedData
+        segment = f.read(5)
 
-        if self.data["descriptor"] is None:
-            raise Exception("No snapgene Descriptor. Is this a snapgene .dna file?")
+    if data["descriptor"] is None:
+        raise Exception("No snapgene Descriptor. Is this a snapgene .dna file?")
 
-        if self.data["DNA"] is None:
-            raise Exception("No DNA Sequence Provided!")
+    if data["DNA"] is None:
+        raise Exception("No DNA Sequence Provided!")
+    return data
 
 
 def main():
@@ -410,7 +409,7 @@ def main():
     with open(args.SnapGeneFile, "r") as f:
         mySnapgene = snapgene(f)
 
-    print json.dumps(mySnapgene.data, sort_keys=True, indent=4,
+    print json.dumps(mySnapgene, sort_keys=True, indent=4,
                      separators=(',', ': '))
 
 noop = lambda x: x
