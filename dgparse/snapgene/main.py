@@ -47,7 +47,7 @@ from xml.dom.minidom import parseString
 # setting up a dictionary of parsing functions for each segment
 # if not implemented, returns the original section unparsed
 
-from segments import (
+from .segments import (
     decode,
     parseDNA,
     noop,
