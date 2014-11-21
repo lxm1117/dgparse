@@ -345,15 +345,19 @@ class Snapgene(object):
 
                 }
 
-    decode_dict = {}
-    for i in [2, 3, 13]:
-        decode_dict[i] = lambda x: x
-    decode_dict[0] = parseDNA
-    decode_dict[9] = parseDescriptor
-    decode_dict[10] = parseFeatures
-    decode_dict[5] = parsePrimers
-    decode_dict[6] = parseNotes
-    decode_dict[8] = parseProperties
+    noop = lambda x: x
+
+    decode_dict = {
+        0: parseDNA,
+        2: noop,
+        3: noop,
+        5: parsePrimers,
+        6: parseNotes,
+        8: parseProperties,
+        0: parseDNA,
+        9: parseDescriptor,
+        10: parseFeatures,
+    }
 
     def __init__(self, f):
         self.data = {"DNA": None,
