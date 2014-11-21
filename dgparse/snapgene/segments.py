@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 noop = lambda x: x
 
 
-def parseDNA(data):
+def parse_dna(data):
     # dictionary of DNA properties
     DNA_properties = {}
 
@@ -48,7 +48,7 @@ def parseDNA(data):
     return DNA_properties
 
 
-def parseDescriptor(data):
+def parse_descriptor(data):
     descriptor_properties = {}
 
     # "snapgene" name
@@ -66,7 +66,7 @@ def parseDescriptor(data):
     return descriptor_properties
 
 
-def parseNotes(data):
+def parse_notes(data):
     level_0 = {"Synthetic": bool,
                "ConfirmedExperimentally": bool,
                "CustomMapLabel": unicode,
@@ -109,7 +109,7 @@ def parseNotes(data):
     return notes_dict
 
 
-def parseProperties(data):
+def parse_properties(data):
     level_0 = {"AdditionalSequenceProperties": unicode,
                "UpstreamStickiness": bool,
                "DownstreamStickiness": bool,
@@ -127,7 +127,7 @@ def parseProperties(data):
     return properties_dict
 
 
-def parsePrimers(data):
+def parse_primers(data):
     primer_dict = {}
     primers = []
 
@@ -173,7 +173,7 @@ def parsePrimers(data):
     return primer_dict
 
 
-def parseFeatures(data):
+def parse_features(data):
     all_features = []
     top_level = {"name": str,
                  "swappedSegmentNumbering": bool,

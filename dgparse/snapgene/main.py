@@ -44,32 +44,32 @@ import json
 
 from .segments import (
     decode,
-    parseDNA,
+    parse_dna,
     noop,
-    parsePrimers,
-    parseNotes,
-    parseProperties,
-    parseDescriptor,
-    parseFeatures,
+    parse_primers,
+    parse_notes,
+    parse_properties,
+    parse_descriptor,
+    parse_features,
 )
 
 SEGMENT_PARSERS = {
-    0: parseDNA,
+    0: parse_dna,
     2: noop,
     3: noop,
-    5: parsePrimers,
-    6: parseNotes,
-    8: parseProperties,
-    0: parseDNA,
-    9: parseDescriptor,
-    10: parseFeatures,
+    5: parse_primers,
+    6: parse_notes,
+    8: parse_properties,
+    0: parse_dna,
+    9: parse_descriptor,
+    10: parse_features,
     13: noop,
 }
 
 SEGMENT_NAME = {
     0: 'DNA',
     5: 'primers',
-    8: 'otherProperties',
+    8: 'other_properties',
     6: 'notes',
     9: 'descriptor',
     10: 'features',
@@ -90,7 +90,7 @@ def snapgene(f):
 
     More information about the data attribute:
     data has six keys (str): DNA, descriptor, features, primers,
-        otherProperties and notes, which correspond to the six file segments
+        other_properties and notes, which correspond to the six file segments
         described in the SnapGene specifications. Each of these values is a
         further dictionary of key:value pairs, except for features, which is a
         list of feature dictionaries.
@@ -120,7 +120,7 @@ def snapgene(f):
         ConfirmedExperimentally, references, created, CustomMapLabel, Organism,
         UseCustomMapLabel
 
-    Keys for the otherProperties dictionary: UpstreamModification,
+    Keys for the other_properties dictionary: UpstreamModification,
         UpstreamStickiness, DownstreamModification, DownstreamStickiness
 
     Keys for the feature dictionaries in the features list:
@@ -151,7 +151,7 @@ def snapgene(f):
         "descriptor": None,
         "features": None,
         "primers": None,
-        "otherProperties": None,
+        "other_properties": None,
         "notes": None
     }
     unknown = {}
@@ -165,7 +165,7 @@ def snapgene(f):
         seg, seg_len = struct.unpack('>BI', segment)
         try:
             data = f.read(seg_len)
-            parsedData = decode(seg, data, SEGMENT_PARSERS)
+            parsed_data = decode(seg, data, SEGMENT_PARSERS)
         except:
             # this is not totally robust: the error is raised because of a
             # key error following the wrong number of bytes in the previous
@@ -178,10 +178,10 @@ def snapgene(f):
                 errMsg = "Duplicate segments. Current segment: %s Previous segment: %s" % (seg, lastSeg)
                 raise Exception(errMsg)
             else:
-                container[SEGMENT_NAME[seg]] = parsedData
+                container[SEGMENT_NAME[seg]] = parsed_data
         else:
             # if we don't know how to parse it keep in "unknown" dictionary
-            unknown[seg] = parsedData
+            unknown[seg] = parsed_data
         segment = f.read(5)
 
     if container["descriptor"] is None:
