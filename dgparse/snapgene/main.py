@@ -35,13 +35,8 @@ from __future__ import division
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import logging
-import click
-import sys
 import struct
-import binascii
 import json
-from xml.dom.minidom import parseString
 # from xml.dom import minidom
 
 # setting up a dictionary of parsing functions for each segment
