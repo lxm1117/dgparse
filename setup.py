@@ -7,6 +7,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         'pytest',
+        'click',
     ],
     entry_points={
         'console_scripts': ['snapgene-json = dgparse.snapgene.main:main'],
