@@ -47,7 +47,7 @@ from xml.dom.minidom import parseString
 # setting up a dictionary of parsing functions for each segment
 # if not implemented, returns the original section unparsed
 
-from .segments import (
+from segments import (
     decode,
     parseDNA,
     noop,
@@ -68,6 +68,7 @@ SEGMENT_PARSERS = {
     0: parseDNA,
     9: parseDescriptor,
     10: parseFeatures,
+    13: noop,
 }
 
 SEGMENT_NAME = {
@@ -150,7 +151,7 @@ def snapgene(f):
     myFileVesrsion = mySnapgene.data["descriptor"]["import_version"]
 
     """
-    data = {
+    container = {
         "DNA": None,
         "descriptor": None,
         "features": None,
@@ -178,22 +179,22 @@ def snapgene(f):
             raise Exception("Badly formed segment or missing segment. Current segment: %s Previous Segment: %s" % (seg, lastSeg))
 
         if seg in SEGMENT_NAME:
-            if data[SEGMENT_NAME[seg]] is not None:
+            if container[SEGMENT_NAME[seg]] is not None:
                 errMsg = "Duplicate segments. Current segment: %s Previous segment: %s" % (seg, lastSeg)
                 raise Exception(errMsg)
             else:
-                data[SEGMENT_NAME[seg]] = parsedData
+                container[SEGMENT_NAME[seg]] = parsedData
         else:
             # if we don't know how to parse it keep in "unknown" dictionary
             unknown[seg] = parsedData
         segment = f.read(5)
 
-    if data["descriptor"] is None:
+    if container["descriptor"] is None:
         raise Exception("No snapgene Descriptor. Is this a snapgene .dna file?")
 
-    if data["DNA"] is None:
+    if container["DNA"] is None:
         raise Exception("No DNA Sequence Provided!")
-    return data
+    return container
 
 
 def main():
