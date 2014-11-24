@@ -24,16 +24,13 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 
-import sys
-
 """
 Describe your test, its assumptions, and expected results
 """
 
 # importing required modules
 import pytest
-sys.path.append('../dgparse')
-from snapgene import snapgene
+from dgparse.snapgene.main import snapgene
 
 # put some fixtures here
 
@@ -79,19 +76,19 @@ class TestSnapgeneDNA(object):
         assert excinfo.value.message == "No DNA Sequence Provided!"
 
     def testDNAPresent(self, fulldata):
-        assert fulldata.data["DNA"] is not None
+        assert fulldata["DNA"] is not None
 
     def testParsedDNALength(self, fulldata):
-        assert len(fulldata.data["DNA"]["sequence"]) == len_DNA
+        assert len(fulldata["DNA"]["sequence"]) == len_DNA
 
     def testParsedDNASequence(self, fulldata):
-        assert fulldata.data["DNA"]["sequence"] == fullSequence
+        assert fulldata["DNA"]["sequence"] == fullSequence
 
     def testMethylation(self, fulldata):
-        assert (fulldata.data["DNA"]["Dam"] is True) and (fulldata.data["DNA"]["Dcm"] is True) and (fulldata.data["DNA"]["EcoK1"] is True)
+        assert (fulldata["DNA"]["Dam"] is True) and (fulldata["DNA"]["Dcm"] is True) and (fulldata["DNA"]["EcoK1"] is True)
 
     def testStrandTopology(self, fulldata):
-        assert (fulldata.data["DNA"]["topology"] == "circular") and (fulldata.data["DNA"]["strandedness"] == "double")
+        assert (fulldata["DNA"]["topology"] == "circular") and (fulldata["DNA"]["strandedness"] == "double")
 
     def testTruncatedSequence(self):
         with pytest.raises(Exception) as excinfo:
@@ -115,7 +112,7 @@ class TestSnapgeneDescriptor(object):
     """
 
     def testDescriptorInfo(self, fulldata):
-        assert fulldata.data["descriptor"]["f_type"] == "DNA"
+        assert fulldata["descriptor"]["f_type"] == "DNA"
 
     def testMissingDescriptor(self):
         with pytest.raises(Exception) as excinfo:
@@ -129,19 +126,19 @@ class TestOtherFeatures(object):
     def testFeaturesMissing(self):
         with open("testdata/test_no10.dna", "rb") as f:
             noFeatures = snapgene(f)
-        assert noFeatures.data["features"] is None
+        assert noFeatures["features"] is None
 
     def testPrimersMissing(self):
         with open("testdata/test_no5.dna", "rb") as f:
             noPrimers = snapgene(f)
-        assert noPrimers.data["primers"] is None
+        assert noPrimers["primers"] is None
 
     def testOtherMissing(self):
         with open("testdata/test_no8.dna", "rb") as f:
             noOther = snapgene(f)
-        assert noOther.data["otherProperties"] is None
+        assert noOther["other_properties"] is None
 
     def testNotesMissing(self):
         with open("testdata/test_no6.dna", "rb") as f:
             noNotes = snapgene(f)
-        assert noNotes.data["notes"] is None
+        assert noNotes["notes"] is None

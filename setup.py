@@ -2,15 +2,14 @@ from setuptools import setup, find_packages
 
 
 setup(
-    name='genomebrowser',
-    version='0.0.3d',
+    name='dgparse',
+    version='0.0.1',
     packages=find_packages(),
     install_requires=[
         'pytest',
+        'click',
     ],
     entry_points={
-        "distutils.commands": ["run = genomebrowser:run"],
-        'console_scripts': ['genomebrowser = genomebrowser:run'],
-        'paste.app_factory': ['main = genomebrowser:main'],
+        'console_scripts': ['snapgene-json = dgparse.snapgene.main:main'],
     },
 )
