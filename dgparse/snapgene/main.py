@@ -76,7 +76,7 @@ SEGMENT_NAME = {
 }
 
 
-def snapgene(f):
+def parse(f):
     """
     snapgene class holds parsed Snapgene data.
 
@@ -216,7 +216,7 @@ def main():
     args = parser.parse_args()
 
     with open(args.SnapGeneFile, "r") as f:
-        mySnapgene = snapgene(f)
+        mySnapgene = parse(f)
 
     print json.dumps(mySnapgene, sort_keys=True, indent=4,
                      separators=(',', ': '))
