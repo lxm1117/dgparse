@@ -1,226 +1,307 @@
-"""Extract Gene, Transcript, Exon, CDS features from EMBL GTF format file"""
-import gzip
+"""Parse GTF for Gene, Transcript, Exon and CDS features
+
+Usage:
+  parse_gtf.py (--input=<file.gz>) (--template=<file>) (--config=<file>) [--check=<bool>] [--withstop=<bool>] [--log=<loglevel>]
+
+Options:
+  --help                    Show this screen
+  --input=<name>            GTF file, gzipped
+  --template=<file>         JSON template for I/O field mapping
+  --config=<file>           CSV file restricting seqnames to extract features for
+  --check=<bool>            Check redundant data is identical [default: 0]
+  --withstop=<bool>         Merge stop_codons with CDS exons [default: 1]
+  --log=<loglevel>          Logging level [default: ERROR]
+
+"""
+import os
 import re
 import csv
 import gzip
 import logging
-import click
-import yaml
 import collections
+import json
 
+from operator import itemgetter
+
+from docopt import docopt
+from hashlib import md5
 from pprint import pprint
 
 logging.basicConfig()
-log = logging.getLogger(__name__)    
-log.setLevel(logging.INFO)
+log = logging.getLogger(__name__)
 
-@click.group()
-def cli():
-    pass
+def _hash_dict(input_dict):
+    inst = md5()
+    inst.update(str(input_dict))
+    return inst.hexdigest()
+    
 
-def _base_dict(id_key, id_dict, coord_dict):
+def _handle(template, check, feature_dict):
 
-    base = collections.OrderedDict()
+    # Unpack the attribute field 
+    attribute_regex = r"(.*?)\s+\"(.*?)\";\s?"
+    attribute_dict = {}
+    if 'attribute' in feature_dict:
+        kv_pairs = re.findall(attribute_regex, feature_dict['attribute'])
+        attribute_dict = collections.OrderedDict(kv_pairs)
 
-    if id_key and id_dict:
-        base[id_key] = id_dict[id_key]
+    feature = feature_dict['feature']
+    
+    for gtf_key, obj in template.items():
+        if feature == gtf_key:
 
-    if coord_dict:
-        # Conform to genomebrowser convention
-        base['chromosome_name'] = coord_dict['seqname']
-        base['strand'] = ( 1 if coord_dict['strand'] == '+' else -1 )
-        base['start'] = int(coord_dict['start'])
-        base['end'] = int(coord_dict['end'])
+            model = collections.OrderedDict()
 
-    return base
+            for source_dict, map_dict in [
+                    (attribute_dict, obj['attributes']),
+                    (feature_dict, obj['fields'])
+            ]:
+                for from_key in sorted(map_dict.keys()):
+                    if from_key in source_dict:
+                        to_key = map_dict[from_key]
+                        if source_dict[from_key] != '.':
+                            model[to_key] = source_dict[from_key]
+
+            if not 'unique' in obj:
+                obj['writer'].writerow(model)
+                continue
+
+            check_value = None
+            if check:
+                check_value = _hash_dict(model)
+            tup = tuple(map(model.get, obj['unique']))
+            if tup in obj['dejavu']:
+                if 'enforce_unique' in obj and obj['enforce_unique']:
+                    raise Exception("Error %s occurs more than once" % str(tup))
+                else:
+                    if check:
+                        assert check_value == obj['dejavu'][tup]
+            else:
+                obj['dejavu'][tup] = check_value
+                obj['writer'].writerow(model)
 
 
-@cli.command()
-@click.argument('embl_gtf')
-def parse_gtf(embl_gtf):
-    """
-    Extract genes/transcripts/exons from EMBL GTF
-    """
-
-    # Reference
+def parse(template_file, config_file, check, input_file):
+    
+    # GTF format is a TSV format file containing gene features. 
+    # Reference:
     # http://www.ensembl.org/info/website/upload/gff.html
 
-    gtf_fields = ['seqname',
-                  'source',
-                  'feature',
-                  'start',
-                  'end',
-                  'score',
-                  'strand',
-                  'frame',
-                  'attribute']
+    # The fields are    
+    gtf_fields = [
+        'seqname',            # e.g. chromosome_name
+        'source',             # e.g. ensembl_havana
+        'feature',            # feature name e.g. CDS, transcript, exon
+        'start',              
+        'end',
+        'score',
+        'strand',             # + (forward), - (reverse)
+        'frame',
+        'attribute'           # key1, val1; key2, val2; ... etc.
+    ]
 
-    features_of_interest = ['transcript',
-                            'exon',
-                            'CDS']
-    
+    # Read template
+    template = None
+    with open(template_file) as template_fh:
+        template_str = template_fh.read()
+        template =json.JSONDecoder(object_pairs_hook=collections.OrderedDict).decode(template_str)
+
+    # Read template
+    seqname_dict = {}
+    with open(config_file) as config_fh:
+        reader = csv.DictReader(config_fh)
+        for config_dict in reader:
+            seqname_dict[config_dict['seqname']] = config_dict['chromosome_name']
+            
+    # Features of interest
+    interest = set()
+    for key, obj in template.items():
+        interest.add(key)
+
+    # Open CSV files, write header
+    for key, obj in template.items():
+        obj['output_file'] = "{0}.csv".format(key)
+        obj['output_fh'] = open(obj['output_file'], 'w')
+        obj['writer'] = csv.DictWriter(
+            obj['output_fh'], 
+            obj['attributes'].values() + obj['fields'].values())
+        obj['writer'].writeheader()
+
+    # If a unique field name tuple has been defined, prepare a dejavu dict
+    for key, obj in template.items():
+        if 'unique' in obj:
+            obj['dejavu'] = {}
+
     # Parse for features of interest
-    gtf_list = []
-
-    log.info('Reading %s...', embl_gtf)
-    with gzip.open(embl_gtf) as input_fh:
+    log.info('Reading %s...', input_file)
+    with gzip.open(input_file) as input_fh:
+        # Uncertain number of header lines, tricky to use csv.reader
         for line in input_fh:
-            if not line.startswith('#'):
-                break
-        csv_reader = csv.reader(input_fh, delimiter='\t')
-        for row in csv_reader:
-            gtf_dict = collections.OrderedDict(zip(gtf_fields, row))
-            if gtf_dict['feature'] in features_of_interest:
-                gtf_list.append(gtf_dict)
-#                if len(gtf_list) >= 10000:
+            if line.startswith('#'):
+                continue
+            stripped = line.rstrip()
+            feature_dict = dict(zip(gtf_fields, stripped.split('\t')))
+            if (feature_dict['feature'] in interest and
+                feature_dict['seqname'] in seqname_dict):
+                _transform_coordinates(feature_dict, seqname_dict)
+                _handle(template, check, feature_dict)
+#                if len(template['gene']['dejavu']) > 100:
 #                    break
+                
+    # Output
+    for key, obj in template.items():
+        obj['output_fh'].close()
+        log.info('Wrote %d items to %s', len(obj['dejavu']), obj['output_file'])
 
-    log.info('Extracted %d features', len(gtf_list)) 
 
-    # Unpack the attribute field of each feature into a second level dict
-    attribute_regex = r"(.*?)\s+\"(.*?)\";\s+"                               
-    for gtf_dict in gtf_list:
-        if gtf_dict['attribute']:
-            pairs = re.findall(attribute_regex, gtf_dict['attribute'])
-            # Overwrite the string with the dict!
-            gtf_dict['attribute'] = collections.OrderedDict(pairs)
+def _transform_coordinates(feature_dict, seqname_dict):
+    feature_dict['seqname'] = seqname_dict[feature_dict['seqname']]
+    feature_dict['strand'] = 1 if feature_dict['strand'] == '+' else -1
+    feature_dict['start'] = str(int(feature_dict['start']) - 1)
 
-    # Collect genes
-    gene_dict = collections.OrderedDict()
-    for gtf_dict in gtf_list:
-        if gtf_dict['feature'] == 'transcript':
-            # Base id, no coordinates
-            gene = _base_dict('gene_id', gtf_dict['attribute'], None)
-            # Copy gene related keys
-            for key in gtf_dict['attribute']:
-                if key.startswith('gene_') and key not in gene:
-                    gene[key] = gtf_dict['attribute'][key]
-            # Append to list unless already there
-            if not gene['gene_id'] in gene_dict:
-                gene_dict[gene['gene_id']] = gene
-            else:
-                # Check identity
-                assert not cmp(gene_dict[gene['gene_id']], gene)
 
-    # Collect transcripts, label by gene
-    transcript_dict = collections.OrderedDict()
-    for gtf_dict in gtf_list:
-        if gtf_dict['feature'] == 'transcript':
-            # Base id and coordinates
-            transcript = _base_dict('transcript_id', gtf_dict['attribute'], gtf_dict)
-            # Copy transcript related keys
-            for key in gtf_dict['attribute']:
-                if key.startswith('transcript_') and key not in transcript:
-                    transcript[key] = gtf_dict['attribute'][key]
-            # Insert gene ID
-            gene_id = gtf_dict['attribute']['gene_id']
-            if not gene_id in gene_dict:
-                raise Exeception('Could not find %s', gene_id)
-            transcript['gene_id'] = gene_id
-            # List for exons (see below)
-            transcript['exons'] = []
-            # Append to list unless already there
-            if not transcript['transcript_id'] in transcript_dict:
-                transcript_dict[transcript['transcript_id']] = transcript
-            else:
-                raise Exception('Already have %s', transcript['transcript_id'])
+def dbmap(transcript_file, exon_file, CDS_file, stop_file, 
+          db_exon_file, db_cdsregion_file):
+    """
+    Take the CSV files of parsed GTF features, transform into 
+    CSV files corresponding directly to the database tables.
+    """
 
-    # An exon feature in the GTF file carries an exon_id, 
-    # exon_number, transcript_id and in some cases an 
-    # exon_version. The same exon_id can appear with 
-    # different transcript_ids, and in general when it 
-    # does so, the exon_number and exon_versio are 
-    # specific to that occurrence. 
-    # The code asserts that exon features with the same 
-    # exon_id must have the same coordinates.
-    # To represent the relationship in a non-redundant
-    # way, this code represents an exon with exon_id and
-    # coordinates, and the transcript dict holds a list 
-    # exon-tuples representing the occcurence of specified
-    # exons in the transcript. An exon-tuple contains 
-    # exon_id, exon_number (transcript specific) and
-    # (in some cases) a third item the exon_version 
-    # (assumed to be transcript specific). 
+    # Transcripts with CCDS
+    with_ccds = set()
+    with open(transcript_file, 'r') as input_fh:
+        reader = csv.DictReader(input_fh)
+        for transcript_dict in reader:
+            if 'ccds_accession' in transcript_dict:
+                with_ccds.add(transcript_dict['accession'])
+    
+    # Read stop codons
+    stop_dict = {}
+    with open(stop_file, 'r') as input_fh:
+        reader = csv.DictReader(input_fh)
+        for codon_dict in reader:
+            tup = codon_dict['transcript_name'], codon_dict['transcript_order']
+            if tup in stop_dict:
+                raise Exception('Multiple stop codons for %s' % 
+                                (", ".join(tup)))
+            stop_dict[tup] = codon_dict
+        input_fh.close()
+    log.debug('Loaded %d stop codons', len(stop_dict))
 
-    # Collect exons, append to transcripts
-    exon_dict = {}
-    for gtf_dict in gtf_list:
-        if gtf_dict['feature'] == 'exon':
-            # Base id and coordinates
-            exon = _base_dict('exon_id', gtf_dict['attribute'], gtf_dict)
-            # Copy all exon related keys (except exon_number)
-            for key in gtf_dict['attribute']:
-                # Ignore some keys
-                if key in ['exon_number', 'exon_version']:
-                    continue
-                if key.startswith('exon_') and key not in exon:
-                    exon[key] = gtf_dict['attribute'][key]
-            # Append exon_id, exon_number tuple to transcript
-            transcript_id = gtf_dict['attribute']['transcript_id'] 
-            if transcript_id not in transcript_dict:
-                raise Exception('Could not find %s' % (transcript_id))
-            # Tuple
-            if 'exon_version' in gtf_dict['attribute']:
-                transcript_dict[transcript_id]['exons'].append(
-                    (exon['exon_id'], gtf_dict['attribute']['exon_number'], gtf_dict['attribute']['exon_version']))
-            else:
-                transcript_dict[transcript_id]['exons'].append(
-                    (exon['exon_id'], gtf_dict['attribute']['exon_number']))
-            # Append to list unless already there
-            if not exon['exon_id'] in exon_dict:
-                exon_dict[exon['exon_id']] = exon
-            else:
-                # Check identity 
-                assert not cmp(exon_dict[exon['exon_id']], exon)
+    # Read coding exons
+    # Grab fields names
+    cds_dict = collections.OrderedDict()
+    fieldnames = None
+    with open(CDS_file, 'r') as input_fh:
+        reader = csv.DictReader(input_fh)
+        for exon_dict in reader:
+            if not fieldnames:
+                fieldnames = reader.fieldnames
+            transcript_name = exon_dict['transcript_name']
+            transcript_order = exon_dict['transcript_order']
+            if not transcript_name in cds_dict:
+                cds_dict[transcript_name] = collections.OrderedDict()
+            cds_dict[transcript_name][int(transcript_order)] = exon_dict
+        input_fh.close()
+    log.debug('Loaded %d CDS exons', len(cds_dict))
 
-    # Collect cdsregions, label by transcript
-    cdsregion_dict = collections.OrderedDict()
-    for gtf_dict in gtf_list:
-        if gtf_dict['feature'] == 'CDS':
-            # No id, coordinates
-            cdsregion = _base_dict(None, None, gtf_dict)
-            # Collect
-            for key in 'protein_id', 'exon_number':
-                cdsregion[key] = gtf_dict['attribute'][key];
-            # Insert transcript ID
-            transcript_id = gtf_dict['attribute']['transcript_id'] 
-            if transcript_id not in transcript_dict:
-                raise Exception('Could not find %s' % (transcript_id))
-            cdsregion['transcript_id'] = transcript_id
-            # Append to list unless already there
-            check_for = cdsregion['protein_id'], cdsregion['exon_number']
-            if not check_for in cdsregion_dict:
-                cdsregion_dict[check_for] = cdsregion
-            else:
-                raise Exception('Already have %s' % (" ".join(check_for)))
+    # Assign cds_order
+    # A bit unecessary, could use transcript_order directly
+    for transcript_name, cds in cds_dict.items():
+        order = 1
+        for transcript_order in sorted(cds.keys()):
+            cds[transcript_order]['cds_order'] = order
+            order += 1
 
-    # The exon, gene and CDS dicts are all flat, so 
-    # output as CSV.
-    for output_file, obj_dict in [
-            ('gene', gene_dict),
-            ('exon', exon_dict),
-            ('cdsregion', cdsregion_dict)]:
-        with open(output_file + '.csv', 'w') as output_fh:
-            done_header = 0
-            writer = None
-            for item_id in obj_dict:
+    # Append stop codons and calculate phases 
+    for transcript_name, cds in cds_dict.items():
+        for transcript_order, exon_dict in cds.items():
+            tup = transcript_name, transcript_order
+            # Stop codon
+            if tup in stop_dict:
+                codon_dict = stop_dict[tup]
+                exon_dict['start'] = min(int(exon_dict['start']), 
+                                         int(codon_dict['start']))
+                exon_dict['end'] = max(int(exon_dict['end']), 
+                                       int(codon_dict['end']))
+            # Insert phases
+            exon_length = int(exon_dict['end']) - int(exon_dict['start'])
+            exon_dict['phase_start'] = ( 3 - int(exon_dict['frame']) ) % 3
+            exon_dict['phase_end'] = ( exon_dict['phase_start'] + exon_length ) % 3
+
+    # Fix the fields
+    fieldnames.append('cds_order')
+    fieldnames.append('phase_start')
+    fieldnames.append('phase_end')
+
+    # Write cdsregions
+    with open(db_cdsregion_file, 'w') as output_fh:
+        writer = csv.DictWriter(output_fh, fieldnames=fieldnames)
+        writer.writeheader()
+        for transcript_name, cds in cds_dict.items():
+            # Only write exons for the CCDS transcripts
+            if transcript_name in with_ccds:
+                for transcript_order, exon_dict in cds.items():
+                    writer.writerow(exon_dict)
+        output_fh.close() 
+
+    fieldnames = None
+    with open(db_exon_file, 'w') as output_fh:
+        writer = None
+        with open(exon_file, 'r') as input_fh:
+            reader = csv.DictReader(input_fh)
+            for exon_dict in reader:
+                # Insert phases
+                exon_dict['phase_start'] = -1
+                exon_dict['phase_end'] = -1
+                # These fields will actually hold the coding exon 
+                # start/ends if coding, not the phases!
+                if exon_dict['accession'] in cds_dict:
+                    cds = cds_dict[exon_dict['accession']]
+                    transcript_order = int(exon_dict['transcript_order'])
+                    if transcript_order in cds:
+                        coding_exon_dict = cds[transcript_order]
+                        exon_dict['phase_start'] = coding_exon_dict['start']  # Nasty
+                        exon_dict['phase_end'] = coding_exon_dict['end']      # Nasty
                 if not writer:
-                    fieldnames = obj_dict[item_id].keys()
-                    writer = csv.DictWriter(output_fh, fieldnames)
+                    fieldnames = reader.fieldnames
+                    fieldnames.append('phase_start')
+                    fieldnames.append('phase_end')
+                    writer = csv.DictWriter(output_fh, fieldnames=fieldnames)
                     writer.writeheader()
-                writer.writerow(obj_dict[item_id])
-            output_fh.close()
-            log.info('Wrote %d items to %s', len(obj_dict), output_file)
+                writer.writerow(exon_dict)
+        output_fh.close() 
+        
 
-    # The transcript dict contains a list of exon-tuples
-    # so output in YAML.
-    for output_file, obj_dict in [
-            ('transcript', transcript_dict)]:
-        with open(output_file + '.yaml', 'w') as output_fh:
-            output_fh.write(yaml.dump(obj_dict))
-            output_fh.close()
-            log.info('Wrote %d items to %s', len(obj_dict), output_file)
+def main():
+
+    # Parse args
+    args = docopt(__doc__, version='Breakpoints Annotator')
+
+    # Set logging level
+    loglevel = getattr(logging, args['--log'].upper())
+    log.setLevel(loglevel)
+
+    # Log args
+    log.info(str(args))
+
+    # File paths
+    input_file = os.path.abspath(args['--input'])
+    template_file = os.path.abspath(args['--template'])
+    config_file = os.path.abspath(args['--config'])
+
+    # Flags
+    check = args['--check']
+    withstop = args['--withstop']
+
+    # Parse
+    parse(template_file, config_file, check, input_file)
+
+    # Merge stops
+    if withstop:
+        dbmap('transcript.csv', 'exon.csv', 'CDS.csv', 'stop_codon.csv',
+              'db.exon.csv', 'db.cdsregion.csv')
 
 if __name__ == '__main__':
-    cli()
+    main()
 
