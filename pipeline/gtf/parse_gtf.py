@@ -139,48 +139,50 @@ def parse(template_file, config_file, check, input_file):
         for line in input_fh:
             if line.startswith('#'):
                 continue
-            stripped = line.rstrip()
-            feature_dict = dict(zip(gtf_fields, stripped.split('\t')))
+            parts = line.rstrip().split('\t')
+            assert len(parts) == len(gtf_fields)
+            feature_dict = dict(zip(gtf_fields, parts))
             if (feature_dict['feature'] in interest and
                 feature_dict['seqname'] in seqname_dict):
                 _transform_coordinates(feature_dict, seqname_dict)
                 _handle(template, check, feature_dict)
-#                if len(template['gene']['dejavu']) > 100:
-#                    break
-                
+
     # Output
     for key, obj in template.items():
         obj['output_fh'].close()
         log.info('Wrote %d items to %s', len(obj['dejavu']), obj['output_file'])
 
 
-def _transform_coordinates(feature_dict, seqname_dict):
-    feature_dict['seqname'] = seqname_dict[feature_dict['seqname']]
+def _transform_coordinates(feature_dict, config):
+
+    # Sequence name must be in the config
+    if not feature_dict['seqname'] in config:
+        raise Exception('Invalid seqname, does not match config')
+    feature_dict['seqname'] = config[feature_dict['seqname']]
+
+    # Strand must be '+' or '-'
+    if not feature_dict['strand'] in ('+', '-'):
+        raise Exception('Invalid strand')
     feature_dict['strand'] = 1 if feature_dict['strand'] == '+' else -1
+
+    # Input is one-based [,] per GTF specification
+    # CSV output is zero-based [,)
     feature_dict['start'] = str(int(feature_dict['start']) - 1)
 
 
 def dbmap(transcript_file, exon_file, CDS_file, stop_file, 
-          db_exon_file, db_cdsregion_file):
+          db_exon_file, db_cdsregion_file, db_cds_file):
     """
     Take the CSV files of parsed GTF features, transform into 
     CSV files corresponding directly to the database tables.
     """
 
-    # Transcripts with CCDS
-    with_ccds = set()
-    with open(transcript_file, 'r') as input_fh:
-        reader = csv.DictReader(input_fh)
-        for transcript_dict in reader:
-            if 'ccds_accession' in transcript_dict:
-                with_ccds.add(transcript_dict['accession'])
-    
     # Read stop codons
     stop_dict = {}
     with open(stop_file, 'r') as input_fh:
         reader = csv.DictReader(input_fh)
         for codon_dict in reader:
-            tup = codon_dict['transcript_name'], codon_dict['transcript_order']
+            tup = codon_dict['transcript_accession'], codon_dict['transcript_order']
             if tup in stop_dict:
                 raise Exception('Multiple stop codons for %s' % 
                                 (", ".join(tup)))
@@ -197,26 +199,43 @@ def dbmap(transcript_file, exon_file, CDS_file, stop_file,
         for exon_dict in reader:
             if not fieldnames:
                 fieldnames = reader.fieldnames
-            transcript_name = exon_dict['transcript_name']
+            transcript_accession = exon_dict['transcript_accession']
             transcript_order = exon_dict['transcript_order']
-            if not transcript_name in cds_dict:
-                cds_dict[transcript_name] = collections.OrderedDict()
-            cds_dict[transcript_name][int(transcript_order)] = exon_dict
+            if not transcript_accession in cds_dict:
+                cds_dict[transcript_accession] = collections.OrderedDict()
+            cds_dict[transcript_accession][int(transcript_order)] = exon_dict
         input_fh.close()
-    log.debug('Loaded %d CDS exons', len(cds_dict))
+    log.debug('Loaded %d CDS transcripts', len(cds_dict))
+
+    # Map transcript accessions to protein IDs
+    t2p = {}
+    for transcript_accession, cds in cds_dict.items():
+        for transcript_order, exon_dict in cds.items():
+            if 'protein_accession' in exon_dict:
+                t2p[transcript_accession] = exon_dict['protein_accession']
+
+    # Transcripts with CCDS
+    ccds_dict = {}
+    with open(transcript_file, 'r') as input_fh:
+        reader = csv.DictReader(input_fh)
+        with open(db_cds_file, 'w') as output_fh:
+            for transcript_dict in reader:
+                if 'ccds_accession' in transcript_dict and transcript_dict['ccds_accession']:
+                    ccds_dict[transcript_dict['accession']] = transcript_dict
+    no_ccds = 0 if len(ccds_dict) else 1
 
     # Assign cds_order
     # A bit unecessary, could use transcript_order directly
-    for transcript_name, cds in cds_dict.items():
+    for transcript_accession, cds in cds_dict.items():
         order = 1
         for transcript_order in sorted(cds.keys()):
             cds[transcript_order]['cds_order'] = order
             order += 1
 
     # Append stop codons and calculate phases 
-    for transcript_name, cds in cds_dict.items():
+    for transcript_accession, cds in cds_dict.items():
         for transcript_order, exon_dict in cds.items():
-            tup = transcript_name, transcript_order
+            tup = transcript_accession, transcript_order
             # Stop codon
             if tup in stop_dict:
                 codon_dict = stop_dict[tup]
@@ -229,25 +248,46 @@ def dbmap(transcript_file, exon_file, CDS_file, stop_file,
             exon_dict['phase_start'] = ( 3 - int(exon_dict['frame']) ) % 3
             exon_dict['phase_end'] = ( exon_dict['phase_start'] + exon_length ) % 3
 
-    # Fix the fields
+    # Fix the fields for cdsregion
     fieldnames.append('cds_order')
     fieldnames.append('phase_start')
     fieldnames.append('phase_end')
-
-    # Write cdsregions
+ 
+    # Write cdsregions - but only for transcripts with CCDS
     with open(db_cdsregion_file, 'w') as output_fh:
         writer = csv.DictWriter(output_fh, fieldnames=fieldnames)
+        count = 0
         writer.writeheader()
-        for transcript_name, cds in cds_dict.items():
-            # Only write exons for the CCDS transcripts
-            if transcript_name in with_ccds:
+        for transcript_accession, cds in cds_dict.items():
+            if no_ccds or transcript_accession in ccds_dict:
                 for transcript_order, exon_dict in cds.items():
                     writer.writerow(exon_dict)
+                    count += 1
         output_fh.close() 
+        log.debug('Wrote %d exons to %s', count, db_cdsregion_file)
 
+    # Write the cds file
+    with open(db_cds_file, 'w') as output_fh:
+        writer = None
+        count = 0
+        for transcript_accession, cds in cds_dict.items():
+            if no_ccds or transcript_accession in ccds_dict:
+                cds_dict = {
+                    'transcript_accession': transcript_accession
+                }
+                if not writer:
+                    writer = csv.DictWriter(output_fh, fieldnames=sorted(cds_dict.keys()))
+                    writer.writeheader()
+                writer.writerow(cds_dict)
+                count += 1
+        output_fh.close() 
+        log.debug('Wrote %d regions to %s', count, db_cds_file)
+
+    # Write out the exons
     fieldnames = None
     with open(db_exon_file, 'w') as output_fh:
         writer = None
+        count = 0
         with open(exon_file, 'r') as input_fh:
             reader = csv.DictReader(input_fh)
             for exon_dict in reader:
@@ -256,8 +296,8 @@ def dbmap(transcript_file, exon_file, CDS_file, stop_file,
                 exon_dict['phase_end'] = -1
                 # These fields will actually hold the coding exon 
                 # start/ends if coding, not the phases!
-                if exon_dict['accession'] in cds_dict:
-                    cds = cds_dict[exon_dict['accession']]
+                if exon_dict['transcript_accession'] in cds_dict:
+                    cds = cds_dict[exon_dict['transcript_accession']]
                     transcript_order = int(exon_dict['transcript_order'])
                     if transcript_order in cds:
                         coding_exon_dict = cds[transcript_order]
@@ -270,7 +310,9 @@ def dbmap(transcript_file, exon_file, CDS_file, stop_file,
                     writer = csv.DictWriter(output_fh, fieldnames=fieldnames)
                     writer.writeheader()
                 writer.writerow(exon_dict)
+                count += 1
         output_fh.close() 
+        log.debug('Wrote %d exons to %s', count, db_exon_file)
         
 
 def main():
@@ -300,7 +342,7 @@ def main():
     # Merge stops
     if withstop:
         dbmap('transcript.csv', 'exon.csv', 'CDS.csv', 'stop_codon.csv',
-              'db.exon.csv', 'db.cdsregion.csv')
+              'db.exon.csv', 'db.cdsregion.csv', 'db.cds.csv')
 
 if __name__ == '__main__':
     main()
