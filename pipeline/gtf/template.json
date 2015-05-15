@@ -1,0 +1,91 @@
+{
+    "gene": {
+        "fields": {
+            "seqname": "chromosome_name", 
+            "start": "start",
+            "end": "end", 
+            "strand": "strand"
+        }, 
+        "attributes": {
+	    "gene_id": "accession",
+	    "gene_name": "name",
+	    "gene_biotype": "biotype"
+        }, 
+	"unique": [
+	    "accession"
+	],
+	"enforce_unique": "1"
+    },
+    "transcript": {
+        "fields": {
+            "seqname": "chromosome_name", 
+            "start": "start",
+            "end": "end", 
+            "strand": "strand"
+        }, 
+        "attributes": {
+	    "transcript_id": "accession",
+	    "transcript_name": "name",
+	    "transcript_biotype": "biotype",
+	    "gene_id": "gene_accession",
+	    "ccds_id": "ccds_accession",
+	    "transcript_support_level": "transcript_support_level"
+        }, 
+	"unique": [
+	    "accession"
+	],
+	"enforce_unique": "1"
+    },
+    "exon": {
+        "fields": {
+            "seqname": "chromosome_name", 
+            "start": "start",
+            "end": "end", 
+            "strand": "strand"
+        }, 
+        "attributes": {
+            "transcript_id": "transcript_accession", 
+            "exon_number": "transcript_order"
+        }, 
+	"unique": [
+	    "transcript_accession", 
+	    "transcript_order"
+	],
+	"enforce_unique": "1"
+    }, 
+    "CDS": {
+        "fields": {
+            "seqname": "chromosome_name", 
+            "start": "start",
+            "end": "end", 
+            "strand": "strand",
+	    "frame": "frame"
+        }, 
+        "attributes": {
+            "transcript_id": "transcript_accession", 
+            "exon_number": "transcript_order"
+        },
+	"unique": [
+	    "transcript_accession",
+	    "transcript_order"
+	],
+	"enforce_unique": "1"
+    },
+    "stop_codon": {
+        "fields": {
+            "seqname": "chromosome_name", 
+            "start": "start",
+            "end": "end", 
+            "strand": "strand",
+	    "frame": "frame"
+        }, 
+        "attributes": {
+            "transcript_id": "transcript_accession", 
+            "exon_number": "transcript_order"
+        },
+	"unique": [
+	    "transcript_accession",
+	    "transcript_order"
+	]
+    }
+}
