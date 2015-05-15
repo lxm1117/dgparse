@@ -1,16 +1,15 @@
 """Parse GTF for Gene, Transcript, Exon and CDS features
 
 Usage:
-  parse_gtf.py (--input=<file.gz>) (--template=<file>) (--config=<file>) (--namespace=<str>) [--check=<bool>] [--withstop=<bool>] [--require-ccds=<bool>] [--log=<loglevel>]
+  parse_gtf.py (--input=<file.gz>) (--template=<file>) (--config=<file>) (--namespace=<str>) [--check=<bool>] [--require-ccds=<bool>] [--log=<loglevel>]
 
 Options:
   --help                    Show this screen
   --input=<name>            GTF file, gzipped
   --template=<file>         JSON template for I/O field mapping
-  --config=<file>           CSV file restricting seqnames to extract features for
+  --config=<file>           Genome config, CSV file specifying the seqnames to extract features for
   --namespace=<str>         Where the data comes from
   --check=<bool>            Check redundant/denormalised data in GTF is consistent [default: 0]
-  --withstop=<bool>         Merge stop_codons with CDS exons [default: 1]
   --require-ccds=<bool>     Only output cds/cdsregions if there is a CCDS identifier [default: 1]
   --log=<loglevel>          Logging level [default: ERROR]
 
@@ -36,11 +35,11 @@ def _hash_dict(input_dict):
     inst = md5()
     inst.update(str(input_dict))
     return inst.hexdigest()
-    
+
 
 def _handle(template, check, feature_dict):
 
-    # Unpack the attribute field 
+    # Unpack the attribute field
     attribute_regex = r"(.*?)\s+\"(.*?)\";\s?"
     attribute_dict = {}
     if 'attribute' in feature_dict:
@@ -48,7 +47,7 @@ def _handle(template, check, feature_dict):
         attribute_dict = collections.OrderedDict(kv_pairs)
 
     feature = feature_dict['feature']
-    
+
     for gtf_key, obj in template.items():
         if feature == gtf_key:
 
@@ -83,18 +82,18 @@ def _handle(template, check, feature_dict):
                 obj['writer'].writerow(model)
 
 
-def parse(template_file, config_file, check, input_file):
-    
-    # GTF format is a TSV format file containing gene features. 
+def raw_parse(template_file, config_file, check, input_file):
+
+    # GTF format is a TSV format file containing gene features.
     # Reference:
     # http://www.ensembl.org/info/website/upload/gff.html
 
-    # The fields are    
+    # The fields are
     gtf_fields = [
         'seqname',            # e.g. chromosome_name
         'source',             # e.g. ensembl_havana
         'feature',            # feature name e.g. CDS, transcript, exon
-        'start',              
+        'start',
         'end',
         'score',
         'strand',             # + (forward), - (reverse)
@@ -106,7 +105,7 @@ def parse(template_file, config_file, check, input_file):
     template = None
     with open(template_file) as template_fh:
         template_str = template_fh.read()
-        template =json.JSONDecoder(object_pairs_hook=collections.OrderedDict).decode(template_str)
+        template = json.JSONDecoder(object_pairs_hook=collections.OrderedDict).decode(template_str)
 
     # Read template
     seqname_dict = {}
@@ -114,7 +113,7 @@ def parse(template_file, config_file, check, input_file):
         reader = csv.DictReader(config_fh)
         for config_dict in reader:
             seqname_dict[config_dict['seqname']] = config_dict['chromosome_name']
-            
+
     # Features of interest
     interest = set()
     for key, obj in template.items():
@@ -125,7 +124,7 @@ def parse(template_file, config_file, check, input_file):
         obj['output_file'] = "{0}.csv".format(key)
         obj['output_fh'] = open(obj['output_file'], 'w')
         obj['writer'] = csv.DictWriter(
-            obj['output_fh'], 
+            obj['output_fh'],
             obj['attributes'].values() + obj['fields'].values())
         obj['writer'].writeheader()
 
@@ -172,11 +171,11 @@ def _transform_coordinates(feature_dict, config):
     feature_dict['start'] = str(int(feature_dict['start']) - 1)
 
 
-def dbmap(gene_file, transcript_file, exon_file, CDS_file, stop_file, 
-          db_gene_file, db_transcript_file, db_exon_file, db_cdsregion_file, db_cds_file,
-          require_ccds, namespace):
+def transform(gene_file, transcript_file, exon_file, cds_file, stop_file,
+              db_gene_file, db_transcript_file, db_exon_file, db_cdsregion_file, db_cds_file,
+              require_ccds, namespace):
     """
-    Take the CSV files of parsed GTF features, transform into 
+    Take the CSV files of parsed GTF features, transform into
     CSV files corresponding directly to the database tables.
     """
 
@@ -199,7 +198,7 @@ def dbmap(gene_file, transcript_file, exon_file, CDS_file, stop_file,
     # Read the coding exons, index on transcript_accession, transcript_order
     cds_dict = collections.OrderedDict()
     cdsregion_fieldnames = None
-    with open(CDS_file, 'r') as input_fh:
+    with open(cds_file, 'r') as input_fh:
         reader = csv.DictReader(input_fh)
         for exon_dict in reader:
             if not cdsregion_fieldnames:
@@ -219,7 +218,7 @@ def dbmap(gene_file, transcript_file, exon_file, CDS_file, stop_file,
         for codon_dict in reader:
             tup = codon_dict['transcript_accession'], int(codon_dict['transcript_order'])
             if tup in stop_dict:
-                raise Exception('Multiple stop codons for %s' % 
+                raise Exception('Multiple stop codons for %s' %
                                 (", ".join(tup)))
             stop_dict[tup] = codon_dict
         input_fh.close()
@@ -234,9 +233,9 @@ def dbmap(gene_file, transcript_file, exon_file, CDS_file, stop_file,
             # Append stop codon
             if tup in stop_dict:
                 codon_dict = stop_dict[tup]
-                exon_dict['start'] = min(int(exon_dict['start']), 
+                exon_dict['start'] = min(int(exon_dict['start']),
                                          int(codon_dict['start']))
-                exon_dict['end'] = max(int(exon_dict['end']), 
+                exon_dict['end'] = max(int(exon_dict['end']),
                                        int(codon_dict['end']))
 
     # Calculate phases
@@ -249,8 +248,8 @@ def dbmap(gene_file, transcript_file, exon_file, CDS_file, stop_file,
     for transcript_accession, cds in cds_dict.items():
         for transcript_order, exon_dict in cds.items():
             exon_length = int(exon_dict['end']) - int(exon_dict['start'])
-            exon_dict['phase_start'] = ( - int(exon_dict['frame']) ) % 3
-            exon_dict['phase_end'] = ( exon_dict['phase_start'] + exon_length ) % 3    
+            exon_dict['phase_start'] = (- int(exon_dict['frame'])) % 3
+            exon_dict['phase_end'] = (exon_dict['phase_start'] + exon_length) % 3
 
     # Assign cds_order
     # We could use the transcript_order for ordering, but that
@@ -263,33 +262,33 @@ def dbmap(gene_file, transcript_file, exon_file, CDS_file, stop_file,
 
     # Calculate cds and cdsregions data
     #
-    # The cds and cdsregion tables in the database hold 
-    # transcript and exon level structures that are derived 
-    # from GTF transcript and exon records through a process 
-    # of coordinate de-duplication. 
+    # The cds and cdsregion tables in the database hold
+    # transcript and exon level structures that are derived
+    # from GTF transcript and exon records through a process
+    # of coordinate de-duplication.
     #
-    # Two transcripts are equivalent (duplicates) if the they 
-    # are on the same strand, have the same number of exons 
-    # and if the coordinates of the exons are identical. 
+    # Two transcripts are equivalent (duplicates) if the they
+    # are on the same strand, have the same number of exons
+    # and if the coordinates of the exons are identical.
     #
-    # The code calculates the sets of equivalent transcripts. 
-    # The cds table file one record for each equivalent set. 
-    # The cdsregion file holds one set of coordinates of 
-    # the corresponding constituent exons, common to each 
+    # The code calculates the sets of equivalent transcripts.
+    # The cds table file one record for each equivalent set.
+    # The cdsregion file holds one set of coordinates of
+    # the corresponding constituent exons, common to each
     # transcript in the equivalent set.
     #
     # For human and mouse genomes, the CCDS project [ref]
     # provides just such a non-redundant set of transcripts
     # A CCDS id labels the non-redundant transcripts. Further,
-    # the Ensembl GTF transcript records for human and mouse 
-    # include the CCDS id. So when processing those GTF files, 
-    # the expectation would be that equivalent transcripts 
-    # should have the same CCDS id. This is enforced (exception 
-    # raised if not). It should also be the case that transcripts 
-    # with the same CCDS id should be equivalent. This is 
-    # checked but not enforced. Violations are logged. One 
-    # might expect that every equivalent set in the human and 
-    # mouse GTF files should have a CCDS id, but this is not 
+    # the Ensembl GTF transcript records for human and mouse
+    # include the CCDS id. So when processing those GTF files,
+    # the expectation would be that equivalent transcripts
+    # should have the same CCDS id. This is enforced (exception
+    # raised if not). It should also be the case that transcripts
+    # with the same CCDS id should be equivalent. This is
+    # checked but not enforced. Violations are logged. One
+    # might expect that every equivalent set in the human and
+    # mouse GTF files should have a CCDS id, but this is not
     # the case because there are other 'quality criteria' used
     # for the assignment of CCDS ids. Equivalent sets with no
     # CCDS id are handled according to a '--require-ccds'
@@ -297,19 +296,19 @@ def dbmap(gene_file, transcript_file, exon_file, CDS_file, stop_file,
     #
     # If the --require-ccds flag is set true (default) equivalent
     # sets with with no CCDS id are ignored, omitted entirely
-    # from the cds and cdsregion files. In this case the name 
-    # field of the cds file holds the CCDS id, labelling the 
+    # from the cds and cdsregion files. In this case the name
+    # field of the cds file holds the CCDS id, labelling the
     # equivalent set and the 'is_consensus' field is set True.
     #
     # If the --require-ccds flag is set false, all equivalent
-    # sets are represented in the cds and cdsregion files. 
+    # sets are represented in the cds and cdsregion files.
     # The name field in the cds file uses the CCDS id if it is
     # available. Otherwise it attempts to use the 'protein_id'
     # field from a corresponding GTF record. If this is
-    # inconsistent or null, it assigns an auto-generated UID. 
+    # inconsistent or null, it assigns an auto-generated UID.
     # All assigned names are written out in the 'ccds_accession'
-    # field of the transcript file. So in this case the 
-    # 'ccds_accession' field represents 'consensus CDS' rather 
+    # field of the transcript file. So in this case the
+    # 'ccds_accession' field represents 'consensus CDS' rather
     # than an official CCDS identifier.
 
     # Maps to enable consistency check for CCDS, where provided
@@ -335,8 +334,8 @@ def dbmap(gene_file, transcript_file, exon_file, CDS_file, stop_file,
         for transcript_order in sorted(cds.keys()):
             exon_dict = cds[transcript_order]
             coord_dict = {key: exon_dict[key] for key in (
-                'chromosome_name', 'start', 'end', 'strand', 
-                'phase_start', 'phase_end', 
+                'chromosome_name', 'start', 'end', 'strand',
+                'phase_start', 'phase_end',
                 'cds_order')}
             exon_coords.append(coord_dict)
         hash_val = _hash_dict({'exon_coords': exon_coords})
@@ -389,7 +388,7 @@ def dbmap(gene_file, transcript_file, exon_file, CDS_file, stop_file,
                         log.warn('Equivalent transcripts %s and %s have different CCDS ids',
                                  first_transcript_accession,
                                  transcript_accession)
-    
+
     # Assign the CCDS id as the cds name if we have one
     for hash_val, obj in cds_to_transcript.items():
         for transcript_accession in obj['transcript_accession_list']:
@@ -399,7 +398,7 @@ def dbmap(gene_file, transcript_file, exon_file, CDS_file, stop_file,
                 obj['is_consensus'] = 1
                 obj['status'] = 'Public'
 
-    # Try to assign protein id as cds name 
+    # Try to assign protein id as cds name
     for hash_val, obj in cds_to_transcript.items():
         first_transcript_accession = None
         first_protein_accession = None
@@ -426,11 +425,11 @@ def dbmap(gene_file, transcript_file, exon_file, CDS_file, stop_file,
 
     # Assign a UID for any un-named remainders
     uid_counter = 1
-    for hash_val, obj in cds_to_transcript.items():    
+    for hash_val, obj in cds_to_transcript.items():
         if not obj['name']:
             obj['name'] = 'DG%06d' % (uid_counter)
             uid_counter += 1
-    
+
     # Stats
     for is_consensus in range(2):
         cds_count = 0
@@ -439,9 +438,9 @@ def dbmap(gene_file, transcript_file, exon_file, CDS_file, stop_file,
             if obj['is_consensus'] == is_consensus:
                 cds_count += 1
                 cdsregion_count += len(obj['exon_coords'])
-        log.info('Calculated %d sets of transcripts that are identical at coordinate level, CCDS %d', 
+        log.info('Calculated %d sets of transcripts that are identical at coordinate level, CCDS %d',
                  cds_count, is_consensus)
-        log.info('Total %d exons', cdsregion_count)    
+        log.info('Total %d exons', cdsregion_count)
 
     # Write the cds name into the ccds_accession field of transcript,
     # if it is not already there
@@ -460,7 +459,7 @@ def dbmap(gene_file, transcript_file, exon_file, CDS_file, stop_file,
     # Add a namespace for gene
     for gene_accession, gene in gene_dict.items():
         gene['namespace'] = namespace
-        
+
     # Produce the cds file
     fieldnames = [
         'accession',
@@ -478,13 +477,13 @@ def dbmap(gene_file, transcript_file, exon_file, CDS_file, stop_file,
         writer = csv.DictWriter(output_fh, fieldnames=fieldnames)
         writer.writeheader()
         count = 0
-        for hash_val, obj in cds_to_transcript.items():    
+        for hash_val, obj in cds_to_transcript.items():
             row_dict = {key: obj[key] for key in fieldnames}
             writer.writerow(row_dict)
             count += 1
-        output_fh.close() 
+        output_fh.close()
         log.debug('Wrote %d regions to %s', count, db_cds_file)
-    
+
     # Produce the cdsregions file
     fieldnames = [
         'cds_accession',
@@ -494,29 +493,29 @@ def dbmap(gene_file, transcript_file, exon_file, CDS_file, stop_file,
         'chromosome_name',
         'start',
         'end',
-        'strand' 
+        'strand'
    ]
     with open(db_cdsregion_file, 'w') as output_fh:
         writer = csv.DictWriter(output_fh, fieldnames=fieldnames)
         writer.writeheader()
         count = 0
-        for hash_val, obj in cds_to_transcript.items():    
+        for hash_val, obj in cds_to_transcript.items():
             for coord_dict in obj['exon_coords']:
                 coord_dict['cds_accession'] = obj['accession']
                 row_dict = {key: coord_dict[key] for key in fieldnames}
                 writer.writerow(row_dict)
                 count += 1
-        output_fh.close() 
+        output_fh.close()
         log.debug('Wrote %d exons to %s', count, db_cdsregion_file)
 
-    # Read and write exon file 
-    # Merge the data for coding exons. Include the coding start and 
-    # end as separate columns, to support a possible future 
+    # Read and write exon file
+    # Merge the data for coding exons. Include the coding start and
+    # end as separate columns, to support a possible future
     # coding_track_id in the exon table.
     # REGRESSION NOTE
-    # In the current database, if the transcript has a cds entry, 
-    # the exon phase start/ends are OVERWRITTEN with the coding 
-    # coordinate start/end. The column 'phase_db_overwrite' 
+    # In the current database, if the transcript has a cds entry,
+    # the exon phase start/ends are OVERWRITTEN with the coding
+    # coordinate start/end. The column 'phase_db_overwrite'
     # indicates to the loader when to do this.
     fieldnames = [
         'transcript_accession',
@@ -529,7 +528,7 @@ def dbmap(gene_file, transcript_file, exon_file, CDS_file, stop_file,
         'strand',
         'coding_start',
         'coding_end',
-        'phase_db_overwrite'        
+        'phase_db_overwrite'
     ]
     with open(db_exon_file, 'w') as output_fh:
         writer = csv.DictWriter(output_fh, fieldnames=fieldnames)
@@ -559,7 +558,7 @@ def dbmap(gene_file, transcript_file, exon_file, CDS_file, stop_file,
                             exon_dict['phase_db_overwrite'] = 1
                 writer.writerow(exon_dict)
                 count += 1
-        output_fh.close() 
+        output_fh.close()
         log.debug('Wrote %d exons to %s', count, db_exon_file)
 
     # Produce the transcripts file
@@ -585,11 +584,11 @@ def dbmap(gene_file, transcript_file, exon_file, CDS_file, stop_file,
             row_dict = {key: transcript[key] for key in fieldnames}
             writer.writerow(row_dict)
             count += 1
-        output_fh.close() 
+        output_fh.close()
         log.debug('Wrote %d regions to %s', count, db_transcript_file)
 
     # Produce the gene file
-    fieldnames = [ 
+    fieldnames = [
         'accession',
         'name',
         'namespace',
@@ -607,7 +606,7 @@ def dbmap(gene_file, transcript_file, exon_file, CDS_file, stop_file,
             row_dict = {key: gene[key] for key in fieldnames}
             writer.writerow(row_dict)
             count += 1
-        output_fh.close() 
+        output_fh.close()
         log.debug('Wrote %d regions to %s', count, db_gene_file)
 
 
@@ -630,16 +629,30 @@ def main():
 
     # Flags
     check = args['--check']
-    withstop = args['--withstop']
     require_ccds = args['--require-ccds']
     namespace = args['--namespace']
 
-    # Parse
-    parse(template_file, config_file, check, input_file)
+    # The parsing happens in two stages
 
-    # Merge stops
-    if withstop:
-        dbmap('gene.csv', 'transcript.csv', 'exon.csv', 'CDS.csv', 'stop_codon.csv',
+    # In the first stage a raw parse is made of the GTF file,
+    # producing a set of <feature>.csv files one per feature
+    # specified in the template.json file. These files
+    # maintain all the conventions of the input files e.g.
+    # coordinate system, naming. The template file specifies
+    # the unique constraints that the (usually) denormalised
+    # data must satisfy. Unsetting the --check flag disables
+    # the uniqueness checks.
+
+    raw_parse(template_file, config_file, check, input_file)
+
+    # The second stage, which logically could be in a separate
+    # script but is kept here because they will almost always
+    # be run in sequence, is to transform the CSV files from
+    # the raw parse into CSV files that are ready to load into
+    # the database. These files are thuss an external
+    # representation of the genome annotations in the database.
+
+    transform('gene.csv', 'transcript.csv', 'exon.csv', 'CDS.csv', 'stop_codon.csv',
               'db.gene.csv', 'db.transcript.csv', 'db.exon.csv', 'db.cdsregion.csv', 'db.cds.csv',
               require_ccds, namespace)
 
