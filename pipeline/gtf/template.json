@@ -13,8 +13,7 @@
         }, 
 	"unique": [
 	    "accession"
-	],
-	"enforce_unique": "1"
+	]
     },
     "transcript": {
         "fields": {
@@ -33,8 +32,7 @@
         }, 
 	"unique": [
 	    "accession"
-	],
-	"enforce_unique": "1"
+	]
     },
     "exon": {
         "fields": {
@@ -50,8 +48,7 @@
 	"unique": [
 	    "transcript_accession", 
 	    "transcript_order"
-	],
-	"enforce_unique": "1"
+	]
     }, 
     "CDS": {
         "fields": {
@@ -68,8 +65,7 @@
 	"unique": [
 	    "transcript_accession",
 	    "transcript_order"
-	],
-	"enforce_unique": "1"
+	]
     },
     "stop_codon": {
         "fields": {
