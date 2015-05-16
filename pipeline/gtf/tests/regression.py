@@ -336,6 +336,9 @@ def compare_exons(chromosome, input_file):
         for exon_dict in reader:
             if exon_dict['chromosome_name'] == chromosome.name:
                 # Fields not in db
+                if int(exon_dict['phase_db_overwrite']):
+                    exon_dict['phase_start'] = exon_dict['coding_start']
+                    exon_dict['phase_end'] = exon_dict['coding_end']
                 exon_dict.pop('coding_start')
                 exon_dict.pop('coding_end')
                 exon_dict.pop('phase_db_overwrite')
