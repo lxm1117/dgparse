@@ -26,6 +26,7 @@ from operator import itemgetter
 
 from docopt import docopt
 from hashlib import md5
+from pprint import pprint
 
 logging.basicConfig()
 log = logging.getLogger(__name__)
@@ -75,13 +76,11 @@ gtf_fields = [
 # into a set of CSV files which correspond closely to the
 # database tables into which they can be loaded. These files
 # are therefore an external representation of the core 
-# database annotations in the database. 
+# genome annotations in the database. 
 #
 # Logically the second stage could be in a separate script,
 # but practically the two stages will almost always be run
-# in sequence, so the two are together. The second stage 
-# depends on particular values for the aliases in the JSON 
-# template.
+# in sequence, so the two are combined.
 
 def main():
 
@@ -258,17 +257,14 @@ def db_transform(template, db_dict, require_ccds, namespace):
 
     # Read the coding exons and index conveniently on transcript_accession, transcript_order
     cds_dict = collections.OrderedDict()
-    cdsregion_fieldnames = None
     with open(template['CDS']['output_file'], 'r') as input_fh:
         reader = csv.DictReader(input_fh)
         for exon_dict in reader:
-            if not cdsregion_fieldnames:
-                cdsregion_fieldnames = reader.fieldnames
             transcript_accession = exon_dict['transcript_accession']
-            transcript_order = exon_dict['transcript_order']
+            transcript_order = int(exon_dict['transcript_order'])
             if not transcript_accession in cds_dict:
                 cds_dict[transcript_accession] = collections.OrderedDict()
-            cds_dict[transcript_accession][int(transcript_order)] = exon_dict
+            cds_dict[transcript_accession][transcript_order] = exon_dict
         input_fh.close()
     log.debug('Loaded %d CDS', len(cds_dict))
 
@@ -278,38 +274,32 @@ def db_transform(template, db_dict, require_ccds, namespace):
         with open(template['stop_codon']['output_file'], 'r') as input_fh:
             reader = csv.DictReader(input_fh)
             for codon_dict in reader:
-                tup = codon_dict['transcript_accession'], int(codon_dict['transcript_order'])
-                # Already checked for uniqueness
+                transcript_accession = codon_dict['transcript_accession']
+                transcript_order = int(codon_dict['transcript_order'])
+                tup = transcript_accession, transcript_order
+                if tup in stop_dict:
+                    raise Exception('Multiple stop features for same codon %s', str(tup))
                 stop_dict[tup] = codon_dict
             input_fh.close()
         log.debug('Loaded %d stop codons', len(stop_dict))
 
-    if len(stop_dict):
-        # Append stop codons
-        # Note there are sometimes split codongs (length % 3 ! = 0) so 
-        # important to do this before calculating phases
-        for transcript_accession, cds in cds_dict.items():
-            for transcript_order, exon_dict in cds.items():
-                tup = transcript_accession, transcript_order
-                # Append stop codon
-                if tup in stop_dict:
-                    codon_dict = stop_dict[tup]
-                    exon_dict['start'] = min(int(exon_dict['start']),
-                                             int(codon_dict['start']))
-                    exon_dict['end'] = max(int(exon_dict['end']),
-                                           int(codon_dict['end']))
-
-    # Calculate phases
-    # Frame is the offset of the 1st codon from the feature start:
-    # http://www.ensembl.org/info/website/upload/gff.html
-    # Phase is the offset of the feature start from the 1st codon:
-    # https://github.com/Ensembl/ensembl/blob/release/79/modules/Bio/EnsEMBL/Exon.pm
-    # Hence phase = ( - frame ) % 3
-    for transcript_accession, cds in cds_dict.items():
-        for transcript_order, exon_dict in cds.items():
-            exon_length = int(exon_dict['end']) - int(exon_dict['start'])
-            exon_dict['phase_start'] = (- int(exon_dict['frame'])) % 3
-            exon_dict['phase_end'] = (exon_dict['phase_start'] + exon_length) % 3
+    # Integrate the stop codons
+    # Important to do this before calculating phases
+    for (transcript_accession, transcript_order), codon_dict in stop_dict.items():
+        if not transcript_accession in cds_dict:
+            raise Exception('Failed to find %s', transcript_accession)
+        if transcript_order in cds_dict[transcript_accession]:
+            # Append to the existing codon
+            # Recast to str for consistency with other CDS and stop_codons
+            exon_dict = cds_dict[transcript_accession][transcript_order]
+            exon_dict['start'] = str(min(int(exon_dict['start']),
+                                         int(codon_dict['start'])))
+            exon_dict['end'] = str(max(int(exon_dict['end']),
+                                       int(codon_dict['end'])))
+        else:
+            # Append to list of codons for this transcript
+            log.warn('Appending exon with only stop codon to %s', transcript_accession)
+            cds_dict[transcript_accession][transcript_order] = codon_dict
 
     # Assign cds_order
     # We could use the transcript_order for ordering, but that
@@ -320,62 +310,100 @@ def db_transform(template, db_dict, require_ccds, namespace):
             cds[transcript_order]['cds_order'] = order
             order += 1
 
+    # Calculate phases
+    # Frame is the offset of the 1st codon from the feature start:
+    # http://www.ensembl.org/info/website/upload/gff.html
+    # Phase is the offset of the feature start from the 1st codon:
+    # https://github.com/Ensembl/ensembl/blob/release/79/modules/Bio/EnsEMBL/Exon.pm
+    # Hence phase = ( - frame ) % 3
+    # See also glossary
+    # http://www.ensembl.org/Help/Glossary
+    for transcript_accession, cds in cds_dict.items():
+        for transcript_order, exon_dict in cds.items():
+            exon_length = int(exon_dict['end']) - int(exon_dict['start'])
+            exon_dict['phase_start'] = (- int(exon_dict['frame'])) % 3
+            exon_dict['phase_end'] = (exon_dict['phase_start'] + exon_length) % 3
+
     # Calculate cds and cdsregions data
     #
-    # The cds and cdsregion tables in the database hold
-    # transcript and exon level structures that are derived
-    # from GTF transcript and exon records through a process
-    # of coordinate de-duplication.
+    # The cds and cdsregion tables in the database represent
+    # coding sequences i.e. the parts of a genomic sequence
+    # that code for a protein, including the start and stop
+    # codons. The cdsregion table holds coding exons. The
+    # cds table is the transcript-level grouping. 
     #
-    # Two transcripts are equivalent (duplicates) if they are
-    # are on the same strand, have the same number of exons
-    # and if the coordinates of the exons are identical.
+    # Because transcripts have non-coding exons and exons 
+    # which are partly coding and partly non-coding, multiple 
+    # transcripts cans have the same coding sequence.
     #
-    # The code calculates the sets of equivalent transcripts.
-    # The output cds file lists one record for each equivalent 
-    # set. The cdsregion file holds one set of coordinates 
-    # for the corresponding constituent exons.
+    # In the following section we generate cds and cdsregion
+    # records via a process of coordinate de-duplication.
+    # We say that transcripts have the same coding sequence 
+    # if their coding regions are on the same strand, in the 
+    # same order and with the same coordinates. The code
+    # identifies the distinct coding sequences and generates
+    # the one to many mapping from coding sequence to 
+    # transcript.
     #
-    # For human and mouse genomes, the CCDS project 
-    # (http://www.ensembl.org/info/genome/genebuild/ccds.html)
-    # provides just such a non-redundant set of transcripts.
-    # Equivalent transcrpts (according to CCDS) are labelled
-    # with the same CCDS id. Further, the Ensembl GTF files
-    # for human and mouse include the CCDS id as an attribute
-    # of the transcript feature. So the expectation would be
-    # that in those files, transcripts with the same CCDS id 
-    # should be equivalent (according to our definition). This 
-    # is almost always the case. Exceptions are logged. It
-    # should also be the case that equivalent transcripts
-    # should have the same CCDS id. Again this is almost always
-    # so. Exceptions are logged. Finally, one also might 
-    # expect that every equivalent set in the human and
-    # mouse GTF files should have a CCDS id, but this is not
-    # the case because there are other 'quality criteria' used
-    # for the assignment of CCDS ids. 
+    # The CCDS project 
+    # http://www.ensembl.org/info/genome/genebuild/ccds.html
+    # provides a curated set of coding sequences, for human
+    # and mouse. Each coding sequence in their set carries
+    # a CCDS id and the coordinates of the coding regions.
+    # Further, the Ensembl GTF files for human and mouse 
+    # include the CCDS id as an attribute of the transcript 
+    # feature. 
     # 
-    # Equivalent sets with no CCDS id (e.g. not human or mouse,
-    # or simply no CCDS id assigned) are handled according to 
-    # a '--require-ccds' flag, as follows.
+    # The naive expectation would be that in those GTF files, 
+    # transcripts with the same CCDS id should have the same
+    # coding sequence, according to our definition above. 
+    # In fact, this is almost always the case. The handful of
+    # exceptions are logged. It should also be the case that 
+    # equivalent transcripts should have the same CCDS id. 
+    # Again this is almost always so. Exceptions are logged. 
+    # Finally, one also might expect that every protein
+    # coding transcript in the human and mouse GTF files 
+    # should have a CCDS id, but this is not the case. There
+    # are other 'quality criteria' used for the assignment of 
+    # CCDS ids and about 1000 genes have no transcript with
+    # a CCDS id.
+    # 
+    # Transcripts that have a coding sequence but no CCDS id
+    # (e.g. not human or mouse, or simply no CCDS id assigned) 
+    # are handled in this script according to the '--require-ccds' 
+    # flag, as follows.
     #
-    # If the --require-ccds flag is set true (default) equivalent
-    # sets with with no CCDS id are ignored, omitted entirely
-    # from the cds and cdsregion files. In this case the name
-    # field of the cds file holds the CCDS id, labelling the
-    # equivalent set and the 'is_consensus' field is set True.
-    #
-    # If the --require-ccds flag is set false, all equivalent
-    # sets are represented in the cds and cdsregion files.
-    # The name field in the cds file uses the CCDS id if it is
-    # available. Otherwise it attempts to use the 'protein_id'
-    # field from a corresponding GTF record. If this is
-    # inconsistent or null, it assigns an auto-generated UID.
-    # All assigned names are written out in the 'ccds_accession'
-    # field of the transcript file. So in this case the
-    # 'ccds_accession' field represents our own definition of
-    # a 'consensus CDS' rather than an official CCDS id.
+    # If the --require-ccds flag is set true (default) the
+    # coding sequence of a transcript with no CCDS id is 
+    # omitted entirely and not represented in the cds and 
+    # cdsregion files. 
 
-    # Maps to enable consistency check for CCDS, where provided
+    # If the --require-ccds flag is set false, all coding 
+    # sequences are written out to the cds and cdsregion 
+    # files.
+    # 
+    # Where CCDS id is available for a coding sequence, the
+    # CCDS is is assigned to the 'name' field and the
+    # 'is_consensus' flag is set to true. If there are 
+    # alternative CCDS ids for the same coding sequence 
+    # (unusual) separate cds record are generated for each 
+    # instance. Thus the the cds records are not necessarily 
+    # unique in terms of coordinates, but the duplication 
+    # level is low and probably insignificant.
+    #
+    # If no CCDS id is available for a coding sequence, the
+    # code attempts to used the 'protein_id' field from the
+    # corresponding GTF records. If there are multiple 
+    # protein ids, separate records are generated for each
+    # instance. If there are no protein ids available for 
+    # coding sequence, an auto-generated UID is assigned. 
+    #
+    # In all cases where a transcript has a coding sequence
+    # but no CCDS id, the id assigned to the coding sequence
+    # is copied back into the 'ccds_accession' field, to 
+    # support front-end display of this information.
+
+    # Maps to enable CCDS handling
     ccds_to_transcript = {}
     transcript_to_ccds = {}
     for transcript_accession, transcript in transcript_dict.items():
@@ -386,40 +414,60 @@ def db_transform(template, db_dict, require_ccds, namespace):
             ccds_to_transcript[ccds_accession].append(transcript_accession)
             transcript_to_ccds[transcript_accession] = ccds_accession
 
-    # Calculate equivalent sets
+    # Maps between coding sequences and transcripts
     cds_to_transcript = {}
     transcript_to_cds = {}
-    cdsregion_count = 0
+    count = 0
     for transcript_accession, cds in cds_dict.items():
-        # Ignore transcripts without a ccds_id, if the require_ccds flag is set
         if require_ccds:
+            # Ignore transcripts without a ccds_id, don't even
+            # calculate the coding sequence
             if not transcript_accession in transcript_to_ccds:
                 continue
-        exon_coords = []
+        # Possible non-uniqueness at coordinate level, but 
+        # unusual for CCDS
+        dict_to_hash = collections.OrderedDict({
+            'name': None,
+            'namespace': None,
+            'is_consensus': 0,
+            'exon_coords': []
+        })
         for transcript_order in sorted(cds.keys()):
             exon_dict = cds[transcript_order]
-            coord_dict = {key: exon_dict[key] for key in (
+            coord_dict = collections.OrderedDict({key: exon_dict[key] for key in (
                 'chromosome_name', 'start', 'end', 'strand',
                 'phase_start', 'phase_end',
-                'cds_order')}
-            exon_coords.append(coord_dict)
-        hash_val = _hash_dict({'exon_coords': exon_coords})
+                'cds_order')})
+            dict_to_hash['exon_coords'].append(coord_dict)
+        if not dict_to_hash['name'] and transcript_accession in transcript_to_ccds:
+            dict_to_hash['name'] = transcript_to_ccds[transcript_accession]
+            dict_to_hash['namespace'] = 'ccds'
+            dict_to_hash['is_consensus'] = 1
+        if not dict_to_hash['name'] and transcript_accession in cds_dict:
+            cds = cds_dict[transcript_accession]
+            for transcript_order, exon_dict in cds.items():
+                if 'protein_id' in exon_dict:
+                    dict_to_hash['name'] = exon_dict['protein_id']
+                    break
+        if not dict_to_hash['name']:
+            dict_to_hash['name'] = 'CDS%06d' % (len(cds_to_transcript) + 1)
+        hash_val = _hash_dict(dict_to_hash)
         if not hash_val in cds_to_transcript:
             cds_to_transcript[hash_val] = {
-                'accession': "eq_{0}".format(len(cds_to_transcript)),
-                'namespace': None,
-                'name': None,
+                'accession': "eq_{0}".format(len(cds_to_transcript)), 
+                'namespace': dict_to_hash['namespace'],
+                'name': dict_to_hash['name'],
                 'gene_accession': transcript_dict[transcript_accession]['gene_accession'],
-                'is_consensus': 0 if require_ccds else 1,
+                'is_consensus': dict_to_hash['is_consensus'],
                 'status': None,
                 'transcript_accession_list': [],
-                'exon_coords': exon_coords
+                'exon_coords': dict_to_hash['exon_coords']
             }
-            cdsregion_count += len(exon_coords)
+            count += len(dict_to_hash['exon_coords'])
         cds_to_transcript[hash_val]['transcript_accession_list'].append(transcript_accession)
         transcript_to_cds[transcript_accession] = hash_val
-    log.debug('Found %d sets of equivalent transcripts (cds)', len(cds_to_transcript))
-    log.debug('Corresponding to %d exons (cdsregions)', cdsregion_count)
+    log.debug('Found %d coding sequences with total %d exons', 
+              len(cds_to_transcript), count)
 
     # Calculate cds coordinates as the envelope of constituent exons
     for hash_val, obj in cds_to_transcript.items():
@@ -432,75 +480,27 @@ def db_transform(template, db_dict, require_ccds, namespace):
                 start = int(coord_dict['start'])
             if not end or int(coord_dict['end']) > end:
                 end = int(coord_dict['end'])
-        obj['start'] = start
-        obj['end'] = end
+        # Cast to string for consistency
+        obj['start'] = str(start)
+        obj['end'] = str(end)
 
-    # Check that transcripts with same CCDS are equivalent
+    # Check that transcripts with same CCDS have the same coding sequence
     for ccds_accession, transcript_accession_list in ccds_to_transcript.items():
         first_transcript_accession = transcript_accession_list[0]
         first_hash_val = transcript_to_cds[first_transcript_accession]
         for transcript_accession in transcript_accession_list:
             if not transcript_to_cds[transcript_accession] == first_hash_val:
-                log.warning('Transcripts %s and %s with same CCDS are not equivalent',
+                log.warning('Transcripts %s and %s with same CCDS have different coding sequences',
                             first_transcript_accession,
                             transcript_accession)
 
-    # Check that equivalent transcripts have the same CCDS, if they have one
-    for hash_val, obj in cds_to_transcript.items():
-        first_transcript_accession = obj['transcript_accession_list'][0]
-        if 'ccds_accession' in transcript_to_ccds:
-            first_ccds_accession = transcript_to_ccds[first_transcript_accession]
-            for transcript_accession in obj['transcript_accession_list']:
-                if 'ccds_accession' in transcript_to_ccds:
-                    if not transcript_to_ccds[transcript_accession] == first_ccds_accession:
-                        log.warn('Equivalent transcripts %s and %s have different CCDS ids',
-                                 first_transcript_accession,
-                                 transcript_accession)
-
-    # Assign the CCDS id as the cds name if we have one
-    for hash_val, obj in cds_to_transcript.items():
-        for transcript_accession in obj['transcript_accession_list']:
-            if transcript_accession in transcript_to_ccds:
-                obj['name'] = transcript_to_ccds[transcript_accession]
-                obj['is_consensus'] = 1
-                obj['namespace'] = 'ccds'
-                obj['status'] = 'Public'
-
-    # Try to assign protein id as a cds name
-    for hash_val, obj in cds_to_transcript.items():
-        first_transcript_accession = None
-        first_protein_accession = None
-        consistent = True
-        for transcript_accession in obj['transcript_accession_list']:
-            if not consistent:
-                break
-            cds = cds_dict[transcript_accession]
-            for transcript_order, exon_dict in cds.items():
-                if not consistent:
-                    break
-                if 'protein_id' in exon_dict:
-                    if not first_protein_accession:
-                        first_transcript_accession = transcript_accession
-                        first_protein_accession = exon_dict['protein_id']
-                    if not first_protein_accession == exon_dict['protein_id']:
-                        consistent = False
-                        log.warn('Inconsistent protein ids for transcripts %s %s',
-                                 first_transcript_accession,
-                                 transcript_accession)
-        if consistent and first_protein_accession:
-            obj['name'] = first_protein_accession
-
-    # Assign a UID for any un-named remainders
-    uid_counter = 1
-    for hash_val, obj in cds_to_transcript.items():
-        if not obj['name']:
-            obj['name'] = 'EQS%06d' % (uid_counter)
-            uid_counter += 1
-
-    # Write the cds name into the ccds_accession field of transcript,
-    # if it is not already there
+    # Assign namespace to transcripts
     for transcript_accession, transcript in transcript_dict.items():
         transcript['namespace'] = namespace
+
+    # Write the cds name into the ccds_accession field of transcript,
+    # if that field is not set - field may be displayed in front end
+    for transcript_accession, transcript in transcript_dict.items():
         if not 'ccds_accession' in transcript or not transcript['ccds_accession']:
             if transcript_accession in transcript_to_cds:
                 transcript['ccds_accession'] = cds_to_transcript[transcript_to_cds[transcript_accession]]['name']
@@ -654,10 +654,23 @@ def db_transform(template, db_dict, require_ccds, namespace):
                 if transcript_accession in cds_dict:
                     cds = cds_dict[transcript_accession]
                     if transcript_order in cds:
-                        # This is a coding exon
+                        # This exon contains a coding region
                         coding_exon_dict = cds[transcript_order]
-                        exon_dict['phase_start'] = coding_exon_dict['phase_start']
-                        exon_dict['phase_end'] = coding_exon_dict['phase_end']
+                        # If the exon is coding at an end assign the coding phase
+                        if int(exon_dict['strand']) == 1:
+                            if int(exon_dict['start']) == int(coding_exon_dict['start']):
+                                exon_dict['phase_start'] = coding_exon_dict['phase_start']
+                            if int(exon_dict['end']) == int(coding_exon_dict['end']):
+                                exon_dict['phase_end'] = coding_exon_dict['phase_end']
+                        else:
+                            if int(exon_dict['start']) == int(coding_exon_dict['start']):
+                                exon_dict['phase_end'] = coding_exon_dict['phase_end']
+                            if int(exon_dict['end']) == int(coding_exon_dict['end']):
+                                exon_dict['phase_start'] = coding_exon_dict['phase_start']
+                        # The end of the last exon is non-coding so the phase should be -1
+                        # http://www.ensembl.org/Help/Glossary
+                        if int(coding_exon_dict['cds_order']) == len(cds):
+                            exon_dict['phase_end'] = -1
                         exon_dict['coding_start'] = coding_exon_dict['start']
                         exon_dict['coding_end'] = coding_exon_dict['end']
                         # Loader overwrite flag for transcripts with a cds
