@@ -329,40 +329,39 @@ def db_transform(template, db_dict, require_ccds, namespace):
     # The cds and cdsregion tables in the database represent
     # coding sequences i.e. the parts of a genomic sequence
     # that code for a protein, including the start and stop
-    # codons. The cdsregion table holds coding exons. The
-    # cds table is the transcript-level grouping. 
+    # codons. The cdsregion table holds the coordinats of the
+    # coding regions within individual exons. The cds table 
+    # is the transcript-level grouping of those regions.
     #
-    # Because transcripts have non-coding exons and exons 
+    # Because transcripts have non-coding exons and/or exons 
     # which are partly coding and partly non-coding, multiple 
-    # transcripts cans have the same coding sequence.
+    # transcripts can have the same coding sequence.
     #
     # In the following section we generate cds and cdsregion
     # records via a process of coordinate de-duplication.
     # We say that transcripts have the same coding sequence 
     # if their coding regions are on the same strand, in the 
-    # same order and with the same coordinates. The code
+    # same order and with the same coordinates. The script
     # identifies the distinct coding sequences and generates
     # the one to many mapping from coding sequence to 
-    # transcript.
+    # transcript and from coding region to coding sequence.
     #
-    # The CCDS project 
+    # Separately, the CCDS project 
     # http://www.ensembl.org/info/genome/genebuild/ccds.html
     # provides a curated set of coding sequences, for human
-    # and mouse. Each coding sequence in their set carries
+    # and mouse. Each coding sequence in the CCDS set carries
     # a CCDS id and the coordinates of the coding regions.
+    #
     # Further, the Ensembl GTF files for human and mouse 
     # include the CCDS id as an attribute of the transcript 
     # feature. 
     # 
-    # The naive expectation would be that in those GTF files, 
+    # The naive expectation would be that in those GTF files,
     # transcripts with the same CCDS id should have the same
     # coding sequence, according to our definition above. 
-    # In fact, this is almost always the case. The handful of
-    # exceptions are logged. It should also be the case that 
-    # equivalent transcripts should have the same CCDS id. 
-    # Again this is almost always so. Exceptions are logged. 
-    # Finally, one also might expect that every protein
-    # coding transcript in the human and mouse GTF files 
+    # Happily, this is almost always the case. The handful of
+    # exceptions are logged. One might also expect that 
+    # every coding transcript in the human and mouse GTF files 
     # should have a CCDS id, but this is not the case. There
     # are other 'quality criteria' used for the assignment of 
     # CCDS ids and about 1000 genes have no transcript with
@@ -370,8 +369,8 @@ def db_transform(template, db_dict, require_ccds, namespace):
     # 
     # Transcripts that have a coding sequence but no CCDS id
     # (e.g. not human or mouse, or simply no CCDS id assigned) 
-    # are handled in this script according to the '--require-ccds' 
-    # flag, as follows.
+    # are handled in this script according to the 
+    # '--require-ccds' flag, as follows.
     #
     # If the --require-ccds flag is set true (default) the
     # coding sequence of a transcript with no CCDS id is 
