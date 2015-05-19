@@ -23,7 +23,6 @@ import collections
 import json
 
 from operator import itemgetter
-
 from docopt import docopt
 from hashlib import md5
 from pprint import pprint
@@ -171,7 +170,7 @@ def raw_parse(template, seqname_dict, input_file):
             feature_dict = dict(zip(gtf_fields, parts))
             if (feature_dict['feature'] in interest and
                 feature_dict['seqname'] in seqname_dict):
-                _handle(template, feature_dict, seqname_dict)
+                _handle(template, feature_dict, seqname_dict, line)
 
     # Output
     for key, obj in template.items():
@@ -179,13 +178,13 @@ def raw_parse(template, seqname_dict, input_file):
         log.info('Wrote %d items to %s', len(obj['dejavu']), obj['output_file'])
 
 
-def _handle(template, feature_dict, seqname_dict):
+def _handle(template, feature_dict, seqname_dict, line_for_log):
     """
     Handle a single feature, write to file
     """
 
     # Deal with coordinates
-    _transform_coordinates(feature_dict, seqname_dict)
+    _transform_coordinates(feature_dict, seqname_dict, line_for_log)
 
     # Unpack the attribute field
     attribute_regex = r"(.*?)\s+\"(.*?)\";\s?"
@@ -328,10 +327,10 @@ def db_transform(template, db_dict, require_ccds, namespace):
     #
     # The cds and cdsregion tables in the database represent
     # coding sequences i.e. the parts of a genomic sequence
-    # that code for a protein, including the start and stop
-    # codons. The cdsregion table holds the coordinats of the
+    # that code for a protein. This includes the start and stop
+    # codons. The cdsregion table holds the coordinates of the
     # coding regions within individual exons. The cds table 
-    # is the transcript-level grouping of those regions.
+    # is the transcript-level grouping of cdsregions.
     #
     # Because transcripts have non-coding exons and/or exons 
     # which are partly coding and partly non-coding, multiple 
@@ -343,8 +342,8 @@ def db_transform(template, db_dict, require_ccds, namespace):
     # if their coding regions are on the same strand, in the 
     # same order and with the same coordinates. The script
     # identifies the distinct coding sequences and generates
-    # the one to many mapping from coding sequence to 
-    # transcript and from coding region to coding sequence.
+    # the one-to-many mappings from coding sequence to 
+    # transcript.
     #
     # Separately, the CCDS project 
     # http://www.ensembl.org/info/genome/genebuild/ccds.html
@@ -352,55 +351,27 @@ def db_transform(template, db_dict, require_ccds, namespace):
     # and mouse. Each coding sequence in the CCDS set carries
     # a CCDS id and the coordinates of the coding regions.
     #
-    # Further, the Ensembl GTF files for human and mouse 
-    # include the CCDS id as an attribute of the transcript 
-    # feature. 
-    # 
+    # The Ensembl GTF files for human and mouse include the 
+    # CCDS id as an attribute of the transcript feature. 
     # The naive expectation would be that in those GTF files,
     # transcripts with the same CCDS id should have the same
     # coding sequence, according to our definition above. 
-    # Happily, this is almost always the case. The handful of
+    # In fact, this is almost always the case. The handful of
     # exceptions are logged. One might also expect that 
     # every coding transcript in the human and mouse GTF files 
-    # should have a CCDS id, but this is not the case. There
-    # are other 'quality criteria' used for the assignment of 
-    # CCDS ids and about 1000 genes have no transcript with
-    # a CCDS id.
+    # should have a CCDS id, but this is not the case at all. 
+    # There are other 'quality criteria' used for the 
+    # assignment of CCDS ids and about 1000 genes in the Ensembl
+    # set have no transcript with a CCDS id.
     # 
     # Transcripts that have a coding sequence but no CCDS id
-    # (e.g. not human or mouse, or simply no CCDS id assigned) 
-    # are handled in this script according to the 
-    # '--require-ccds' flag, as follows.
-    #
-    # If the --require-ccds flag is set true (default) the
-    # coding sequence of a transcript with no CCDS id is 
-    # omitted entirely and not represented in the cds and 
-    # cdsregion files. 
-
-    # If the --require-ccds flag is set false, all coding 
-    # sequences are written out to the cds and cdsregion 
-    # files.
-    # 
-    # Where CCDS id is available for a coding sequence, the
-    # CCDS is is assigned to the 'name' field and the
-    # 'is_consensus' flag is set to true. If there are 
-    # alternative CCDS ids for the same coding sequence 
-    # (unusual) separate cds record are generated for each 
-    # instance. Thus the the cds records are not necessarily 
-    # unique in terms of coordinates, but the duplication 
-    # level is low and probably insignificant.
-    #
-    # If no CCDS id is available for a coding sequence, the
-    # code attempts to used the 'protein_id' field from the
-    # corresponding GTF records. If there are multiple 
-    # protein ids, separate records are generated for each
-    # instance. If there are no protein ids available for 
-    # coding sequence, an auto-generated UID is assigned. 
-    #
-    # In all cases where a transcript has a coding sequence
-    # but no CCDS id, the id assigned to the coding sequence
-    # is copied back into the 'ccds_accession' field, to 
-    # support front-end display of this information.
+    # (e.g. not human or mouse, or human/mouse but no CCDS id 
+    # assigned) are handled in this script according to the 
+    # '--require-ccds' flag. The flag should be set false for
+    # genomes such as the rat genome for which there is no CCDS
+    # data. This will ensure that data fields required for the 
+    # front end are populated with appropriate alternative 
+    # information.
 
     # Maps to enable CCDS handling
     ccds_to_transcript = {}
@@ -423,14 +394,18 @@ def db_transform(template, db_dict, require_ccds, namespace):
             # calculate the coding sequence
             if not transcript_accession in transcript_to_ccds:
                 continue
-        # Possible non-uniqueness at coordinate level, but 
-        # unusual for CCDS
+        # The following hash defines uniqueness for the cds file. It
+        # depends on both coordinates and other fields, so there is
+        # possible non-uniqueness at the level of coordinates alone.
+        # In practise, almost all records will be unique in terms of
+        # coordinates.
         dict_to_hash = collections.OrderedDict({
             'name': None,
             'namespace': None,
             'is_consensus': 0,
             'exon_coords': []
         })
+        # Append coords
         for transcript_order in sorted(cds.keys()):
             exon_dict = cds[transcript_order]
             coord_dict = collections.OrderedDict({key: exon_dict[key] for key in (
@@ -438,20 +413,25 @@ def db_transform(template, db_dict, require_ccds, namespace):
                 'phase_start', 'phase_end',
                 'cds_order')})
             dict_to_hash['exon_coords'].append(coord_dict)
+        # Attached CCDS id if available
         if not dict_to_hash['name'] and transcript_accession in transcript_to_ccds:
             dict_to_hash['name'] = transcript_to_ccds[transcript_accession]
             dict_to_hash['namespace'] = 'ccds'
             dict_to_hash['is_consensus'] = 1
+        # Else attach a protein id
         if not dict_to_hash['name'] and transcript_accession in cds_dict:
             cds = cds_dict[transcript_accession]
             for transcript_order, exon_dict in cds.items():
                 if 'protein_id' in exon_dict:
                     dict_to_hash['name'] = exon_dict['protein_id']
                     break
+        # Else create an id
         if not dict_to_hash['name']:
             dict_to_hash['name'] = 'CDS%06d' % (len(cds_to_transcript) + 1)
         hash_val = _hash_dict(dict_to_hash)
+        # Have we got it?
         if not hash_val in cds_to_transcript:
+            # No, add it
             cds_to_transcript[hash_val] = {
                 'accession': "eq_{0}".format(len(cds_to_transcript)), 
                 'namespace': dict_to_hash['namespace'],
@@ -463,12 +443,13 @@ def db_transform(template, db_dict, require_ccds, namespace):
                 'exon_coords': dict_to_hash['exon_coords']
             }
             count += len(dict_to_hash['exon_coords'])
+        # Cross reference cds/transcript
         cds_to_transcript[hash_val]['transcript_accession_list'].append(transcript_accession)
         transcript_to_cds[transcript_accession] = hash_val
     log.debug('Found %d coding sequences with total %d exons', 
               len(cds_to_transcript), count)
 
-    # Calculate cds coordinates as the envelope of constituent exons
+    # Calculate cds coordinates as the envelope of it's constituent exons
     for hash_val, obj in cds_to_transcript.items():
         obj['chromosome_name'] = obj['exon_coords'][0]['chromosome_name']
         obj['strand'] = obj['exon_coords'][0]['strand']
@@ -483,6 +464,7 @@ def db_transform(template, db_dict, require_ccds, namespace):
         obj['start'] = str(start)
         obj['end'] = str(end)
 
+    # For logging purposes only
     # Check that transcripts with same CCDS have the same coding sequence
     for ccds_accession, transcript_accession_list in ccds_to_transcript.items():
         first_transcript_accession = transcript_accession_list[0]
@@ -493,20 +475,20 @@ def db_transform(template, db_dict, require_ccds, namespace):
                             first_transcript_accession,
                             transcript_accession)
 
-    # Assign namespace to transcripts
+    # Assign namespace to any transcripts without a namespace
     for transcript_accession, transcript in transcript_dict.items():
-        transcript['namespace'] = namespace
+        if 'namespace' not in transcript:
+            transcript['namespace'] = namespace
 
     # Write the cds name into the ccds_accession field of transcript,
-    # if that field is not set - field may be displayed in front end
+    # if that field is not set. This is a bit of an abuse but the 
+    # field is needed for front end display.
     for transcript_accession, transcript in transcript_dict.items():
         if not 'ccds_accession' in transcript or not transcript['ccds_accession']:
             if transcript_accession in transcript_to_cds:
                 transcript['ccds_accession'] = cds_to_transcript[transcript_to_cds[transcript_accession]]['name']
 
-    # Label each transcript with it's cds accession if available
-    # This supports the fkey cds_id in transcript so you can tell
-    # which transcripts belong to each equivalent set
+    # Label each transcript with it's cds accession if available.
     for transcript_accession, transcript in transcript_dict.items():
         transcript['cds_accession'] = None
         if transcript_accession in transcript_to_cds:
@@ -579,9 +561,6 @@ def db_transform(template, db_dict, require_ccds, namespace):
             for coord_dict in obj['exon_coords']:
                 coord_dict['cds_accession'] = obj['accession']
                 row_dict = {key: coord_dict[key] for key in fieldnames}
-                if int(row_dict['start']) > int(row_dict['end']):
-                    log.warn('Omitting invalid cdsregion coordinates for CDS %s', obj['accession'])
-                    continue
                 writer.writerow(row_dict)
                 count += 1
         output_fh.close()
@@ -684,20 +663,27 @@ def db_transform(template, db_dict, require_ccds, namespace):
         log.debug('Wrote %d exons to %s', count, db_dict['exon'])
 
 
-def _transform_coordinates(feature_dict, seqname_dict):
+def _transform_coordinates(feature_dict, seqname_dict, line_for_log):
 
     # Sequence name must be in the config
     if not feature_dict['seqname'] in seqname_dict:
-        raise Exception('Invalid seqname, does not match config')
+        raise Exception('Invalid seqname does not match config\n%s',
+                        line_for_log)
     feature_dict['seqname'] = seqname_dict[feature_dict['seqname']]
 
     # Strand must be '+' or '-'
     if not feature_dict['strand'] in ('+', '-'):
-        raise Exception('Invalid strand')
+        raise Exception('Invalid strand does not match config\n%s',
+                        line_for_log)
     feature_dict['strand'] = 1 if feature_dict['strand'] == '+' else -1
 
+    # Validate coordinates
     # Input is one-based [,] per GTF specification
+    if int(feature_dict['start']) > int(feature_dict['end']):
+        log.warn('Invalid coordinates\n%s',
+                 line_for_log)
     # CSV output is zero-based [,)
+    # Recast to str for consistency
     feature_dict['start'] = str(int(feature_dict['start']) - 1)
 
 
