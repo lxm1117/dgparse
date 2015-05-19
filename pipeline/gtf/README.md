@@ -32,7 +32,7 @@ The modified test was re-run, with results as follows:
 
 Differences 3 and 4 are attributed to better capture of the relationships between coding sequence, transcript accession and CCDS identifier via the GTF file compared to the existing process involving matching names and CCDS ids from the NCBI CCDS file with Ensembl.
 
-Difference 5 is very minor. The end_phase of the stop codon is almost always set to -1 in the database, following the convention used elsewhere for the non-coding end of an exon, but very occasionally (0.1% of exons) it is not set to -1; on the other hand, the parser calculates the exon.end_phase from based on frame in the CDS file, and sets it to -1 at the end of the stop codon.
+Difference 5 is very minor. The end_phase of the stop codon is almost always set to -1 in the database, following the convention used elsewhere for the non-coding end of an exon, but very occasionally (0.1% of exons) it is not set to -1. In contrast, the parser calculates the exon.end_phase from based on frame in the CDS file, and sets it to -1 at the end of the stop codon.
 
 ##Data
 
