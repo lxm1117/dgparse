@@ -1,0 +1,1015 @@
+INFO:__main__:{'--cds': 'db.cds.csv',
+ '--cdsregions': 'db.cdsregion.csv',
+ '--exons': 'db.exon.csv',
+ '--genes': 'db.gene.csv',
+ '--genome': 'GRCh38.p2',
+ '--log': 'DEBUG',
+ '--transcripts': 'db.transcript.csv'}
+INFO:__main__:===== Comparisons for chr21 =====
+INFO:__main__:hash_to_cds_id_map has 347 keys
+INFO:__main__:cds_id_to_hash_map has 347 keys
+INFO:__main__:Found 347 cds accessions
+INFO:__main__:Found 347 cds groups
+INFO:__main__:hash_to_cds_accession_map has 347 keys
+INFO:__main__:cds_map has 347 keys
+INFO:__main__:Read 870 genes from database
+INFO:__main__:Read 870 genes from /home/matt/manifest/human/db.gene.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to gene-gtf.tmp
+INFO:__main__:Wrote db data to gene-db.tmp
+INFO:__main__:Total 0 gene differences *** PASS
+INFO:__main__:Read 2404 transcripts from database
+INFO:__main__:Read 2404 transcripts from /home/matt/manifest/human/db.transcript.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to transcript-gtf.tmp
+INFO:__main__:Wrote db data to transcript-db.tmp
+INFO:__main__:Total 0 transcript differences *** PASS
+INFO:__main__:Read 13794 exons from database
+INFO:__main__:Read 13794 exons from /home/matt/manifest/human/db.exon.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to exon-gtf.tmp
+INFO:__main__:Wrote db data to exon-db.tmp
+INFO:__main__:Total 11 exon differences *** CHECK
+INFO:__main__:Read 347 cds from database
+INFO:__main__:Read 347 cds from /home/matt/manifest/human/db.cds.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cds-gtf.tmp
+INFO:__main__:Wrote db data to cds-db.tmp
+INFO:__main__:Total 0 cds differences *** PASS
+INFO:__main__:Read 3546 cdsregions from database
+INFO:__main__:Read 3546 cdsregions from /home/matt/manifest/human/db.cdsregion.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cdsregion-gtf.tmp
+INFO:__main__:Wrote db data to cdsregion-db.tmp
+INFO:__main__:Total 0 cdsregion differences *** PASS
+INFO:__main__:===== Comparisons for chr22 =====
+INFO:__main__:hash_to_cds_id_map has 664 keys
+INFO:__main__:cds_id_to_hash_map has 664 keys
+INFO:__main__:Found 664 cds accessions
+INFO:__main__:Found 664 cds groups
+INFO:__main__:hash_to_cds_accession_map has 664 keys
+INFO:__main__:cds_map has 664 keys
+INFO:__main__:Read 1379 genes from database
+INFO:__main__:Read 1379 genes from /home/matt/manifest/human/db.gene.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to gene-gtf.tmp
+INFO:__main__:Wrote db data to gene-db.tmp
+INFO:__main__:Total 0 gene differences *** PASS
+INFO:__main__:Read 4495 transcripts from database
+INFO:__main__:Read 4495 transcripts from /home/matt/manifest/human/db.transcript.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to transcript-gtf.tmp
+INFO:__main__:Wrote db data to transcript-db.tmp
+INFO:__main__:Total 0 transcript differences *** PASS
+INFO:__main__:Read 26023 exons from database
+INFO:__main__:Read 26023 exons from /home/matt/manifest/human/db.exon.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to exon-gtf.tmp
+INFO:__main__:Wrote db data to exon-db.tmp
+INFO:__main__:Total 32 exon differences *** CHECK
+INFO:__main__:Read 664 cds from database
+INFO:__main__:Read 664 cds from /home/matt/manifest/human/db.cds.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cds-gtf.tmp
+INFO:__main__:Wrote db data to cds-db.tmp
+INFO:__main__:Total 0 cds differences *** PASS
+INFO:__main__:Read 6713 cdsregions from database
+INFO:__main__:Read 6713 cdsregions from /home/matt/manifest/human/db.cdsregion.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cdsregion-gtf.tmp
+INFO:__main__:Wrote db data to cdsregion-db.tmp
+INFO:__main__:Total 0 cdsregion differences *** PASS
+INFO:__main__:===== Comparisons for chrY =====
+INFO:__main__:hash_to_cds_id_map has 106 keys
+INFO:__main__:cds_id_to_hash_map has 106 keys
+INFO:__main__:Found 71 cds accessions
+INFO:__main__:Found 71 cds groups
+INFO:__main__:hash_to_cds_accession_map has 71 keys
+INFO:__main__:cds_map has 71 keys
+INFO:__main__:Read 615 genes from database
+INFO:__main__:Read 615 genes from /home/matt/manifest/human/db.gene.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to gene-gtf.tmp
+INFO:__main__:Wrote db data to gene-db.tmp
+INFO:__main__:Total 0 gene differences *** PASS
+INFO:__main__:Read 834 transcripts from database
+INFO:__main__:Read 834 transcripts from /home/matt/manifest/human/db.transcript.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to transcript-gtf.tmp
+INFO:__main__:Wrote db data to transcript-db.tmp
+INFO:__main__:Total 0 transcript differences *** PASS
+INFO:__main__:Read 4566 exons from database
+INFO:__main__:Read 4566 exons from /home/matt/manifest/human/db.exon.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to exon-gtf.tmp
+INFO:__main__:Wrote db data to exon-db.tmp
+INFO:__main__:Total 4 exon differences *** CHECK
+INFO:__main__:Read 71 cds from database
+INFO:__main__:Read 71 cds from /home/matt/manifest/human/db.cds.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cds-gtf.tmp
+INFO:__main__:Wrote db data to cds-db.tmp
+INFO:__main__:Total 0 cds differences *** PASS
+INFO:__main__:Read 801 cdsregions from database
+INFO:__main__:Read 801 cdsregions from /home/matt/manifest/human/db.cdsregion.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cdsregion-gtf.tmp
+INFO:__main__:Wrote db data to cdsregion-db.tmp
+INFO:__main__:Total 0 cdsregion differences *** PASS
+INFO:__main__:===== Comparisons for chr19 =====
+INFO:__main__:hash_to_cds_id_map has 2028 keys
+INFO:__main__:cds_id_to_hash_map has 2028 keys
+INFO:__main__:Found 2051 cds accessions
+INFO:__main__:Found 2051 cds groups
+INFO:__main__:hash_to_cds_accession_map has 2051 keys
+INFO:__main__:cds_map has 2028 keys
+INFO:__main__:Read 3004 genes from database
+INFO:__main__:Read 3004 genes from /home/matt/manifest/human/db.gene.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to gene-gtf.tmp
+INFO:__main__:Wrote db data to gene-db.tmp
+INFO:__main__:Total 0 gene differences *** PASS
+INFO:__main__:Read 12746 transcripts from database
+INFO:__main__:Read 12746 transcripts from /home/matt/manifest/human/db.transcript.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to transcript-gtf.tmp
+INFO:__main__:Wrote db data to transcript-db.tmp
+INFO:__main__:Total 0 transcript differences *** PASS
+INFO:__main__:Read 71202 exons from database
+INFO:__main__:Read 71202 exons from /home/matt/manifest/human/db.exon.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to exon-gtf.tmp
+INFO:__main__:Wrote db data to exon-db.tmp
+INFO:__main__:Total 414 exon differences *** CHECK
+INFO:__main__:Read 2028 cds from database
+INFO:__main__:Read 2051 cds from /home/matt/manifest/human/db.cds.csv
+INFO:__main__:Total 23 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cds-gtf.tmp
+INFO:__main__:Wrote db data to cds-db.tmp
+INFO:__main__:Total 0 cds differences *** PASS
+INFO:__main__:Read 17327 cdsregions from database
+INFO:__main__:Read 17679 cdsregions from /home/matt/manifest/human/db.cdsregion.csv
+INFO:__main__:Total 352 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cdsregion-gtf.tmp
+INFO:__main__:Wrote db data to cdsregion-db.tmp
+INFO:__main__:Total 0 cdsregion differences *** PASS
+INFO:__main__:===== Comparisons for chr20 =====
+INFO:__main__:hash_to_cds_id_map has 826 keys
+INFO:__main__:cds_id_to_hash_map has 826 keys
+INFO:__main__:Found 827 cds accessions
+INFO:__main__:Found 827 cds groups
+INFO:__main__:hash_to_cds_accession_map has 827 keys
+INFO:__main__:cds_map has 826 keys
+INFO:__main__:Read 1443 genes from database
+INFO:__main__:Read 1443 genes from /home/matt/manifest/human/db.gene.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to gene-gtf.tmp
+INFO:__main__:Wrote db data to gene-db.tmp
+INFO:__main__:Total 0 gene differences *** PASS
+INFO:__main__:Read 4167 transcripts from database
+INFO:__main__:Read 4167 transcripts from /home/matt/manifest/human/db.transcript.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to transcript-gtf.tmp
+INFO:__main__:Wrote db data to transcript-db.tmp
+INFO:__main__:Total 0 transcript differences *** PASS
+INFO:__main__:Read 24937 exons from database
+INFO:__main__:Read 24937 exons from /home/matt/manifest/human/db.exon.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to exon-gtf.tmp
+INFO:__main__:Wrote db data to exon-db.tmp
+INFO:__main__:Total 32 exon differences *** CHECK
+INFO:__main__:Read 826 cds from database
+INFO:__main__:Read 827 cds from /home/matt/manifest/human/db.cds.csv
+INFO:__main__:Total 1 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cds-gtf.tmp
+INFO:__main__:Wrote db data to cds-db.tmp
+INFO:__main__:Total 0 cds differences *** PASS
+INFO:__main__:Read 7803 cdsregions from database
+INFO:__main__:Read 7807 cdsregions from /home/matt/manifest/human/db.cdsregion.csv
+INFO:__main__:Total 4 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cdsregion-gtf.tmp
+INFO:__main__:Wrote db data to cdsregion-db.tmp
+INFO:__main__:Total 0 cdsregion differences *** PASS
+INFO:__main__:===== Comparisons for chr18 =====
+INFO:__main__:hash_to_cds_id_map has 451 keys
+INFO:__main__:cds_id_to_hash_map has 451 keys
+INFO:__main__:Found 451 cds accessions
+INFO:__main__:Found 451 cds groups
+INFO:__main__:hash_to_cds_accession_map has 451 keys
+INFO:__main__:cds_map has 451 keys
+INFO:__main__:Read 1209 genes from database
+INFO:__main__:Read 1209 genes from /home/matt/manifest/human/db.gene.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to gene-gtf.tmp
+INFO:__main__:Wrote db data to gene-db.tmp
+INFO:__main__:Total 0 gene differences *** PASS
+INFO:__main__:Read 3634 transcripts from database
+INFO:__main__:Read 3634 transcripts from /home/matt/manifest/human/db.transcript.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to transcript-gtf.tmp
+INFO:__main__:Wrote db data to transcript-db.tmp
+INFO:__main__:Total 0 transcript differences *** PASS
+INFO:__main__:Read 19999 exons from database
+INFO:__main__:Read 19999 exons from /home/matt/manifest/human/db.exon.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to exon-gtf.tmp
+INFO:__main__:Wrote db data to exon-db.tmp
+INFO:__main__:Total 9 exon differences *** CHECK
+INFO:__main__:Read 451 cds from database
+INFO:__main__:Read 451 cds from /home/matt/manifest/human/db.cds.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cds-gtf.tmp
+INFO:__main__:Wrote db data to cds-db.tmp
+INFO:__main__:Total 0 cds differences *** PASS
+INFO:__main__:Read 5012 cdsregions from database
+INFO:__main__:Read 5012 cdsregions from /home/matt/manifest/human/db.cdsregion.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cdsregion-gtf.tmp
+INFO:__main__:Wrote db data to cdsregion-db.tmp
+INFO:__main__:Total 0 cdsregion differences *** PASS
+INFO:__main__:===== Comparisons for chr17 =====
+INFO:__main__:hash_to_cds_id_map has 1746 keys
+INFO:__main__:cds_id_to_hash_map has 1746 keys
+INFO:__main__:Found 1754 cds accessions
+INFO:__main__:Found 1754 cds groups
+INFO:__main__:hash_to_cds_accession_map has 1754 keys
+INFO:__main__:cds_map has 1746 keys
+INFO:__main__:Read 3084 genes from database
+INFO:__main__:Read 3084 genes from /home/matt/manifest/human/db.gene.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to gene-gtf.tmp
+INFO:__main__:Wrote db data to gene-db.tmp
+INFO:__main__:Total 0 gene differences *** PASS
+INFO:__main__:Read 12557 transcripts from database
+INFO:__main__:Read 12557 transcripts from /home/matt/manifest/human/db.transcript.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to transcript-gtf.tmp
+INFO:__main__:Wrote db data to transcript-db.tmp
+INFO:__main__:Total 0 transcript differences *** PASS
+INFO:__main__:Read 74582 exons from database
+INFO:__main__:Read 74582 exons from /home/matt/manifest/human/db.exon.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to exon-gtf.tmp
+INFO:__main__:Wrote db data to exon-db.tmp
+INFO:__main__:Total 151 exon differences *** CHECK
+INFO:__main__:Read 1746 cds from database
+INFO:__main__:Read 1754 cds from /home/matt/manifest/human/db.cds.csv
+INFO:__main__:Total 8 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cds-gtf.tmp
+INFO:__main__:Wrote db data to cds-db.tmp
+INFO:__main__:Total 0 cds differences *** PASS
+INFO:__main__:Read 18986 cdsregions from database
+INFO:__main__:Read 19058 cdsregions from /home/matt/manifest/human/db.cdsregion.csv
+INFO:__main__:Total 72 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cdsregion-gtf.tmp
+INFO:__main__:Wrote db data to cdsregion-db.tmp
+INFO:__main__:Total 0 cdsregion differences *** PASS
+INFO:__main__:===== Comparisons for chr16 =====
+INFO:__main__:hash_to_cds_id_map has 1236 keys
+INFO:__main__:cds_id_to_hash_map has 1236 keys
+INFO:__main__:Found 1247 cds accessions
+INFO:__main__:Found 1247 cds groups
+INFO:__main__:hash_to_cds_accession_map has 1247 keys
+INFO:__main__:cds_map has 1236 keys
+INFO:__main__:Read 2588 genes from database
+INFO:__main__:Read 2588 genes from /home/matt/manifest/human/db.gene.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to gene-gtf.tmp
+INFO:__main__:Wrote db data to gene-db.tmp
+INFO:__main__:Total 0 gene differences *** PASS
+INFO:__main__:Read 9871 transcripts from database
+INFO:__main__:Read 9871 transcripts from /home/matt/manifest/human/db.transcript.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to transcript-gtf.tmp
+INFO:__main__:Wrote db data to transcript-db.tmp
+INFO:__main__:Total 0 transcript differences *** PASS
+INFO:__main__:Read 56676 exons from database
+INFO:__main__:Read 56676 exons from /home/matt/manifest/human/db.exon.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to exon-gtf.tmp
+INFO:__main__:Wrote db data to exon-db.tmp
+INFO:__main__:Total 251 exon differences *** CHECK
+INFO:__main__:Read 1236 cds from database
+INFO:__main__:Read 1247 cds from /home/matt/manifest/human/db.cds.csv
+INFO:__main__:Total 11 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cds-gtf.tmp
+INFO:__main__:Wrote db data to cds-db.tmp
+INFO:__main__:Total 0 cds differences *** PASS
+INFO:__main__:Read 13237 cdsregions from database
+INFO:__main__:Read 13359 cdsregions from /home/matt/manifest/human/db.cdsregion.csv
+INFO:__main__:Total 122 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cdsregion-gtf.tmp
+INFO:__main__:Wrote db data to cdsregion-db.tmp
+INFO:__main__:Total 0 cdsregion differences *** PASS
+INFO:__main__:===== Comparisons for chr15 =====
+INFO:__main__:hash_to_cds_id_map has 943 keys
+INFO:__main__:cds_id_to_hash_map has 943 keys
+INFO:__main__:Found 945 cds accessions
+INFO:__main__:Found 945 cds groups
+INFO:__main__:hash_to_cds_accession_map has 945 keys
+INFO:__main__:cds_map has 943 keys
+INFO:__main__:Read 2217 genes from database
+INFO:__main__:Read 2217 genes from /home/matt/manifest/human/db.gene.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to gene-gtf.tmp
+INFO:__main__:Wrote db data to gene-db.tmp
+INFO:__main__:Total 0 gene differences *** PASS
+INFO:__main__:Read 7303 transcripts from database
+INFO:__main__:Read 7303 transcripts from /home/matt/manifest/human/db.transcript.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to transcript-gtf.tmp
+INFO:__main__:Wrote db data to transcript-db.tmp
+INFO:__main__:Total 0 transcript differences *** PASS
+INFO:__main__:Read 43933 exons from database
+INFO:__main__:Read 43933 exons from /home/matt/manifest/human/db.exon.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to exon-gtf.tmp
+INFO:__main__:Wrote db data to exon-db.tmp
+INFO:__main__:Total 37 exon differences *** CHECK
+INFO:__main__:Read 943 cds from database
+INFO:__main__:Read 945 cds from /home/matt/manifest/human/db.cds.csv
+INFO:__main__:Total 2 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cds-gtf.tmp
+INFO:__main__:Wrote db data to cds-db.tmp
+INFO:__main__:Total 0 cds differences *** PASS
+INFO:__main__:Read 11639 cdsregions from database
+INFO:__main__:Read 11653 cdsregions from /home/matt/manifest/human/db.cdsregion.csv
+INFO:__main__:Total 14 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cdsregion-gtf.tmp
+INFO:__main__:Wrote db data to cdsregion-db.tmp
+INFO:__main__:Total 0 cdsregion differences *** PASS
+INFO:__main__:===== Comparisons for chr14 =====
+INFO:__main__:hash_to_cds_id_map has 929 keys
+INFO:__main__:cds_id_to_hash_map has 929 keys
+INFO:__main__:Found 932 cds accessions
+INFO:__main__:Found 932 cds groups
+INFO:__main__:hash_to_cds_accession_map has 932 keys
+INFO:__main__:cds_map has 929 keys
+INFO:__main__:Read 2283 genes from database
+INFO:__main__:Read 2283 genes from /home/matt/manifest/human/db.gene.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to gene-gtf.tmp
+INFO:__main__:Wrote db data to gene-db.tmp
+INFO:__main__:Total 0 gene differences *** PASS
+INFO:__main__:Read 7489 transcripts from database
+INFO:__main__:Read 7489 transcripts from /home/matt/manifest/human/db.transcript.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to transcript-gtf.tmp
+INFO:__main__:Wrote db data to transcript-db.tmp
+INFO:__main__:Total 0 transcript differences *** PASS
+INFO:__main__:Read 41722 exons from database
+INFO:__main__:Read 41722 exons from /home/matt/manifest/human/db.exon.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to exon-gtf.tmp
+INFO:__main__:Wrote db data to exon-db.tmp
+INFO:__main__:Total 38 exon differences *** CHECK
+INFO:__main__:Read 929 cds from database
+INFO:__main__:Read 932 cds from /home/matt/manifest/human/db.cds.csv
+INFO:__main__:Total 3 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cds-gtf.tmp
+INFO:__main__:Wrote db data to cds-db.tmp
+INFO:__main__:Total 0 cds differences *** PASS
+INFO:__main__:Read 9327 cdsregions from database
+INFO:__main__:Read 9340 cdsregions from /home/matt/manifest/human/db.cdsregion.csv
+INFO:__main__:Total 13 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cdsregion-gtf.tmp
+INFO:__main__:Wrote db data to cdsregion-db.tmp
+INFO:__main__:Total 0 cdsregion differences *** PASS
+INFO:__main__:===== Comparisons for chr13 =====
+INFO:__main__:hash_to_cds_id_map has 488 keys
+INFO:__main__:cds_id_to_hash_map has 488 keys
+INFO:__main__:Found 488 cds accessions
+INFO:__main__:Found 488 cds groups
+INFO:__main__:hash_to_cds_accession_map has 488 keys
+INFO:__main__:cds_map has 488 keys
+INFO:__main__:Read 1360 genes from database
+INFO:__main__:Read 1360 genes from /home/matt/manifest/human/db.gene.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to gene-gtf.tmp
+INFO:__main__:Wrote db data to gene-db.tmp
+INFO:__main__:Total 0 gene differences *** PASS
+INFO:__main__:Read 3166 transcripts from database
+INFO:__main__:Read 3166 transcripts from /home/matt/manifest/human/db.transcript.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to transcript-gtf.tmp
+INFO:__main__:Wrote db data to transcript-db.tmp
+INFO:__main__:Total 0 transcript differences *** PASS
+INFO:__main__:Read 17503 exons from database
+INFO:__main__:Read 17503 exons from /home/matt/manifest/human/db.exon.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to exon-gtf.tmp
+INFO:__main__:Wrote db data to exon-db.tmp
+INFO:__main__:Total 20 exon differences *** CHECK
+INFO:__main__:Read 488 cds from database
+INFO:__main__:Read 488 cds from /home/matt/manifest/human/db.cds.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cds-gtf.tmp
+INFO:__main__:Wrote db data to cds-db.tmp
+INFO:__main__:Total 0 cds differences *** PASS
+INFO:__main__:Read 5357 cdsregions from database
+INFO:__main__:Read 5357 cdsregions from /home/matt/manifest/human/db.cdsregion.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cdsregion-gtf.tmp
+INFO:__main__:Wrote db data to cdsregion-db.tmp
+INFO:__main__:Total 0 cdsregion differences *** PASS
+INFO:__main__:===== Comparisons for chr12 =====
+INFO:__main__:hash_to_cds_id_map has 1649 keys
+INFO:__main__:cds_id_to_hash_map has 1649 keys
+INFO:__main__:Found 1655 cds accessions
+INFO:__main__:Found 1655 cds groups
+INFO:__main__:hash_to_cds_accession_map has 1655 keys
+INFO:__main__:cds_map has 1649 keys
+INFO:__main__:Read 3035 genes from database
+INFO:__main__:Read 3035 genes from /home/matt/manifest/human/db.gene.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to gene-gtf.tmp
+INFO:__main__:Wrote db data to gene-db.tmp
+INFO:__main__:Total 0 gene differences *** PASS
+INFO:__main__:Read 11437 transcripts from database
+INFO:__main__:Read 11437 transcripts from /home/matt/manifest/human/db.transcript.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to transcript-gtf.tmp
+INFO:__main__:Wrote db data to transcript-db.tmp
+INFO:__main__:Total 0 transcript differences *** PASS
+INFO:__main__:Read 69549 exons from database
+INFO:__main__:Read 69549 exons from /home/matt/manifest/human/db.exon.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to exon-gtf.tmp
+INFO:__main__:Wrote db data to exon-db.tmp
+INFO:__main__:Total 158 exon differences *** CHECK
+INFO:__main__:Read 1649 cds from database
+INFO:__main__:Read 1655 cds from /home/matt/manifest/human/db.cds.csv
+INFO:__main__:Total 6 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cds-gtf.tmp
+INFO:__main__:Wrote db data to cds-db.tmp
+INFO:__main__:Total 0 cds differences *** PASS
+INFO:__main__:Read 18867 cdsregions from database
+INFO:__main__:Read 18994 cdsregions from /home/matt/manifest/human/db.cdsregion.csv
+INFO:__main__:Total 127 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cdsregion-gtf.tmp
+INFO:__main__:Wrote db data to cdsregion-db.tmp
+INFO:__main__:Total 0 cdsregion differences *** PASS
+INFO:__main__:===== Comparisons for chr10 =====
+INFO:__main__:hash_to_cds_id_map has 1209 keys
+INFO:__main__:cds_id_to_hash_map has 1209 keys
+INFO:__main__:Found 1224 cds accessions
+INFO:__main__:Found 1224 cds groups
+INFO:__main__:hash_to_cds_accession_map has 1224 keys
+INFO:__main__:cds_map has 1209 keys
+INFO:__main__:Read 2294 genes from database
+INFO:__main__:Read 2294 genes from /home/matt/manifest/human/db.gene.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to gene-gtf.tmp
+INFO:__main__:Wrote db data to gene-db.tmp
+INFO:__main__:Total 0 gene differences *** PASS
+INFO:__main__:Read 6442 transcripts from database
+INFO:__main__:Read 6442 transcripts from /home/matt/manifest/human/db.transcript.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to transcript-gtf.tmp
+INFO:__main__:Wrote db data to transcript-db.tmp
+INFO:__main__:Total 0 transcript differences *** PASS
+INFO:__main__:Read 41143 exons from database
+INFO:__main__:Read 41143 exons from /home/matt/manifest/human/db.exon.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to exon-gtf.tmp
+INFO:__main__:Wrote db data to exon-db.tmp
+INFO:__main__:Total 187 exon differences *** CHECK
+INFO:__main__:Read 1209 cds from database
+INFO:__main__:Read 1224 cds from /home/matt/manifest/human/db.cds.csv
+INFO:__main__:Total 15 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cds-gtf.tmp
+INFO:__main__:Wrote db data to cds-db.tmp
+INFO:__main__:Total 0 cds differences *** PASS
+INFO:__main__:Read 13582 cdsregions from database
+INFO:__main__:Read 13678 cdsregions from /home/matt/manifest/human/db.cdsregion.csv
+INFO:__main__:Total 96 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cdsregion-gtf.tmp
+INFO:__main__:Wrote db data to cdsregion-db.tmp
+INFO:__main__:Total 0 cdsregion differences *** PASS
+INFO:__main__:===== Comparisons for chr11 =====
+INFO:__main__:hash_to_cds_id_map has 1936 keys
+INFO:__main__:cds_id_to_hash_map has 1936 keys
+INFO:__main__:Found 1942 cds accessions
+INFO:__main__:Found 1942 cds groups
+INFO:__main__:hash_to_cds_accession_map has 1942 keys
+INFO:__main__:cds_map has 1936 keys
+INFO:__main__:Read 3358 genes from database
+INFO:__main__:Read 3358 genes from /home/matt/manifest/human/db.gene.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to gene-gtf.tmp
+INFO:__main__:Wrote db data to gene-db.tmp
+INFO:__main__:Total 0 gene differences *** PASS
+INFO:__main__:Read 12201 transcripts from database
+INFO:__main__:Read 12201 transcripts from /home/matt/manifest/human/db.transcript.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to transcript-gtf.tmp
+INFO:__main__:Wrote db data to transcript-db.tmp
+INFO:__main__:Total 0 transcript differences *** PASS
+INFO:__main__:Read 69713 exons from database
+INFO:__main__:Read 69713 exons from /home/matt/manifest/human/db.exon.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to exon-gtf.tmp
+INFO:__main__:Wrote db data to exon-db.tmp
+INFO:__main__:Total 105 exon differences *** CHECK
+INFO:__main__:Read 1936 cds from database
+INFO:__main__:Read 1942 cds from /home/matt/manifest/human/db.cds.csv
+INFO:__main__:Total 6 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cds-gtf.tmp
+INFO:__main__:Wrote db data to cds-db.tmp
+INFO:__main__:Total 0 cds differences *** PASS
+INFO:__main__:Read 18404 cdsregions from database
+INFO:__main__:Read 18455 cdsregions from /home/matt/manifest/human/db.cdsregion.csv
+INFO:__main__:Total 51 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cdsregion-gtf.tmp
+INFO:__main__:Wrote db data to cdsregion-db.tmp
+INFO:__main__:Total 0 cdsregion differences *** PASS
+INFO:__main__:===== Comparisons for chr9 =====
+INFO:__main__:hash_to_cds_id_map has 1184 keys
+INFO:__main__:cds_id_to_hash_map has 1184 keys
+INFO:__main__:Found 1190 cds accessions
+INFO:__main__:Found 1190 cds groups
+INFO:__main__:hash_to_cds_accession_map has 1190 keys
+INFO:__main__:cds_map has 1184 keys
+INFO:__main__:Read 2330 genes from database
+INFO:__main__:Read 2330 genes from /home/matt/manifest/human/db.gene.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to gene-gtf.tmp
+INFO:__main__:Wrote db data to gene-db.tmp
+INFO:__main__:Total 0 gene differences *** PASS
+INFO:__main__:Read 6413 transcripts from database
+INFO:__main__:Read 6413 transcripts from /home/matt/manifest/human/db.transcript.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to transcript-gtf.tmp
+INFO:__main__:Wrote db data to transcript-db.tmp
+INFO:__main__:Total 0 transcript differences *** PASS
+INFO:__main__:Read 40414 exons from database
+INFO:__main__:Read 40414 exons from /home/matt/manifest/human/db.exon.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to exon-gtf.tmp
+INFO:__main__:Wrote db data to exon-db.tmp
+INFO:__main__:Total 78 exon differences *** CHECK
+INFO:__main__:Read 1184 cds from database
+INFO:__main__:Read 1190 cds from /home/matt/manifest/human/db.cds.csv
+INFO:__main__:Total 6 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cds-gtf.tmp
+INFO:__main__:Wrote db data to cds-db.tmp
+INFO:__main__:Total 0 cds differences *** PASS
+INFO:__main__:Read 13027 cdsregions from database
+INFO:__main__:Read 13053 cdsregions from /home/matt/manifest/human/db.cdsregion.csv
+INFO:__main__:Total 26 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cdsregion-gtf.tmp
+INFO:__main__:Wrote db data to cdsregion-db.tmp
+INFO:__main__:Total 0 cdsregion differences *** PASS
+INFO:__main__:===== Comparisons for chr8 =====
+INFO:__main__:hash_to_cds_id_map has 1010 keys
+INFO:__main__:cds_id_to_hash_map has 1010 keys
+INFO:__main__:Found 1014 cds accessions
+INFO:__main__:Found 1014 cds groups
+INFO:__main__:hash_to_cds_accession_map has 1014 keys
+INFO:__main__:cds_map has 1010 keys
+INFO:__main__:Read 2449 genes from database
+INFO:__main__:Read 2449 genes from /home/matt/manifest/human/db.gene.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to gene-gtf.tmp
+INFO:__main__:Wrote db data to gene-db.tmp
+INFO:__main__:Total 0 gene differences *** PASS
+INFO:__main__:Read 7713 transcripts from database
+INFO:__main__:Read 7713 transcripts from /home/matt/manifest/human/db.transcript.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to transcript-gtf.tmp
+INFO:__main__:Wrote db data to transcript-db.tmp
+INFO:__main__:Total 0 transcript differences *** PASS
+INFO:__main__:Read 42013 exons from database
+INFO:__main__:Read 42013 exons from /home/matt/manifest/human/db.exon.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to exon-gtf.tmp
+INFO:__main__:Wrote db data to exon-db.tmp
+INFO:__main__:Total 120 exon differences *** CHECK
+INFO:__main__:Read 1010 cds from database
+INFO:__main__:Read 1014 cds from /home/matt/manifest/human/db.cds.csv
+INFO:__main__:Total 4 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cds-gtf.tmp
+INFO:__main__:Wrote db data to cds-db.tmp
+INFO:__main__:Total 0 cds differences *** PASS
+INFO:__main__:Read 10152 cdsregions from database
+INFO:__main__:Read 10208 cdsregions from /home/matt/manifest/human/db.cdsregion.csv
+INFO:__main__:Total 56 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cdsregion-gtf.tmp
+INFO:__main__:Wrote db data to cdsregion-db.tmp
+INFO:__main__:Total 0 cdsregion differences *** PASS
+INFO:__main__:===== Comparisons for chrX =====
+INFO:__main__:hash_to_cds_id_map has 1231 keys
+INFO:__main__:cds_id_to_hash_map has 1231 keys
+INFO:__main__:Found 1248 cds accessions
+INFO:__main__:Found 1248 cds groups
+INFO:__main__:hash_to_cds_accession_map has 1248 keys
+INFO:__main__:cds_map has 1196 keys
+INFO:__main__:Read 2450 genes from database
+INFO:__main__:Read 2450 genes from /home/matt/manifest/human/db.gene.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to gene-gtf.tmp
+INFO:__main__:Wrote db data to gene-db.tmp
+INFO:__main__:Total 0 gene differences *** PASS
+INFO:__main__:Read 5928 transcripts from database
+INFO:__main__:Read 5928 transcripts from /home/matt/manifest/human/db.transcript.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to transcript-gtf.tmp
+INFO:__main__:Wrote db data to transcript-db.tmp
+INFO:__main__:Total 0 transcript differences *** PASS
+INFO:__main__:Read 34174 exons from database
+INFO:__main__:Read 34174 exons from /home/matt/manifest/human/db.exon.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to exon-gtf.tmp
+INFO:__main__:Wrote db data to exon-db.tmp
+INFO:__main__:Total 339 exon differences *** CHECK
+INFO:__main__:Read 1196 cds from database
+INFO:__main__:Read 1248 cds from /home/matt/manifest/human/db.cds.csv
+INFO:__main__:Total 52 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cds-gtf.tmp
+INFO:__main__:Wrote db data to cds-db.tmp
+INFO:__main__:Total 0 cds differences *** PASS
+INFO:__main__:Read 11264 cdsregions from database
+INFO:__main__:Read 11808 cdsregions from /home/matt/manifest/human/db.cdsregion.csv
+INFO:__main__:Total 544 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cdsregion-gtf.tmp
+INFO:__main__:Wrote db data to cdsregion-db.tmp
+INFO:__main__:Total 0 cdsregion differences *** PASS
+INFO:__main__:===== Comparisons for chr7 =====
+INFO:__main__:hash_to_cds_id_map has 1402 keys
+INFO:__main__:cds_id_to_hash_map has 1402 keys
+INFO:__main__:Found 1412 cds accessions
+INFO:__main__:Found 1412 cds groups
+INFO:__main__:hash_to_cds_accession_map has 1412 keys
+INFO:__main__:cds_map has 1402 keys
+INFO:__main__:Read 2953 genes from database
+INFO:__main__:Read 2953 genes from /home/matt/manifest/human/db.gene.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to gene-gtf.tmp
+INFO:__main__:Wrote db data to gene-db.tmp
+INFO:__main__:Total 0 gene differences *** PASS
+INFO:__main__:Read 9384 transcripts from database
+INFO:__main__:Read 9384 transcripts from /home/matt/manifest/human/db.transcript.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to transcript-gtf.tmp
+INFO:__main__:Wrote db data to transcript-db.tmp
+INFO:__main__:Total 0 transcript differences *** PASS
+INFO:__main__:Read 56082 exons from database
+INFO:__main__:Read 56082 exons from /home/matt/manifest/human/db.exon.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to exon-gtf.tmp
+INFO:__main__:Wrote db data to exon-db.tmp
+INFO:__main__:Total 147 exon differences *** CHECK
+INFO:__main__:Read 1402 cds from database
+INFO:__main__:Read 1412 cds from /home/matt/manifest/human/db.cds.csv
+INFO:__main__:Total 10 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cds-gtf.tmp
+INFO:__main__:Wrote db data to cds-db.tmp
+INFO:__main__:Total 0 cds differences *** PASS
+INFO:__main__:Read 14980 cdsregions from database
+INFO:__main__:Read 15051 cdsregions from /home/matt/manifest/human/db.cdsregion.csv
+INFO:__main__:Total 71 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cdsregion-gtf.tmp
+INFO:__main__:Wrote db data to cdsregion-db.tmp
+INFO:__main__:Total 0 cdsregion differences *** PASS
+INFO:__main__:===== Comparisons for chr6 =====
+INFO:__main__:hash_to_cds_id_map has 1607 keys
+INFO:__main__:cds_id_to_hash_map has 1607 keys
+INFO:__main__:Found 1621 cds accessions
+INFO:__main__:Found 1621 cds groups
+INFO:__main__:hash_to_cds_accession_map has 1621 keys
+INFO:__main__:cds_map has 1607 keys
+INFO:__main__:Read 2967 genes from database
+INFO:__main__:Read 2967 genes from /home/matt/manifest/human/db.gene.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to gene-gtf.tmp
+INFO:__main__:Wrote db data to gene-db.tmp
+INFO:__main__:Total 0 gene differences *** PASS
+INFO:__main__:Read 8445 transcripts from database
+INFO:__main__:Read 8445 transcripts from /home/matt/manifest/human/db.transcript.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to transcript-gtf.tmp
+INFO:__main__:Wrote db data to transcript-db.tmp
+INFO:__main__:Total 0 transcript differences *** PASS
+INFO:__main__:Read 51067 exons from database
+INFO:__main__:Read 51067 exons from /home/matt/manifest/human/db.exon.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to exon-gtf.tmp
+INFO:__main__:Wrote db data to exon-db.tmp
+INFO:__main__:Total 331 exon differences *** CHECK
+INFO:__main__:Read 1607 cds from database
+INFO:__main__:Read 1621 cds from /home/matt/manifest/human/db.cds.csv
+INFO:__main__:Total 14 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cds-gtf.tmp
+INFO:__main__:Wrote db data to cds-db.tmp
+INFO:__main__:Total 0 cds differences *** PASS
+INFO:__main__:Read 15609 cdsregions from database
+INFO:__main__:Read 15834 cdsregions from /home/matt/manifest/human/db.cdsregion.csv
+INFO:__main__:Total 225 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cdsregion-gtf.tmp
+INFO:__main__:Wrote db data to cdsregion-db.tmp
+INFO:__main__:Total 0 cdsregion differences *** PASS
+INFO:__main__:===== Comparisons for chr5 =====
+INFO:__main__:hash_to_cds_id_map has 1348 keys
+INFO:__main__:cds_id_to_hash_map has 1348 keys
+INFO:__main__:Found 1355 cds accessions
+INFO:__main__:Found 1355 cds groups
+INFO:__main__:hash_to_cds_accession_map has 1355 keys
+INFO:__main__:cds_map has 1348 keys
+INFO:__main__:Read 2984 genes from database
+INFO:__main__:Read 2984 genes from /home/matt/manifest/human/db.gene.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to gene-gtf.tmp
+INFO:__main__:Wrote db data to gene-db.tmp
+INFO:__main__:Total 0 gene differences *** PASS
+INFO:__main__:Read 9184 transcripts from database
+INFO:__main__:Read 9184 transcripts from /home/matt/manifest/human/db.transcript.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to transcript-gtf.tmp
+INFO:__main__:Wrote db data to transcript-db.tmp
+INFO:__main__:Total 0 transcript differences *** PASS
+INFO:__main__:Read 51993 exons from database
+INFO:__main__:Read 51993 exons from /home/matt/manifest/human/db.exon.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to exon-gtf.tmp
+INFO:__main__:Wrote db data to exon-db.tmp
+INFO:__main__:Total 175 exon differences *** CHECK
+INFO:__main__:Read 1348 cds from database
+INFO:__main__:Read 1355 cds from /home/matt/manifest/human/db.cds.csv
+INFO:__main__:Total 7 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cds-gtf.tmp
+INFO:__main__:Wrote db data to cds-db.tmp
+INFO:__main__:Total 0 cds differences *** PASS
+INFO:__main__:Read 14151 cdsregions from database
+INFO:__main__:Read 14284 cdsregions from /home/matt/manifest/human/db.cdsregion.csv
+INFO:__main__:Total 133 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cdsregion-gtf.tmp
+INFO:__main__:Wrote db data to cdsregion-db.tmp
+INFO:__main__:Total 0 cdsregion differences *** PASS
+INFO:__main__:===== Comparisons for chr4 =====
+INFO:__main__:hash_to_cds_id_map has 1176 keys
+INFO:__main__:cds_id_to_hash_map has 1176 keys
+INFO:__main__:Found 1182 cds accessions
+INFO:__main__:Found 1182 cds groups
+INFO:__main__:hash_to_cds_accession_map has 1182 keys
+INFO:__main__:cds_map has 1176 keys
+INFO:__main__:Read 2617 genes from database
+INFO:__main__:Read 2617 genes from /home/matt/manifest/human/db.gene.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to gene-gtf.tmp
+INFO:__main__:Wrote db data to gene-db.tmp
+INFO:__main__:Total 0 gene differences *** PASS
+INFO:__main__:Read 7820 transcripts from database
+INFO:__main__:Read 7820 transcripts from /home/matt/manifest/human/db.transcript.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to transcript-gtf.tmp
+INFO:__main__:Wrote db data to transcript-db.tmp
+INFO:__main__:Total 0 transcript differences *** PASS
+INFO:__main__:Read 45379 exons from database
+INFO:__main__:Read 45379 exons from /home/matt/manifest/human/db.exon.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to exon-gtf.tmp
+INFO:__main__:Wrote db data to exon-db.tmp
+INFO:__main__:Total 136 exon differences *** CHECK
+INFO:__main__:Read 1176 cds from database
+INFO:__main__:Read 1182 cds from /home/matt/manifest/human/db.cds.csv
+INFO:__main__:Total 6 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cds-gtf.tmp
+INFO:__main__:Wrote db data to cds-db.tmp
+INFO:__main__:Total 0 cds differences *** PASS
+INFO:__main__:Read 12840 cdsregions from database
+INFO:__main__:Read 12894 cdsregions from /home/matt/manifest/human/db.cdsregion.csv
+INFO:__main__:Total 54 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cdsregion-gtf.tmp
+INFO:__main__:Wrote db data to cdsregion-db.tmp
+INFO:__main__:Total 0 cdsregion differences *** PASS
+INFO:__main__:===== Comparisons for chr3 =====
+INFO:__main__:hash_to_cds_id_map has 1684 keys
+INFO:__main__:cds_id_to_hash_map has 1684 keys
+INFO:__main__:Found 1689 cds accessions
+INFO:__main__:Found 1689 cds groups
+INFO:__main__:hash_to_cds_accession_map has 1689 keys
+INFO:__main__:cds_map has 1684 keys
+INFO:__main__:Read 3129 genes from database
+INFO:__main__:Read 3129 genes from /home/matt/manifest/human/db.gene.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to gene-gtf.tmp
+INFO:__main__:Wrote db data to gene-db.tmp
+INFO:__main__:Total 0 gene differences *** PASS
+INFO:__main__:Read 11630 transcripts from database
+INFO:__main__:Read 11630 transcripts from /home/matt/manifest/human/db.transcript.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to transcript-gtf.tmp
+INFO:__main__:Wrote db data to transcript-db.tmp
+INFO:__main__:Total 0 transcript differences *** PASS
+INFO:__main__:Read 71597 exons from database
+INFO:__main__:Read 71597 exons from /home/matt/manifest/human/db.exon.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to exon-gtf.tmp
+INFO:__main__:Wrote db data to exon-db.tmp
+INFO:__main__:Total 101 exon differences *** CHECK
+INFO:__main__:Read 1684 cds from database
+INFO:__main__:Read 1689 cds from /home/matt/manifest/human/db.cds.csv
+INFO:__main__:Total 5 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cds-gtf.tmp
+INFO:__main__:Wrote db data to cds-db.tmp
+INFO:__main__:Total 0 cds differences *** PASS
+INFO:__main__:Read 18629 cdsregions from database
+INFO:__main__:Read 18692 cdsregions from /home/matt/manifest/human/db.cdsregion.csv
+INFO:__main__:Total 63 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cdsregion-gtf.tmp
+INFO:__main__:Wrote db data to cdsregion-db.tmp
+INFO:__main__:Total 0 cdsregion differences *** PASS
+INFO:__main__:===== Comparisons for chr2 =====
+INFO:__main__:hash_to_cds_id_map has 1936 keys
+INFO:__main__:cds_id_to_hash_map has 1936 keys
+INFO:__main__:Found 1948 cds accessions
+INFO:__main__:Found 1948 cds groups
+INFO:__main__:hash_to_cds_accession_map has 1948 keys
+INFO:__main__:cds_map has 1936 keys
+INFO:__main__:Read 4104 genes from database
+INFO:__main__:Read 4104 genes from /home/matt/manifest/human/db.gene.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to gene-gtf.tmp
+INFO:__main__:Wrote db data to gene-db.tmp
+INFO:__main__:Total 0 gene differences *** PASS
+INFO:__main__:Read 13843 transcripts from database
+INFO:__main__:Read 13843 transcripts from /home/matt/manifest/human/db.transcript.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to transcript-gtf.tmp
+INFO:__main__:Wrote db data to transcript-db.tmp
+INFO:__main__:Total 0 transcript differences *** PASS
+INFO:__main__:Read 87258 exons from database
+INFO:__main__:Read 87258 exons from /home/matt/manifest/human/db.exon.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to exon-gtf.tmp
+INFO:__main__:Wrote db data to exon-db.tmp
+INFO:__main__:Total 222 exon differences *** CHECK
+INFO:__main__:Read 1936 cds from database
+INFO:__main__:Read 1948 cds from /home/matt/manifest/human/db.cds.csv
+INFO:__main__:Total 12 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cds-gtf.tmp
+INFO:__main__:Wrote db data to cds-db.tmp
+INFO:__main__:Total 0 cds differences *** PASS
+INFO:__main__:Read 25432 cdsregions from database
+INFO:__main__:Read 25540 cdsregions from /home/matt/manifest/human/db.cdsregion.csv
+INFO:__main__:Total 108 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cdsregion-gtf.tmp
+INFO:__main__:Wrote db data to cdsregion-db.tmp
+INFO:__main__:Total 0 cdsregion differences *** PASS
+INFO:__main__:===== Comparisons for chr1 =====
+INFO:__main__:hash_to_cds_id_map has 3212 keys
+INFO:__main__:cds_id_to_hash_map has 3212 keys
+INFO:__main__:Found 3236 cds accessions
+INFO:__main__:Found 3236 cds groups
+INFO:__main__:hash_to_cds_accession_map has 3236 keys
+INFO:__main__:cds_map has 3212 keys
+INFO:__main__:Read 5348 genes from database
+INFO:__main__:Read 5348 genes from /home/matt/manifest/human/db.gene.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to gene-gtf.tmp
+INFO:__main__:Wrote db data to gene-db.tmp
+INFO:__main__:Total 0 gene differences *** PASS
+INFO:__main__:Read 17022 transcripts from database
+INFO:__main__:Read 17022 transcripts from /home/matt/manifest/human/db.transcript.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to transcript-gtf.tmp
+INFO:__main__:Wrote db data to transcript-db.tmp
+INFO:__main__:Total 0 transcript differences *** PASS
+INFO:__main__:Read 105892 exons from database
+INFO:__main__:Read 105892 exons from /home/matt/manifest/human/db.exon.csv
+INFO:__main__:Total 0 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to exon-gtf.tmp
+INFO:__main__:Wrote db data to exon-db.tmp
+INFO:__main__:Total 469 exon differences *** CHECK
+INFO:__main__:Read 3212 cds from database
+INFO:__main__:Read 3236 cds from /home/matt/manifest/human/db.cds.csv
+INFO:__main__:Total 24 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cds-gtf.tmp
+INFO:__main__:Wrote db data to cds-db.tmp
+INFO:__main__:Total 0 cds differences *** PASS
+INFO:__main__:Read 32497 cdsregions from database
+INFO:__main__:Read 32868 cdsregions from /home/matt/manifest/human/db.cdsregion.csv
+INFO:__main__:Total 371 missing from DB
+INFO:__main__:Total 0 missing from GTF
+INFO:__main__:Wrote gtf data to cdsregion-gtf.tmp
+INFO:__main__:Wrote db data to cdsregion-db.tmp
+INFO:__main__:Total 0 cdsregion differences *** PASS

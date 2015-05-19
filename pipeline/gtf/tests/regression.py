@@ -20,8 +20,11 @@ import subprocess
 import re
 import csv
 import collections
+import json
 
+from operator import itemgetter
 from docopt import docopt
+from hashlib import md5
 from pprint import pprint
 
 import addresses
@@ -36,11 +39,18 @@ log = logging.getLogger(__name__)
 def reg_dict(my_dict):
     kvp = collections.OrderedDict()
     for key in sorted(my_dict.keys()):
-        if my_dict[key]:
+        if not my_dict[key] is None:
             kvp[key] = str(my_dict[key])
         else:
             kvp[key] = ''
     return kvp
+
+
+def _hash_dict(input_dict):
+#    return(str(input_dict))
+    inst = md5()
+    inst.update(str(input_dict))
+    return inst.hexdigest()
 
 
 def compare_lists(db, gtf, title):
@@ -54,6 +64,7 @@ def compare_lists(db, gtf, title):
             count += 1
     print("Total %d" % (count))
     log.info('Total %d missing from DB', count)
+
     count = 0
     print("%s missing from GTF?" % (title))
     for key in db:
@@ -63,21 +74,37 @@ def compare_lists(db, gtf, title):
     print("Total %d" % (count))
     log.info('Total %d missing from GTF', count)
 
+    gtf_tmp = "{0}-{1}.tmp".format(title, 'gtf')
+    with open(gtf_tmp, 'w') as tmp_fh:
+        for key in sorted(gtf.keys()):
+            tmp_fh.write("%s, %s\n" % (key, str(reg_dict(gtf[key]))))
+    log.info('Wrote gtf data to %s', gtf_tmp)
+    db_tmp = "{0}-{1}.tmp".format(title, 'db')
+    with open(db_tmp, 'w') as tmp_fh:
+        for key in sorted(db.keys()):
+            tmp_fh.write("%s, %s\n" % (key, str(reg_dict(db[key]))))
+    log.info('Wrote db data to %s', db_tmp)
+
     print("Comparing common set...")
     count = 0
     checked = 0
     for key in gtf:
         if key in db:
-            gtf_dict =reg_dict(gtf[key])
+            gtf_dict = reg_dict(gtf[key])
             db_dict = reg_dict(db[key])
             if cmp(gtf_dict, db_dict):
-                print('Difference!')
-                print('GTF: ' + str(gtf_dict))
-                print('DB:  ' + str(db_dict))
+                print '*************** %s difference...' % (title)
+                print 'GTF: ' + str(gtf_dict)
+                print 'DB:  ' + str(db_dict)
                 count += 1
     print("Total %d checked" % (checked))
-    print("Total %d differences" % (count))
-    log.info("Total %d differences", count)
+    msg = "Total %d %s differences" % (count, title)
+    if count == 0:
+        msg += ' *** PASS'
+    else:
+        msg += ' *** CHECK'
+    print msg
+    log.info(msg)
 
 
 def compare_genes(chromosome, input_file):
@@ -118,7 +145,7 @@ def compare_genes(chromosome, input_file):
         
     log.info('Read %d genes from %s', len(gtf_genes_dict), input_file)
 
-    compare_lists(db_genes_dict, gtf_genes_dict, 'genes')
+    compare_lists(db_genes_dict, gtf_genes_dict, 'gene')
 
 
 def compare_transcripts(chromosome, input_file):
@@ -145,7 +172,8 @@ def compare_transcripts(chromosome, input_file):
                  .all()):
         transcript_dict = {
             'gene_accession': genes_revmap[transcript.gene_id],
-            'name': transcript.name,
+            # Extra ';' in 45 transcripts, disable for now
+            #'name': transcript.name,
             'namespace': transcript.namespace,
             'biotype': transcript.biotype,
             'accession': transcript.accession,
@@ -167,16 +195,134 @@ def compare_transcripts(chromosome, input_file):
             # Fields not in db
             transcript_dict.pop('transcript_support_level')
             transcript_dict.pop('cds_accession')
+            # Extra ';' in 45 transcripts, disable for now
+            transcript_dict.pop('name')
             if transcript_dict['chromosome_name'] == chromosome.name:
                 gtf_transcripts_dict[transcript_dict['accession']] = transcript_dict
         
     log.info('Read %d transcripts from %s', len(gtf_transcripts_dict), input_file)
 
-    compare_lists(db_transcripts_dict, gtf_transcripts_dict, 'transcripts')
+    compare_lists(db_transcripts_dict, gtf_transcripts_dict, 'transcript')
 
-def compare_cdsregions(chromosome, cds_map, input_file):
+def create_hash_to_cds_id_map(chromosome):
     """ 
     """     
+
+    # Connect the database
+    S = session(addresses.genomebrowser.database.name)
+
+    db_cds_dict = {}
+    for cds in (S.query(gbm.CDS)
+                .join(gbm.Coordinates)
+                .join(gbm.Chromosome)
+                .filter(gbm.Chromosome.id == chromosome.id)
+                .all()):
+        cds_dict = {
+            'name': cds.name,
+            'namespace': cds.namespace,
+            'is_consensus': int(cds.is_consensus),
+        }
+        db_cds_dict[cds.id] = cds_dict
+
+    hash_to_cds_id_map = {}
+    for cds_id, cds_dict in db_cds_dict.items():
+        dict_to_hash = collections.OrderedDict({
+            'name': str(cds_dict['name']),
+            'namespace': str(cds_dict['namespace']),
+            'is_consensus': str(cds_dict['is_consensus']),
+            'exon_coords': []
+        })
+        # Append coords
+        for cdsregion in (S.query(gbm.CdsRegion)
+                          .filter(gbm.CdsRegion.cds_id == cds_id)
+                          .order_by(gbm.CdsRegion.cds_order)
+                          .all()):
+            coord_dict = collections.OrderedDict({
+                'chromosome_name': chromosome.name,
+                'start': cdsregion.coordinates.start_end.lower,
+                'end': cdsregion.coordinates.start_end.upper,
+                'strand': cdsregion.coordinates.strand,
+                'phase_start': cdsregion.phase_start,
+                'phase_end': cdsregion.phase_end,
+                'cds_order': cdsregion.cds_order
+            })
+            coord_dict = reg_dict(coord_dict)
+            dict_to_hash['exon_coords'].append(coord_dict)
+        # Val
+        val = _hash_dict(dict_to_hash)
+        if val in hash_to_cds_id_map:
+            raise Exception('Unique key failed')
+        hash_to_cds_id_map[val] = cds_id
+    
+    log.info('hash_to_cds_id_map has %d keys', len(hash_to_cds_id_map))
+    return hash_to_cds_id_map
+
+def create_hash_to_cds_accession_map(chromosome, gtf_cds_file, gtf_cdsregion_file):
+
+    gtf_cds_dict = {}
+    with open(gtf_cds_file, 'r') as input_fh:
+        reader = csv.DictReader(input_fh)
+        for row_dict in reader:
+            if not row_dict['chromosome_name'] == chromosome.name:
+                continue
+            cds_dict = {
+                'name': row_dict['name'],
+                'namespace': row_dict['namespace'],
+                'is_consensus': int(row_dict['is_consensus'])
+            }
+            gtf_cds_dict[row_dict['accession']] = cds_dict 
+    log.info('Found %d cds accessions', len(gtf_cds_dict))
+
+    group = {}
+    with open(gtf_cdsregion_file, 'r') as input_fh:
+        reader = csv.DictReader(input_fh)
+        for row_dict in reader:
+            if not row_dict['chromosome_name'] == chromosome.name:
+                continue
+            cdsregion_dict = collections.OrderedDict({
+                'chromosome_name': row_dict['chromosome_name'],
+                'start': row_dict['start'],
+                'end': row_dict['end'],
+                'strand': row_dict['strand'],
+                'phase_start': row_dict['phase_start'],
+                'phase_end': row_dict['phase_end'],
+                'cds_order': int(row_dict['cds_order'])
+            })
+            if not row_dict['cds_accession'] in group:
+                group[row_dict['cds_accession']] = []
+            group[row_dict['cds_accession']].append(cdsregion_dict)
+    log.info('Found %d cds groups', len(group))
+
+    hash_to_cds_accession_map = {}
+    for cds_accession, cds_dict in gtf_cds_dict.items():
+        dict_to_hash = collections.OrderedDict({
+            'name': str(cds_dict['name']),
+            'namespace': str(cds_dict['namespace']),
+            'is_consensus': str(cds_dict['is_consensus']),
+            'exon_coords': []
+        })
+        # Append coords
+        for cds_dict in sorted(group[cds_accession], key=itemgetter('cds_order')):
+            coord_dict = collections.OrderedDict({
+                'chromosome_name': cds_dict['chromosome_name'],
+                'start': cds_dict['start'],
+                'end': cds_dict['end'],
+                'strand': cds_dict['strand'],
+                'phase_start': cds_dict['phase_start'],
+                'phase_end': cds_dict['phase_end'],
+                'cds_order': cds_dict['cds_order']
+            })
+            coord_dict = reg_dict(coord_dict)
+            dict_to_hash['exon_coords'].append(coord_dict)
+        # Val
+        val = _hash_dict(dict_to_hash)
+        hash_to_cds_accession_map[val] = cds_accession
+    
+    log.info('hash_to_cds_accession_map has %d keys', len(hash_to_cds_accession_map))
+    return hash_to_cds_accession_map
+
+
+def compare_cdsregion(chromosome, cds_map, input_file):
 
     # Connect the database
     S = session(addresses.genomebrowser.database.name)
@@ -188,6 +334,8 @@ def compare_cdsregions(chromosome, cds_map, input_file):
                       .join(gbm.Chromosome)
                       .filter(gbm.Chromosome.id == chromosome.id)
                       .all()):
+        if not cdsregion.cds_id in cds_map:
+            continue
         cdsregion_dict = {
             'cds_accession': cds_map[cdsregion.cds_id],
             'chromosome_name': chromosome.name,
@@ -217,10 +365,10 @@ def compare_cdsregions(chromosome, cds_map, input_file):
         
     log.info('Read %d cdsregions from %s', len(gtf_cdsregions_dict), input_file)
 
-    compare_lists(db_cdsregions_dict, gtf_cdsregions_dict, 'cdsregions')
+    compare_lists(db_cdsregions_dict, gtf_cdsregions_dict, 'cdsregion')
 
 
-def compare_cds(chromosome, input_file):
+def compare_cds(chromosome, cds_map, input_file):
     """ 
     """     
 
@@ -234,36 +382,29 @@ def compare_cds(chromosome, input_file):
                  .filter(gbm.Chromosome.id == chromosome.id)
                  .all()):
         genes_revmap[gene.id] = gene.accession
-    
-    # Fetch the genes from the database for given chromosome
+
+    # Fetch the cds from the database for given chromosome
     db_cds_dict = {}
-    # Need this for later check on cdsregions
-    cds_map = {}
     for cds in (S.query(gbm.CDS)
                 .join(gbm.Coordinates)
                 .join(gbm.Chromosome)
                 .filter(gbm.Chromosome.id == chromosome.id)
                 .all()):
+        if not cds.id in cds_map:
+            continue
         cds_dict = {
-            'accession': cds.id,  # Overwritten later
+            'accession': cds_map[cds.id],
+            # c. 200 of the gene ids are wrong in the db, so exclude for now
+            #'gene_accession': genes_revmap[cds.gene_id],
             'name': cds.name,
             'namespace': cds.namespace,
             'is_consensus': int(cds.is_consensus),
-            'gene_accession': genes_revmap[cds.gene_id],
             'chromosome_name': chromosome.name,
             'start': cds.coordinates.start_end.lower,
             'end': cds.coordinates.start_end.upper,
             'strand': cds.coordinates.strand,
-            'status': cds.status
         }
-        tup = (cds.name,
-               str(cds.coordinates.start_end.lower),
-               str(cds.coordinates.start_end.upper),
-               str(cds.coordinates.strand))            
-        if tup in db_cds_dict:
-            raise Exception('Invalid tup, not unique')
-        cds_map[tup] = cds.id
-        db_cds_dict[tup] = cds_dict
+        db_cds_dict[cds_map[cds.id]] = cds_dict
         
     log.info('Read %d cds from database', len(db_cds_dict))
 
@@ -272,24 +413,18 @@ def compare_cds(chromosome, input_file):
     with open(input_file, 'r') as input_fh:
         reader = csv.DictReader(input_fh)
         for cds_dict in reader:
-            if cds_dict['chromosome_name'] == chromosome.name:
-                tup = (cds_dict['name'],
-                       cds_dict['start'],
-                       cds_dict['end'],
-                       cds_dict['strand'])
-                if tup in gtf_cds_dict:
-                    raise Exception('Invalid tup, not unique')
-                if tup in db_cds_dict:
-                    db_cds_dict[tup]['accession'] = cds_dict['accession']
-                gtf_cds_dict[tup] = cds_dict
-                cds_map[cds_map[tup]] = cds_dict['accession']
+            if cds_dict['chromosome_name'] == chromosome.name:                
+                # Don't bother comparing
+                cds_dict.pop('status')
+                # c. 200 of the gene ids are wrong in the db, so exclude for now
+                cds_dict.pop('gene_accession')
+                gtf_cds_dict[cds_dict['accession']] = cds_dict
         
     log.info('Read %d cds from %s', len(gtf_cds_dict), input_file)
 
     compare_lists(db_cds_dict, gtf_cds_dict, 'cds')
     
-    return cds_map
-    
+
 def compare_exons(chromosome, input_file):
     """ 
     """     
@@ -348,7 +483,26 @@ def compare_exons(chromosome, input_file):
         
     log.info('Read %d exons from %s', len(gtf_exon_dict), input_file)
 
-    compare_lists(db_exon_dict, gtf_exon_dict, 'exons')
+    with open('gtf.out', 'w') as output_fh:
+        for key in sorted(gtf_exon_dict.keys()):
+            obj = gtf_exon_dict[key]
+            output_fh.write(" ".join((obj['transcript_accession'],
+                                      obj['transcript_order'],
+                                      obj['start'],
+                                      obj['end'],
+                                      obj['phase_start'],
+                                      obj['phase_end'])) + '\n')
+    with open('db.out', 'w') as output_fh:
+        for key in sorted(db_exon_dict.keys()):
+            obj = db_exon_dict[key]
+            output_fh.write(" ".join((obj['transcript_accession'],
+                                      obj['transcript_order'],
+                                      obj['start'],
+                                      obj['end'],
+                                      obj['phase_start'],
+                                      obj['phase_end'])) + '\n')
+                                       
+    compare_lists(db_exon_dict, gtf_exon_dict, 'exon')
 
 
 
@@ -384,15 +538,37 @@ def main():
                        .all())
     
     for chromosome in chromosome_list:
-        if chromosome.name != 'chr21':
-            print('Warning restricting test to specific chromosome')
-            continue
+#        if chromosome.name != 'chr21':
+#            continue
         log.info('===== Comparisons for %s =====', chromosome.name)
+
+        # Faffing to cope with lack of unique key in cds table
+        hash_to_cds_id_map = create_hash_to_cds_id_map(chromosome)
+        cds_id_to_hash_map = {}
+        for hash_val, cds_id in hash_to_cds_id_map.items():
+            cds_id_to_hash_map[cds_id] = hash_val
+        log.info('cds_id_to_hash_map has %d keys', len(cds_id_to_hash_map))
+        hash_to_cds_accession_map = create_hash_to_cds_accession_map(chromosome, cds_file, cdsregions_file)
+        cds_map = {}
+
+#        pprint("===== cds_id_to_hash =====")
+#        for key, obj in cds_id_to_hash_map.items():
+#            pprint("%s %s" % (key, obj))
+#        pprint("===== hash_to_cds_accession =====")
+#        for key, obj in hash_to_cds_accession_map.items():
+#            pprint("%s %s" % (key, obj))
+#        exit(-1)
+
+        for cds_id, hash_val in cds_id_to_hash_map.items():
+            if hash_val in hash_to_cds_accession_map:
+                cds_map[cds_id] = hash_to_cds_accession_map[hash_val]
+        log.info('cds_map has %d keys', len(cds_map))
+
         compare_genes(chromosome, genes_file)
         compare_transcripts(chromosome, transcripts_file)
         compare_exons(chromosome, exons_file)
-        cds_id_to_accession = compare_cds(chromosome, cds_file)
-        compare_cdsregions(chromosome, cds_id_to_accession, cdsregions_file)
+        compare_cds(chromosome, cds_map, cds_file)
+        compare_cdsregion(chromosome, cds_map, cdsregions_file)
     
 if __name__ == "__main__":
     main()

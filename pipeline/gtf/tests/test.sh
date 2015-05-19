@@ -1,0 +1,1 @@
+python ../regression.py --genome=GRCh38.p2 --genes=db.gene.csv --transcripts=db.transcript.csv --exons=db.exon.csv --cds=db.cds.csv --cdsregions=db.cdsregion.csv --log=DEBUG 1> regression.out 2> regression.log 
