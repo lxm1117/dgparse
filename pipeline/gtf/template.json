@@ -60,7 +60,8 @@
         }, 
         "attributes": {
             "transcript_id": "transcript_accession", 
-            "exon_number": "transcript_order"
+            "exon_number": "transcript_order",
+	    "protein_id": "protein_id"
         },
 	"unique": [
 	    "transcript_accession",
