@@ -1,0 +1,668 @@
+===== Test basis =====
+
+Database:
+an instance of genomebrowser (version ) provisioned with GRCh38.p2 data:
+Sequences ftp://ftp.ncbi.nlm.nih.gov/genbank/genomes/Eukaryotes/vertebrates_mammals/Homo_sapiens/GRCh38.p2/Primary_Assembly/assembled_chromosomes/FASTA/
+Ensembl annotations anonymous@ensembldb.ensembl.org/homo_sapiens_core_78_38 GRCh38.p2
+CCDS data ftp://ftp.ncbi.nih.gov/pub/CCDS/current_human/CCDS.current.txt on April 18th 2015
+
+GTF: 
+ftp://ftp.ensembl.org/pub/release-78/gtf/homo_sapiens/Homo_sapiens.GRCh38.78.gtf.gz
+
+===== Run 1 ======
+
+!!! 13 gene names with trailing semi-colon
+
+Looks like a problem in xref.display_label at Ensembl
+One gene (MALAT1) is a translocated gene in ticdb which could not be mapped in the deskgen platform. This explains why. A workaround was applied in the ticdb analysis.
+
+select * from gene where name like '%;'
+  id   |    accession    |          created           |   name   | namespace | description | track_id |    biotype     | horizon_eligible
+-------+-----------------+----------------------------+----------+-----------+-------------+----------+----------------+------------------
+  4054 | ENSG00000279195 | 2015-04-19 12:14:47.243406 | PRAMEF6; | ensembl   |             |    48397 | protein_coding | f
+  5976 | ENSG00000117598 | 2015-04-19 12:14:48.572404 | LPPR5;   | ensembl   |             |    50319 | protein_coding | f
+  5979 | ENSG00000117600 | 2015-04-19 12:14:48.574447 | LPPR4;   | ensembl   |             |    50322 | protein_coding | f
+ 13039 | ENSG00000279576 | 2015-04-19 12:14:53.508071 | MALAT1;  | ensembl   |             |    57382 | protein_coding | f
+ 14997 | ENSG00000180574 | 2015-04-19 12:14:54.881935 | EIF2S3L; | ensembl   |             |    59340 | protein_coding | f
+ 30458 | ENSG00000129951 | 2015-04-19 12:15:05.771577 | LPPR3;   | ensembl   |             |    74801 | protein_coding | f
+ 30679 | ENSG00000167674 | 2015-04-19 12:15:05.927736 | HDGFRP2; | ensembl   |             |    75022 | protein_coding | f
+ 32113 | ENSG00000183760 | 2015-04-19 12:15:06.932202 | PAPL;    | ensembl   |             |    76456 | protein_coding | f
+ 32379 | ENSG00000267022 | 2015-04-19 12:15:07.119572 | ZNF223;  | ensembl   |             |    76722 | protein_coding | f
+ 37612 | ENSG00000088899 | 2015-04-19 12:15:10.81083  | LZTS3;   | ensembl   |             |    81955 | protein_coding | f
+ 48620 | ENSG00000172901 | 2015-04-19 12:15:18.540898 | AQPEP;   | ensembl   |             |    92963 | protein_coding | f
+ 56028 | ENSG00000275342 | 2015-04-19 12:15:23.754122 | SGK223;  | ensembl   |             |   100371 | protein_coding | f
+ 63218 | ENSG00000280313 | 2015-04-19 12:15:28.804618 | TSPY1;   | ensembl   |             |   107561 | protein_coding | f
+(13 rows)
+
+These gene names were corrected manually, and the regression was re-run.
+
+===== Run 2 =====
+
+45 transcript names with similar ';' inserted
+
+select id, name from transcript where name like '%;%';
+   id   |     name     
+--------+--------------
+  12497 | PRAMEF6;-201
+  18812 | LPPR5;-001
+  18813 | LPPR5;-002
+  18814 | LPPR5;-003
+  18817 | LPPR4;-001
+  18818 | LPPR4;-201
+  18819 | LPPR4;-002
+  40719 | MALAT1;-201
+  48182 | EIF2S3L;-001
+  48183 | EIF2S3L;-002
+ 102252 | LPPR3;-002
+ 102253 | LPPR3;-001
+ 102255 | LPPR3;-005
+ 102256 | LPPR3;-003
+ 103330 | HDGFRP2;-001
+ 103331 | HDGFRP2;-002
+ 103332 | HDGFRP2;-011
+ 103333 | HDGFRP2;-010
+ 103334 | HDGFRP2;-009
+ 103335 | HDGFRP2;-003
+ 103336 | HDGFRP2;-007
+ 103337 | HDGFRP2;-005
+ 103338 | HDGFRP2;-004
+ 103339 | HDGFRP2;-008
+ 109295 | PAPL;-002
+ 109296 | PAPL;-001
+ 109297 | PAPL;-003
+ 109298 | PAPL;-004
+ 110528 | ZNF223;-001
+ 128938 | LZTS3;-001
+ 128939 | LZTS3;-002
+ 128940 | LZTS3;-201
+ 163636 | AQPEP;-002
+ 163637 | AQPEP;-001
+ 163638 | AQPEP;-201
+ 163640 | AQPEP;-003
+ 163641 | AQPEP;-004
+ 163642 | AQPEP;-005
+ 163643 | AQPEP;-007
+ 163644 | AQPEP;-008
+ 163645 | AQPEP;-006
+ 163646 | AQPEP;-009
+ 186483 | SGK223;-201
+ 186484 | SGK223;-001
+ 206389 | TSPY1;-201
+(45 rows)
+
+The comparison on transcript name was disabled and the test rerun
+
+===== Run 3 ======
+
+Found 207 records in the cds table that are linked to the wrong gene i.e. 
+cds points to one gene
+cds points to transcript via name/ccds_accession and transcript points to a different gene
+
+Due to
+a) gene name mapping in dgsource/manifest/manifest/adapters/ncbi/ccds_loader.py
+b) gene names are not unique
+
+
+Example:
+
+select g.accession, g.name, g.id, ch.name, c.start_end 
+from gene g, coordinates c, chromosome ch where 
+g.track_id = c.id and 
+c.chromosome_id = ch.id and g.name = 'STMN3';
+    accession    | name  |  id   | name  |      start_end
+-----------------+-------+-------+-------+---------------------
+ ENSG00000197457 | STMN3 | 38907 | chr20 | [63639704,63653427]
+ ENSG00000271181 | STMN3 | 40391 | chr22 | [25179308,25179554]
+(2 rows)
+
+select 
+cds.id, cds_gene.accession, cds_gene.name, cds_gene.biotype,
+transcript.ccds_accession, cds_transcript_gene.accession, cds_transcript_gene.name, cds_transcript_gene.biotype
+from 
+gene cds_gene, gene cds_transcript_gene, cds, transcript 
+where
+cds.gene_id = cds_gene.id and
+cds.name = transcript.ccds_accession and
+transcript.gene_id = cds_transcript_gene.id
+and cds_gene.id != cds_transcript_gene.id;
+         ------------------------------ CDS to GENE direct -----------------   ---- CDS to GENE vis transcript.ccds_accession --------------------------
+  id   |    accession    |      name      |             biotype              | ccds_accession |    accession    |           name          |        biotype         
+-------+-----------------+----------------+----------------------------------+----------------+-----------------+------------------------+------------------------
+    99 | ENSG00000175279 | APITD1         | protein_coding                   | CCDS115        | ENSG00000251503 | APITD1-CORT            | protein_coding
+   104 | ENSG00000277726 | TARDBP         | protein_coding                   | CCDS122        | ENSG00000120948 | TARDBP                 | protein_coding
+ 22905 | ENSG00000239810 | PRAMEF11       | protein_coding                   | CCDS53268      | ENSG00000279195 | PRAMEF6                | protein_coding
+ 28185 | ENSG00000279132 | FAM231A        | protein_coding                   | CCDS65427      | ENSG00000237847 | FAM231A                | protein_coding
+   176 | ENSG00000158747 | NBL1           | protein_coding                   | CCDS196        | ENSG00000270136 | MINOS1-NBL1            | protein_coding
+ 14106 | ENSG00000279111 | OR10X1         | polymorphic_pseudogene           | CCDS30900      | ENSG00000186400 | OR10X1                 | protein_coding
+  1100 | ENSG00000258465 | DCAF8          | protein_coding                   | CCDS1200       | ENSG00000132716 | DCAF8                  | protein_coding
+  1100 | ENSG00000258465 | DCAF8          | protein_coding                   | CCDS1200       | ENSG00000132716 | DCAF8                  | protein_coding
+  1100 | ENSG00000258465 | DCAF8          | protein_coding                   | CCDS1200       | ENSG00000132716 | DCAF8                  | protein_coding
+ 24994 | ENSG00000232995 | RGS5           | antisense                        | CCDS55652      | ENSG00000143248 | RGS5                   | protein_coding
+  1143 | ENSG00000232995 | RGS5           | antisense                        | CCDS1244       | ENSG00000143248 | RGS5                   | protein_coding
+ 25925 | ENSG00000232995 | RGS5           | antisense                        | CCDS58041      | ENSG00000143248 | RGS5                   | protein_coding
+ 24994 | ENSG00000232995 | RGS5           | antisense                        | CCDS55652      | ENSG00000143248 | RGS5                   | protein_coding
+  1501 | ENSG00000268723 | DESI2          | processed_pseudogene             | CCDS1626       | ENSG00000121644 | DESI2                  | protein_coding
+ 28784 | ENSG00000268723 | DESI2          | processed_pseudogene             | CCDS73055      | ENSG00000121644 | DESI2                  | protein_coding
+ 14267 | ENSG00000196936 | OR2L8          | protein_coding                   | CCDS31101      | ENSG00000279263 | OR2L8                  | polymorphic_pseudogene
+ 14288 | ENSG00000183130 | OR2T11         | protein_coding                   | CCDS31122      | ENSG00000279301 | OR2T11                 | polymorphic_pseudogene
+ 14288 | ENSG00000183130 | OR2T11         | protein_coding                   | CCDS31122      | ENSG00000279301 | OR2T11                 | polymorphic_pseudogene
+  6726 | ENSG00000150076 | CCDC7          | protein_coding                   | CCDS7173       | ENSG00000216937 | CCDC7                  | protein_coding
+  6726 | ENSG00000150076 | CCDC7          | protein_coding                   | CCDS7173       | ENSG00000216937 | CCDC7                  | protein_coding
+ 28820 | ENSG00000277758 | SYT15          | protein_coding                   | CCDS73103      | ENSG00000204176 | SYT15                  | protein_coding
+ 28821 | ENSG00000277758 | SYT15          | protein_coding                   | CCDS73104      | ENSG00000204176 | SYT15                  | protein_coding
+ 28215 | ENSG00000166136 | NDUFB8         | protein_coding                   | CCDS65917      | ENSG00000255339 | RP11-411B6.6           | protein_coding
+  7066 | ENSG00000166275 | C10orf32       | protein_coding                   | CCDS7542       | ENSG00000270316 | C10orf32-ASMT          | protein_coding
+ 17768 | ENSG00000280253 | OR52B4         | protein_coding                   | CCDS41609      | ENSG00000221996 | OR52B4                 | polymorphic_pseudogene
+ 17768 | ENSG00000280253 | OR52B4         | protein_coding                   | CCDS41609      | ENSG00000221996 | OR52B4                 | polymorphic_pseudogene
+ 14460 | ENSG00000280021 | OR51F1         | polymorphic_pseudogene           | CCDS31359      | ENSG00000188069 | OR51F1                 | protein_coding
+ 14461 | ENSG00000279270 | OR52R1         | polymorphic_pseudogene           | CCDS31360      | ENSG00000176937 | OR52R1                 | protein_coding
+ 14467 | ENSG00000176879 | OR51G1         | protein_coding                   | CCDS31366      | ENSG00000278870 | OR51G1                 | polymorphic_pseudogene
+ 14467 | ENSG00000176879 | OR51G1         | protein_coding                   | CCDS31366      | ENSG00000278870 | OR51G1                 | polymorphic_pseudogene
+ 14477 | ENSG00000184881 | OR51B2         | protein_coding                   | CCDS31377      | ENSG00000279012 | OR51B2                 | polymorphic_pseudogene
+ 14477 | ENSG00000184881 | OR51B2         | protein_coding                   | CCDS31377      | ENSG00000279012 | OR51B2                 | polymorphic_pseudogene
+  7275 | ENSG00000265264 | TIMM10B        | protein_coding                   | CCDS7766       | ENSG00000132286 | TIMM10B                | protein_coding
+  7275 | ENSG00000265264 | TIMM10B        | protein_coding                   | CCDS7766       | ENSG00000132286 | TIMM10B                | protein_coding
+ 14509 | ENSG00000170803 | OR2AG1         | protein_coding                   | CCDS31414      | ENSG00000279486 | OR2AG1                 | polymorphic_pseudogene
+ 14509 | ENSG00000170803 | OR2AG1         | protein_coding                   | CCDS31414      | ENSG00000279486 | OR2AG1                 | polymorphic_pseudogene
+ 14515 | ENSG00000175393 | OR10A6         | protein_coding                   | CCDS31420      | ENSG00000279000 | OR10A6                 | polymorphic_pseudogene
+ 14515 | ENSG00000175393 | OR10A6         | protein_coding                   | CCDS31420      | ENSG00000279000 | OR10A6                 | polymorphic_pseudogene
+ 14571 | ENSG00000279556 | OR4X2          | protein_coding                   | CCDS31486      | ENSG00000172208 | OR4X2                  | polymorphic_pseudogene
+ 14571 | ENSG00000279556 | OR4X2          | protein_coding                   | CCDS31486      | ENSG00000172208 | OR4X2                  | polymorphic_pseudogene
+ 14572 | ENSG00000279260 | OR4X1          | polymorphic_pseudogene           | CCDS31487      | ENSG00000176567 | OR4X1                  | protein_coding
+ 14582 | ENSG00000279514 | OR4C16         | polymorphic_pseudogene           | CCDS31502      | ENSG00000181935 | OR4C16                 | protein_coding
+ 14587 | ENSG00000279761 | OR5D13         | polymorphic_pseudogene           | CCDS31507      | ENSG00000198877 | OR5D13                 | protein_coding
+ 14589 | ENSG00000186117 | OR5L1          | protein_coding                   | CCDS31509      | ENSG00000279395 | OR5L1                  | polymorphic_pseudogene
+ 14589 | ENSG00000186117 | OR5L1          | protein_coding                   | CCDS31509      | ENSG00000279395 | OR5L1                  | polymorphic_pseudogene
+ 14607 | ENSG00000181689 | OR8K3          | protein_coding                   | CCDS31527      | ENSG00000280314 | OR8K3                  | polymorphic_pseudogene
+ 14607 | ENSG00000181689 | OR8K3          | protein_coding                   | CCDS31527      | ENSG00000280314 | OR8K3                  | polymorphic_pseudogene
+ 14610 | ENSG00000174942 | OR5R1          | protein_coding                   | CCDS31530      | ENSG00000279961 | OR5R1                  | polymorphic_pseudogene
+ 14610 | ENSG00000174942 | OR5R1          | protein_coding                   | CCDS31530      | ENSG00000279961 | OR5R1                  | polymorphic_pseudogene
+ 14615 | ENSG00000279911 | OR5AR1         | protein_coding                   | CCDS31535      | ENSG00000172459 | OR5AR1                 | polymorphic_pseudogene
+ 14615 | ENSG00000279911 | OR5AR1         | protein_coding                   | CCDS31535      | ENSG00000172459 | OR5AR1                 | polymorphic_pseudogene
+ 14620 | ENSG00000172381 | OR6Q1          | protein_coding                   | CCDS31541      | ENSG00000279051 | OR6Q1                  | polymorphic_pseudogene
+ 14620 | ENSG00000172381 | OR6Q1          | protein_coding                   | CCDS31541      | ENSG00000279051 | OR6Q1                  | polymorphic_pseudogene
+ 14625 | ENSG00000280204 | OR1S1          | polymorphic_pseudogene           | CCDS31546      | ENSG00000172774 | OR1S1                  | protein_coding
+ 28959 | ENSG00000259112 | NDUFC2-KCTD14  | protein_coding                   | CCDS73354      | ENSG00000151364 | KCTD14                 | protein_coding
+ 28958 | ENSG00000259112 | NDUFC2-KCTD14  | protein_coding                   | CCDS73353      | ENSG00000151364 | KCTD14                 | protein_coding
+ 28977 | ENSG00000258529 | ALG9           | protein_coding                   | CCDS73379      | ENSG00000086848 | ALG9                   | protein_coding
+ 17854 | ENSG00000258529 | ALG9           | protein_coding                   | CCDS41714      | ENSG00000086848 | ALG9                   | protein_coding
+ 23283 | ENSG00000258529 | ALG9           | protein_coding                   | CCDS53709      | ENSG00000086848 | ALG9                   | protein_coding
+ 28978 | ENSG00000258529 | ALG9           | protein_coding                   | CCDS73380      | ENSG00000086848 | ALG9                   | protein_coding
+  7833 | ENSG00000170276 | HSPB2          | protein_coding                   | CCDS8352       | ENSG00000254445 | HSPB2-C11orf52         | protein_coding
+ 14726 | ENSG00000255292 | SDHD           | protein_coding                   | CCDS31678      | ENSG00000204370 | SDHD                   | protein_coding
+ 27424 | ENSG00000255292 | SDHD           | protein_coding                   | CCDS60958      | ENSG00000204370 | SDHD                   | protein_coding
+ 27425 | ENSG00000255292 | SDHD           | protein_coding                   | CCDS60959      | ENSG00000204370 | SDHD                   | protein_coding
+ 27424 | ENSG00000255292 | SDHD           | protein_coding                   | CCDS60958      | ENSG00000204370 | SDHD                   | protein_coding
+ 27426 | ENSG00000255292 | SDHD           | protein_coding                   | CCDS60960      | ENSG00000204370 | SDHD                   | protein_coding
+ 28996 | ENSG00000255245 | FXYD6-FXYD2    | protein_coding                   | CCDS73400      | ENSG00000137726 | FXYD6                  | protein_coding
+  7901 | ENSG00000235718 | MFRP           | protein_coding                   | CCDS8421       | ENSG00000259159 | MFRP                   | protein_coding
+  7901 | ENSG00000235718 | MFRP           | protein_coding                   | CCDS8421       | ENSG00000259159 | MFRP                   | protein_coding
+ 14753 | ENSG00000197263 | OR8D2          | protein_coding                   | CCDS31707      | ENSG00000279116 | OR8D2                  | polymorphic_pseudogene
+ 14753 | ENSG00000197263 | OR8D2          | protein_coding                   | CCDS31707      | ENSG00000279116 | OR8D2                  | polymorphic_pseudogene
+ 14756 | ENSG00000198657 | OR8B4          | protein_coding                   | CCDS31710      | ENSG00000280090 | OR8B4                  | polymorphic_pseudogene
+ 14756 | ENSG00000198657 | OR8B4          | protein_coding                   | CCDS31710      | ENSG00000280090 | OR8B4                  | polymorphic_pseudogene
+  8007 | ENSG00000151079 | KCNA6          | protein_coding                   | CCDS8534       | ENSG00000130035 | GALNT8                 | protein_coding
+ 14782 | ENSG00000213443 | CLEC2D         | processed_pseudogene             | CCDS31741      | ENSG00000069493 | CLEC2D                 | protein_coding
+  8071 | ENSG00000213443 | CLEC2D         | processed_pseudogene             | CCDS8602       | ENSG00000069493 | CLEC2D                 | protein_coding
+ 25131 | ENSG00000213443 | CLEC2D         | processed_pseudogene             | CCDS55802      | ENSG00000069493 | CLEC2D                 | protein_coding
+ 25129 | ENSG00000213443 | CLEC2D         | processed_pseudogene             | CCDS55800      | ENSG00000069493 | CLEC2D                 | protein_coding
+ 25130 | ENSG00000213443 | CLEC2D         | processed_pseudogene             | CCDS55801      | ENSG00000069493 | CLEC2D                 | protein_coding
+  8089 | ENSG00000213809 | KLRK1          | protein_coding                   | CCDS8623       | ENSG00000255819 | KLRC4-KLRK1            | protein_coding
+ 20168 | ENSG00000279483 | RPL41          | protein_coding                   | CCDS44919      | ENSG00000229117 | RPL41                  | protein_coding
+ 20168 | ENSG00000279483 | RPL41          | protein_coding                   | CCDS44919      | ENSG00000229117 | RPL41                  | protein_coding
+ 26136 | ENSG00000280112 | C12orf79       | protein_coding                   | CCDS58262      | ENSG00000257242 | C12orf79               | protein_coding
+ 26135 | ENSG00000280112 | C12orf79       | protein_coding                   | CCDS58261      | ENSG00000279037 | C12orf79               | protein_coding
+ 23422 | ENSG00000228741 | SPATA13        | lincRNA                          | CCDS53857      | ENSG00000182957 | SPATA13                | protein_coding
+ 23422 | ENSG00000228741 | SPATA13        | lincRNA                          | CCDS53857      | ENSG00000182957 | SPATA13                | protein_coding
+  8724 | ENSG00000228741 | SPATA13        | lincRNA                          | CCDS9305       | ENSG00000182957 | SPATA13                | protein_coding
+ 28275 | ENSG00000228741 | SPATA13        | lincRNA                          | CCDS66518      | ENSG00000182957 | SPATA13                | protein_coding
+ 28274 | ENSG00000228741 | SPATA13        | lincRNA                          | CCDS66517      | ENSG00000182957 | SPATA13                | protein_coding
+ 29080 | ENSG00000228741 | SPATA13        | lincRNA                          | CCDS73553      | ENSG00000182957 | SPATA13                | protein_coding
+  8854 | ENSG00000197991 | PCDH20         | protein_coding                   | CCDS9442       | ENSG00000280165 | PCDH20                 | protein_coding
+ 29111 | ENSG00000187537 | POTEM          | protein_coding                   | CCDS73609      | ENSG00000222036 | POTEG                  | protein_coding
+ 29112 | ENSG00000222036 | POTEG          | protein_coding                   | CCDS73610      | ENSG00000187537 | POTEM                  | protein_coding
+  8959 | ENSG00000173464 | RNASE11        | protein_coding                   | CCDS9553       | ENSG00000259060 | RNASE11                | protein_coding
+  8961 | ENSG00000259171 | RNASE4         | protein_coding                   | CCDS9555       | ENSG00000258818 | RNASE4                 | protein_coding
+  8961 | ENSG00000259171 | RNASE4         | protein_coding                   | CCDS9555       | ENSG00000258818 | RNASE4                 | protein_coding
+  8961 | ENSG00000259171 | RNASE4         | protein_coding                   | CCDS9555       | ENSG00000258818 | RNASE4                 | protein_coding
+  9022 | ENSG00000254692 | TM9SF1         | protein_coding                   | CCDS9617       | ENSG00000100926 | TM9SF1                 | protein_coding
+ 29118 | ENSG00000254692 | TM9SF1         | protein_coding                   | CCDS73623      | ENSG00000100926 | TM9SF1                 | protein_coding
+ 18022 | ENSG00000254692 | TM9SF1         | protein_coding                   | CCDS41934      | ENSG00000100926 | TM9SF1                 | protein_coding
+ 26187 | ENSG00000258790 | KIAA0391       | protein_coding                   | CCDS58313      | ENSG00000100890 | KIAA0391               | protein_coding
+ 26188 | ENSG00000258790 | KIAA0391       | protein_coding                   | CCDS58314      | ENSG00000100890 | KIAA0391               | protein_coding
+ 26186 | ENSG00000258790 | KIAA0391       | protein_coding                   | CCDS58312      | ENSG00000100890 | KIAA0391               | protein_coding
+ 15028 | ENSG00000258790 | KIAA0391       | protein_coding                   | CCDS32063      | ENSG00000100890 | KIAA0391               | protein_coding
+ 26186 | ENSG00000258790 | KIAA0391       | protein_coding                   | CCDS58312      | ENSG00000100890 | KIAA0391               | protein_coding
+ 26188 | ENSG00000258790 | KIAA0391       | protein_coding                   | CCDS58314      | ENSG00000100890 | KIAA0391               | protein_coding
+ 15103 | ENSG00000196136 | SERPINA3       | protein_coding                   | CCDS32150      | ENSG00000273259 | SERPINA3               | protein_coding
+  9387 | ENSG00000257341 | CRIP1          | protein_coding                   | CCDS10004      | ENSG00000213145 | CRIP1                  | protein_coding
+  9387 | ENSG00000257341 | CRIP1          | protein_coding                   | CCDS10004      | ENSG00000213145 | CRIP1                  | protein_coding
+  9387 | ENSG00000257341 | CRIP1          | protein_coding                   | CCDS10004      | ENSG00000213145 | CRIP1                  | protein_coding
+ 29151 | ENSG00000277865 | GOLGA6L1       | protein_coding                   | CCDS73699      | ENSG00000273976 | GOLGA6L22              | protein_coding
+  9392 | ENSG00000214265 | SNURF          | protein_coding                   | CCDS10016      | ENSG00000273173 | SNURF                  | protein_coding
+  9392 | ENSG00000214265 | SNURF          | protein_coding                   | CCDS10016      | ENSG00000273173 | SNURF                  | protein_coding
+  9392 | ENSG00000214265 | SNURF          | protein_coding                   | CCDS10016      | ENSG00000273173 | SNURF                  | protein_coding
+  9429 | ENSG00000137843 | PAK6           | protein_coding                   | CCDS10054      | ENSG00000259288 | PAK6                   | protein_coding
+  9429 | ENSG00000137843 | PAK6           | protein_coding                   | CCDS10054      | ENSG00000259288 | PAK6                   | protein_coding
+ 20424 | ENSG00000243708 | PLA2G4B        | protein_coding                   | CCDS45241      | ENSG00000168970 | JMJD7-PLA2G4B          | protein_coding
+  9534 | ENSG00000263155 | MYZAP          | protein_coding                   | CCDS10162      | ENSG00000137878 | GCOM1                  | protein_coding
+ 18100 | ENSG00000263155 | MYZAP          | protein_coding                   | CCDS42044      | ENSG00000137878 | GCOM1                  | protein_coding
+  9611 | ENSG00000140488 | CELF6          | protein_coding                   | CCDS10242      | ENSG00000273025 | CELF6                  | protein_coding
+  9678 | ENSG00000261229 | MTHFS          | lincRNA                          | CCDS10311      | ENSG00000136371 | MTHFS                  | protein_coding
+  9733 | ENSG00000279316 | C15orf32       | protein_coding                   | CCDS10373      | ENSG00000183643 | C15orf32               | protein_coding
+  9734 | ENSG00000279765 | CHD2           | protein_coding                   | CCDS10374      | ENSG00000173575 | CHD2                   | protein_coding
+  9904 | ENSG00000233024 | NPIPA1         | protein_coding                   | CCDS10557      | ENSG00000183426 | NPIPA1                 | protein_coding
+ 18149 | ENSG00000263198 | NOMO3          | antisense                        | CCDS42123      | ENSG00000103226 | NOMO3                  | protein_coding
+ 29236 | ENSG00000188603 | CLN3           | protein_coding                   | CCDS73853      | ENSG00000261832 | CLN3                   | protein_coding
+ 29236 | ENSG00000188603 | CLN3           | protein_coding                   | CCDS73853      | ENSG00000261832 | CLN3                   | protein_coding
+  9996 | ENSG00000263136 | PAGR1          | protein_coding                   | CCDS10655      | ENSG00000185928 | PAGR1                  | protein_coding
+ 10015 | ENSG00000261052 | SULT1A3        | protein_coding                   | CCDS10674      | ENSG00000213599 | SLX1A-SULT1A3          | protein_coding
+ 26314 | ENSG00000278848 | TP53TG3C       | protein_coding                   | CCDS58458      | ENSG00000205457 | TP53TG3C               | protein_coding
+ 10222 | ENSG00000261611 | ZNF23          | protein_coding                   | CCDS10900      | ENSG00000167377 | ZNF23                  | protein_coding
+ 10222 | ENSG00000261611 | ZNF23          | protein_coding                   | CCDS10900      | ENSG00000167377 | ZNF23                  | protein_coding
+ 27598 | ENSG00000166473 | PKD1L2         | polymorphic_pseudogene           | CCDS61998      | ENSG00000279890 | DKFZP686J19100         | protein_coding
+ 27599 | ENSG00000166473 | PKD1L2         | polymorphic_pseudogene           | CCDS61999      | ENSG00000279362 | DKFZP686J19100         | protein_coding
+ 20698 | ENSG00000196689 | TRPV1          | protein_coding                   | CCDS45576      | ENSG00000262304 | TRPV1                  | protein_coding
+ 10344 | ENSG00000197417 | SHPK           | protein_coding                   | CCDS11030      | ENSG00000262304 | TRPV1                  | protein_coding
+ 10413 | ENSG00000261915 | GPS2           | protein_coding                   | CCDS11100      | ENSG00000132522 | GPS2                   | protein_coding
+ 10413 | ENSG00000261915 | GPS2           | protein_coding                   | CCDS11100      | ENSG00000132522 | GPS2                   | protein_coding
+ 10452 | ENSG00000263809 | KRBA2          | protein_coding                   | CCDS11141      | ENSG00000184619 | KRBA2                  | protein_coding
+ 29294 | ENSG00000187607 | ZNF286A        | protein_coding                   | CCDS73997      | ENSG00000255104 | TBC1D26                | protein_coding
+ 10483 | ENSG00000187607 | ZNF286A        | protein_coding                   | CCDS11172      | ENSG00000255104 | TBC1D26                | protein_coding
+ 18240 | ENSG00000214946 | TBC1D26        | protein_coding                   | CCDS42265      | ENSG00000255104 | TBC1D26                | protein_coding
+ 10609 | ENSG00000275718 | CCL15          | protein_coding                   | CCDS11304      | ENSG00000275688 | CCL15-CCL14            | protein_coding
+ 10609 | ENSG00000275718 | CCL15          | protein_coding                   | CCDS11304      | ENSG00000275688 | CCL15-CCL14            | protein_coding
+ 18265 | ENSG00000274226 | TBC1D3B        | protein_coding                   | CCDS42300      | ENSG00000274808 | AC003976.2             | protein_coding
+ 18265 | ENSG00000274226 | TBC1D3B        | protein_coding                   | CCDS42300      | ENSG00000274808 | AC003976.2             | protein_coding
+ 10671 | ENSG00000213424 | KRT222         | protein_coding                   | CCDS11371      | ENSG00000264058 | KRT222                 | protein_coding
+ 10782 | ENSG00000167131 | CCDC103        | protein_coding                   | CCDS11490      | ENSG00000214447 | FAM187A                | protein_coding
+ 10803 | ENSG00000259753 | ITGB3          | protein_coding                   | CCDS11511      | ENSG00000259207 | ITGB3                  | protein_coding
+ 15486 | ENSG00000243678 | NME1-NME2      | protein_coding                   | CCDS32682      | ENSG00000011052 | NME2                   | protein_coding
+ 10871 | ENSG00000011052 | NME2           | protein_coding                   | CCDS11580      | ENSG00000243678 | NME1-NME2              | protein_coding
+ 10871 | ENSG00000011052 | NME2           | protein_coding                   | CCDS11580      | ENSG00000243678 | NME1-NME2              | protein_coding
+ 29337 | ENSG00000011052 | NME2           | protein_coding                   | CCDS74107      | ENSG00000243678 | NME1-NME2              | protein_coding
+ 10871 | ENSG00000011052 | NME2           | protein_coding                   | CCDS11580      | ENSG00000243678 | NME1-NME2              | protein_coding
+ 10871 | ENSG00000011052 | NME2           | protein_coding                   | CCDS11580      | ENSG00000243678 | NME1-NME2              | protein_coding
+ 10871 | ENSG00000011052 | NME2           | protein_coding                   | CCDS11580      | ENSG00000243678 | NME1-NME2              | protein_coding
+ 10926 | ENSG00000264813 | ACE            | protein_coding                   | CCDS11637      | ENSG00000159640 | ACE                    | protein_coding
+ 20855 | ENSG00000264813 | ACE            | protein_coding                   | CCDS45755      | ENSG00000159640 | ACE                    | protein_coding
+ 23676 | ENSG00000264813 | ACE            | protein_coding                   | CCDS54155      | ENSG00000159640 | ACE                    | protein_coding
+ 11019 | ENSG00000250506 | CDK3           | protein_coding                   | CCDS11736      | ENSG00000261408 | TEN1-CDK3              | protein_coding
+ 11203 | ENSG00000134049 | IER3IP1        | protein_coding                   | CCDS11933      | ENSG00000267228 | IER3IP1                | protein_coding
+ 27648 | ENSG00000215472 | RPL17-C18orf32 | protein_coding                   | CCDS62443      | ENSG00000177576 | C18orf32               | protein_coding
+ 20947 | ENSG00000265681 | RPL17          | protein_coding                   | CCDS45865      | ENSG00000215472 | RPL17-C18orf32         | protein_coding
+ 11337 | ENSG00000127540 | UQCR11         | protein_coding                   | CCDS12073      | ENSG00000267059 | UQCR11                 | protein_coding
+ 18389 | ENSG00000267855 | NDUFA7         | protein_coding                   | CCDS42492      | ENSG00000167774 | NDUFA7                 | protein_coding
+ 11469 | ENSG00000188629 | ZNF177         | protein_coding                   | CCDS12212      | ENSG00000270011 | ZNF559-ZNF177          | protein_coding
+ 23726 | ENSG00000188629 | ZNF177         | protein_coding                   | CCDS54214      | ENSG00000270011 | ZNF559-ZNF177          | protein_coding
+ 18400 | ENSG00000196826 | ZNF709         | protein_coding                   | CCDS42504      | ENSG00000242852 | ZNF709                 | protein_coding
+ 11624 | ENSG00000268173 | PIK3R2         | protein_coding                   | CCDS12371      | ENSG00000105647 | PIK3R2                 | protein_coding
+ 11624 | ENSG00000268173 | PIK3R2         | protein_coding                   | CCDS12371      | ENSG00000105647 | PIK3R2                 | protein_coding
+ 18419 | ENSG00000130283 | GDF1           | protein_coding                   | CCDS42526      | ENSG00000223802 | CERS1                  | protein_coding
+ 21087 | ENSG00000254901 | MEF2BNB        | protein_coding                   | CCDS46025      | ENSG00000064489 | MEF2BNB-MEF2B          | protein_coding
+ 21087 | ENSG00000254901 | MEF2BNB        | protein_coding                   | CCDS46025      | ENSG00000064489 | MEF2BNB-MEF2B          | protein_coding
+ 21087 | ENSG00000254901 | MEF2BNB        | protein_coding                   | CCDS46025      | ENSG00000064489 | MEF2BNB-MEF2B          | protein_coding
+ 15751 | ENSG00000167578 | RAB4B          | protein_coding                   | CCDS33030      | ENSG00000171570 | RAB4B-EGLN2            | protein_coding
+ 11890 | ENSG00000267467 | APOC4          | protein_coding                   | CCDS12649      | ENSG00000224916 | APOC4-APOC2            | protein_coding
+ 11891 | ENSG00000234906 | APOC2          | protein_coding                   | CCDS12650      | ENSG00000224916 | APOC4-APOC2            | protein_coding
+ 12050 | ENSG00000213022 | KLK9           | protein_coding                   | CCDS12816      | ENSG00000269741 | KLK9                   | protein_coding
+ 15803 | ENSG00000268500 | SIGLEC5        | protein_coding                   | CCDS33088      | ENSG00000105501 | SIGLEC5                | protein_coding
+ 15803 | ENSG00000268500 | SIGLEC5        | protein_coding                   | CCDS33088      | ENSG00000105501 | SIGLEC5                | protein_coding
+ 25400 | ENSG00000213801 | ZNF816-ZNF321P | transcribed_processed_pseudogene | CCDS56101      | ENSG00000221874 | ZNF321P                | protein_coding
+  1743 | ENSG00000273398 | WDR92          | protein_coding                   | CCDS1884       | ENSG00000243667 | WDR92                  | protein_coding
+ 26547 | ENSG00000273398 | WDR92          | protein_coding                   | CCDS58712      | ENSG00000243667 | WDR92                  | protein_coding
+  1748 | ENSG00000169618 | PROKR1         | protein_coding                   | CCDS1889       | ENSG00000169621 | APLF                   | protein_coding
+ 15901 | ENSG00000229738 | SNRNP27        | processed_pseudogene             | CCDS33219      | ENSG00000124380 | SNRNP27                | protein_coding
+ 15901 | ENSG00000229738 | SNRNP27        | processed_pseudogene             | CCDS33219      | ENSG00000124380 | SNRNP27                | protein_coding
+ 25426 | ENSG00000249884 | RNF103-CHMP3   | protein_coding                   | CCDS56128      | ENSG00000115561 | CHMP3                  | protein_coding
+  1882 | ENSG00000241962 | C2orf15        | protein_coding                   | CCDS2038       | ENSG00000273045 | C2orf15                | protein_coding
+  1882 | ENSG00000241962 | C2orf15        | protein_coding                   | CCDS2038       | ENSG00000273045 | C2orf15                | protein_coding
+ 16032 | ENSG00000241635 | UGT1A8         | protein_coding                   | CCDS33402      | ENSG00000242366 | UGT1A1                 | protein_coding
+  2331 | ENSG00000242366 | UGT1A1         | protein_coding                   | CCDS2510       | ENSG00000241635 | UGT1A8                 | protein_coding
+ 27836 | ENSG00000271181 | STMN3          | processed_pseudogene             | CCDS63330      | ENSG00000197457 | STMN3                  | protein_coding
+ 12705 | ENSG00000271181 | STMN3          | processed_pseudogene             | CCDS13529      | ENSG00000197457 | STMN3                  | protein_coding
+ 12708 | ENSG00000243509 | TNFRSF6B       | protein_coding                   | CCDS13532      | ENSG00000026036 | RTEL1-TNFRSF6B         | protein_coding
+ 12968 | ENSG00000128271 | ADORA2A        | protein_coding                   | CCDS13826      | ENSG00000258555 | SPECC1L-ADORA2A        | protein_coding
+ 12968 | ENSG00000128271 | ADORA2A        | protein_coding                   | CCDS13826      | ENSG00000258555 | SPECC1L-ADORA2A        | protein_coding
+ 12968 | ENSG00000128271 | ADORA2A        | protein_coding                   | CCDS13826      | ENSG00000258555 | SPECC1L-ADORA2A        | protein_coding
+ 25524 | ENSG00000241484 | ARHGAP8        | protein_coding                   | CCDS56233      | ENSG00000248405 | PRR5-ARHGAP8           | protein_coding
+ 16211 | ENSG00000241484 | ARHGAP8        | protein_coding                   | CCDS33664      | ENSG00000248405 | PRR5-ARHGAP8           | protein_coding
+ 18799 | ENSG00000279651 | C3orf35        | protein_coding                   | CCDS43065      | ENSG00000198590 | C3orf35                | protein_coding
+ 27185 | ENSG00000213689 | TREX1          | protein_coding                   | CCDS59451      | ENSG00000164053 | ATRIP                  | protein_coding
+  2625 | ENSG00000271858 | CYB561D2       | antisense                        | CCDS2827       | ENSG00000114395 | CYB561D2               | protein_coding
+  2625 | ENSG00000271858 | CYB561D2       | antisense                        | CCDS2827       | ENSG00000114395 | CYB561D2               | protein_coding
+  2625 | ENSG00000271858 | CYB561D2       | antisense                        | CCDS2827       | ENSG00000114395 | CYB561D2               | protein_coding
+  2625 | ENSG00000271858 | CYB561D2       | antisense                        | CCDS2827       | ENSG00000114395 | CYB561D2               | protein_coding
+  2645 | ENSG00000173366 | TLR9           | protein_coding                   | CCDS2848       | ENSG00000239732 | TLR9                   | protein_coding
+  2680 | ENSG00000255154 | RPP14          | protein_coding                   | CCDS2888       | ENSG00000163684 | RPP14                  | protein_coding
+  2680 | ENSG00000255154 | RPP14          | protein_coding                   | CCDS2888       | ENSG00000163684 | RPP14                  | protein_coding
+  2680 | ENSG00000255154 | RPP14          | protein_coding                   | CCDS2888       | ENSG00000163684 | RPP14                  | protein_coding
+ 16313 | ENSG00000230301 | OR5H6          | protein_coding                   | CCDS33800      | ENSG00000279922 | OR5H6                  | polymorphic_pseudogene
+ 16313 | ENSG00000230301 | OR5H6          | protein_coding                   | CCDS33800      | ENSG00000279922 | OR5H6                  | polymorphic_pseudogene
+ 16349 | ENSG00000206483 | TXNRD3NB       | protein_coding                   | CCDS33846      | ENSG00000197763 | TXNRD3                 | protein_coding
+ 24116 | ENSG00000114126 | TFDP2          | protein_coding                   | CCDS54648      | ENSG00000269905 | TFDP2                  | protein_coding
+  2966 | ENSG00000151967 | SCHIP1         | protein_coding                   | CCDS3186       | ENSG00000250588 | IQCJ-SCHIP1            | protein_coding
+ 25583 | ENSG00000151967 | SCHIP1         | protein_coding                   | CCDS56292      | ENSG00000250588 | IQCJ-SCHIP1            | protein_coding
+ 25584 | ENSG00000151967 | SCHIP1         | protein_coding                   | CCDS56293      | ENSG00000250588 | IQCJ-SCHIP1            | protein_coding
+  3002 | ENSG00000275163 | KCNMB2         | protein_coding                   | CCDS3223       | ENSG00000197584 | KCNMB2                 | protein_coding
+  3002 | ENSG00000275163 | KCNMB2         | protein_coding                   | CCDS3223       | ENSG00000197584 | KCNMB2                 | protein_coding
+  3002 | ENSG00000275163 | KCNMB2         | protein_coding                   | CCDS3223       | ENSG00000197584 | KCNMB2                 | protein_coding
+  3002 | ENSG00000275163 | KCNMB2         | protein_coding                   | CCDS3223       | ENSG00000197584 | KCNMB2                 | protein_coding
+  3090 | ENSG00000145107 | TM4SF19        | protein_coding                   | CCDS3316       | ENSG00000273331 | TM4SF19-TCTEX1D2       | protein_coding
+  3291 | ENSG00000270386 | UGT2A1         | protein_coding                   | CCDS3529       | ENSG00000173610 | UGT2A1                 | protein_coding
+  3291 | ENSG00000270386 | UGT2A1         | protein_coding                   | CCDS3529       | ENSG00000173610 | UGT2A1                 | protein_coding
+ 26706 | ENSG00000270386 | UGT2A1         | protein_coding                   | CCDS58901      | ENSG00000173610 | UGT2A1                 | protein_coding
+ 26712 | ENSG00000118804 | FAM47E-STBD1   | protein_coding                   | CCDS58908      | ENSG00000272414 | FAM47E-STBD1           | protein_coding
+ 24237 | ENSG00000279402 | C4orf3         | protein_coding                   | CCDS54798      | ENSG00000164096 | C4orf3                 | protein_coding
+  3744 | ENSG00000273841 | AK6            | protein_coding                   | CCDS4001       | ENSG00000085231 | TAF9                   | protein_coding
+ 18984 | ENSG00000273841 | AK6            | protein_coding                   | CCDS43324      | ENSG00000085231 | TAF9                   | protein_coding
+  3745 | ENSG00000085231 | TAF9           | protein_coding                   | CCDS4002       | ENSG00000273841 | AK6                    | protein_coding
+  3745 | ENSG00000085231 | TAF9           | protein_coding                   | CCDS4002       | ENSG00000273841 | AK6                    | protein_coding
+  3745 | ENSG00000085231 | TAF9           | protein_coding                   | CCDS4002       | ENSG00000273841 | AK6                    | protein_coding
+  3945 | ENSG00000272742 | PAIP2          | antisense                        | CCDS4211       | ENSG00000120727 | PAIP2                  | protein_coding
+  3945 | ENSG00000272742 | PAIP2          | antisense                        | CCDS4211       | ENSG00000120727 | PAIP2                  | protein_coding
+  3945 | ENSG00000272742 | PAIP2          | antisense                        | CCDS4211       | ENSG00000120727 | PAIP2                  | protein_coding
+ 29897 | ENSG00000249751 | ECSCR          | protein_coding                   | CCDS75317      | ENSG00000279686 | ECSCR                  | protein_coding
+  4371 | ENSG00000168787 | OR12D2         | protein_coding                   | CCDS4659       | ENSG00000280236 | OR12D2                 | polymorphic_pseudogene
+  4371 | ENSG00000168787 | OR12D2         | protein_coding                   | CCDS4659       | ENSG00000280236 | OR12D2                 | polymorphic_pseudogene
+ 16731 | ENSG00000279941 | OR10C1         | protein_coding                   | CCDS34364      | ENSG00000206474 | OR10C1                 | polymorphic_pseudogene
+ 16801 | ENSG00000278224 | PRICKLE4       | protein_coding                   | CCDS34449      | ENSG00000124593 | PRICKLE4               | protein_coding
+ 16801 | ENSG00000278224 | PRICKLE4       | protein_coding                   | CCDS34449      | ENSG00000124593 | PRICKLE4               | protein_coding
+ 16845 | ENSG00000213204 | C6orf165       | protein_coding                   | CCDS34498      | ENSG00000272514 | C6orf165               | protein_coding
+ 19122 | ENSG00000214338 | SOGA3          | protein_coding                   | CCDS43505      | ENSG00000255330 | SOGA3                  | protein_coding
+ 19122 | ENSG00000214338 | SOGA3          | protein_coding                   | CCDS43505      | ENSG00000255330 | SOGA3                  | protein_coding
+  4965 | ENSG00000112486 | CCR6           | protein_coding                   | CCDS5298       | ENSG00000272980 | CCR6                   | protein_coding
+  5125 | ENSG00000106588 | PSMA2          | protein_coding                   | CCDS5467       | ENSG00000256646 | PSMA2                  | protein_coding
+ 19203 | ENSG00000121716 | PILRB          | protein_coding                   | CCDS43622      | ENSG00000272752 | STAG3L5P-PVRIG2P-PILRB | protein_coding
+ 19207 | ENSG00000228049 | POLR2J2        | protein_coding                   | CCDS43627      | ENSG00000267645 | POLR2J2                | protein_coding
+ 19207 | ENSG00000228049 | POLR2J2        | protein_coding                   | CCDS43627      | ENSG00000267645 | POLR2J2                | protein_coding
+ 26870 | ENSG00000269955 | LUC7L2         | protein_coding                   | CCDS59085      | ENSG00000146963 | C7orf55-LUC7L2         | protein_coding
+ 26869 | ENSG00000146963 | C7orf55-LUC7L2 | protein_coding                   | CCDS59084      | ENSG00000269955 | LUC7L2                 | protein_coding
+ 27231 | ENSG00000269955 | LUC7L2         | protein_coding                   | CCDS59510      | ENSG00000146963 | C7orf55-LUC7L2         | protein_coding
+ 19223 | ENSG00000269955 | LUC7L2         | protein_coding                   | CCDS43656      | ENSG00000146963 | C7orf55-LUC7L2         | protein_coding
+ 26870 | ENSG00000269955 | LUC7L2         | protein_coding                   | CCDS59085      | ENSG00000146963 | C7orf55-LUC7L2         | protein_coding
+  5528 | ENSG00000279723 | OR2F1          | protein_coding                   | CCDS5887       | ENSG00000213215 | OR2F1                  | polymorphic_pseudogene
+  5528 | ENSG00000279723 | OR2F1          | protein_coding                   | CCDS5887       | ENSG00000213215 | OR2F1                  | polymorphic_pseudogene
+  5816 | ENSG00000104205 | SGK3           | protein_coding                   | CCDS6195       | ENSG00000270024 | C8orf44-SGK3           | protein_coding
+ 22670 | ENSG00000258417 | OC90           | protein_coding                   | CCDS47919      | ENSG00000253117 | OC90                   | protein_coding
+  6010 | ENSG00000264668 | ZFP41          | protein_coding                   | CCDS6397       | ENSG00000181638 | ZFP41                  | protein_coding
+  6010 | ENSG00000264668 | ZFP41          | protein_coding                   | CCDS6397       | ENSG00000181638 | ZFP41                  | protein_coding
+ 26899 | ENSG00000271698 | TMEM249        | protein_coding                   | CCDS59117      | ENSG00000261587 | TMEM249                | protein_coding
+ 24665 | ENSG00000107077 | KDM4C          | protein_coding                   | CCDS55286      | ENSG00000274527 | RP11-146B14.1          | protein_coding
+ 24664 | ENSG00000107077 | KDM4C          | protein_coding                   | CCDS55285      | ENSG00000274527 | RP11-146B14.1          | protein_coding
+ 26904 | ENSG00000258728 | GALT           | protein_coding                   | CCDS59122      | ENSG00000213930 | GALT                   | protein_coding
+  6166 | ENSG00000258728 | GALT           | protein_coding                   | CCDS6565       | ENSG00000213930 | GALT                   | protein_coding
+  6193 | ENSG00000122718 | OR2S2          | protein_coding                   | CCDS6596       | ENSG00000278889 | OR2S2                  | polymorphic_pseudogene
+  6193 | ENSG00000122718 | OR2S2          | protein_coding                   | CCDS6596       | ENSG00000278889 | OR2S2                  | polymorphic_pseudogene
+ 19322 | ENSG00000204790 | CBWD6          | unprocessed_pseudogene           | CCDS43827      | ENSG00000215126 | CBWD7                  | protein_coding
+ 17266 | ENSG00000280094 | OR1B1          | polymorphic_pseudogene           | CCDS35126      | ENSG00000171484 | OR1B1                  | protein_coding
+  6423 | ENSG00000188394 | GPR21          | protein_coding                   | CCDS6849       | ENSG00000011454 | RABGAP1                | protein_coding
+  6471 | ENSG00000272593 | URM1           | lincRNA                          | CCDS6900       | ENSG00000167118 | URM1                   | protein_coding
+ 26927 | ENSG00000272593 | URM1           | lincRNA                          | CCDS59148      | ENSG00000167118 | URM1                   | protein_coding
+ 22762 | ENSG00000272593 | URM1           | lincRNA                          | CCDS48035      | ENSG00000167118 | URM1                   | protein_coding
+ 30285 | ENSG00000204382 | XAGE1B         | protein_coding                   | CCDS75982      | ENSG00000204379 | XAGE1A                 | protein_coding
+ 30286 | ENSG00000204382 | XAGE1B         | protein_coding                   | CCDS75983      | ENSG00000204379 | XAGE1A                 | protein_coding
+ 26950 | ENSG00000269226 | TMSB15B        | protein_coding                   | CCDS59172      | ENSG00000158427 | TMSB15B                | protein_coding
+ 26950 | ENSG00000269226 | TMSB15B        | protein_coding                   | CCDS59172      | ENSG00000158427 | TMSB15B                | protein_coding
+ 26950 | ENSG00000269226 | TMSB15B        | protein_coding                   | CCDS59172      | ENSG00000158427 | TMSB15B                | protein_coding
+ 26950 | ENSG00000269226 | TMSB15B        | protein_coding                   | CCDS59172      | ENSG00000158427 | TMSB15B                | protein_coding
+ 13765 | ENSG00000241489 | IDS            | protein_coding                   | CCDS14685      | ENSG00000010404 | IDS                    | protein_coding
+ 13766 | ENSG00000241489 | IDS            | protein_coding                   | CCDS14686      | ENSG00000010404 | IDS                    | protein_coding
+ 17461 | ENSG00000123584 | MAGEA9B        | protein_coding                   | CCDS35423      | ENSG00000267978 | MAGEA9                 | protein_coding
+ 13769 | ENSG00000267978 | MAGEA9         | protein_coding                   | CCDS14691      | ENSG00000123584 | MAGEA9B                | protein_coding
+ 13808 | ENSG00000269433 | OPN1MW         | protein_coding                   | CCDS14743      | ENSG00000268221 | OPN1MW                 | protein_coding
+ 13840 | ENSG00000279710 | SRY            | protein_coding                   | CCDS14772      | ENSG00000184895 | SRY                    | protein_coding
+ 13841 | ENSG00000279950 | RPS4Y1         | protein_coding                   | CCDS14773      | ENSG00000129824 | RPS4Y1                 | protein_coding
+ 22888 | ENSG00000280209 | ZFY            | protein_coding                   | CCDS48200      | ENSG00000067646 | ZFY                    | protein_coding
+ 13842 | ENSG00000280209 | ZFY            | protein_coding                   | CCDS14774      | ENSG00000067646 | ZFY                    | protein_coding
+ 22889 | ENSG00000280209 | ZFY            | protein_coding                   | CCDS48201      | ENSG00000067646 | ZFY                    | protein_coding
+ 13842 | ENSG00000280209 | ZFY            | protein_coding                   | CCDS14774      | ENSG00000067646 | ZFY                    | protein_coding
+ 22888 | ENSG00000280209 | ZFY            | protein_coding                   | CCDS48200      | ENSG00000279899 | AC006157.2             | protein_coding
+ 22889 | ENSG00000280209 | ZFY            | protein_coding                   | CCDS48201      | ENSG00000279008 | AC006157.1             | protein_coding
+ 13843 | ENSG00000279055 | TGIF2LY        | protein_coding                   | CCDS14775      | ENSG00000176679 | TGIF2LY                | protein_coding
+ 13843 | ENSG00000279055 | TGIF2LY        | protein_coding                   | CCDS14775      | ENSG00000176679 | TGIF2LY                | protein_coding
+ 13844 | ENSG00000280342 | PCDH11Y        | protein_coding                   | CCDS14776      | ENSG00000099715 | PCDH11Y                | protein_coding
+ 13844 | ENSG00000280342 | PCDH11Y        | protein_coding                   | CCDS14776      | ENSG00000099715 | PCDH11Y                | protein_coding
+ 13844 | ENSG00000280342 | PCDH11Y        | protein_coding                   | CCDS14776      | ENSG00000279870 | AC010722.2             | protein_coding
+ 13845 | ENSG00000280342 | PCDH11Y        | protein_coding                   | CCDS14777      | ENSG00000099715 | PCDH11Y                | protein_coding
+ 30340 | ENSG00000280342 | PCDH11Y        | protein_coding                   | CCDS76066      | ENSG00000099715 | PCDH11Y                | protein_coding
+ 13845 | ENSG00000280342 | PCDH11Y        | protein_coding                   | CCDS14777      | ENSG00000279279 | AC010722.1             | protein_coding
+ 17488 | ENSG00000279308 | TSPY2          | protein_coding                   | CCDS35465      | ENSG00000168757 | TSPY2                  | protein_coding
+ 13846 | ENSG00000099721 | AMELY          | protein_coding                   | CCDS14778      | ENSG00000280256 | AC013412.1             | protein_coding
+ 13847 | ENSG00000279102 | TBL1Y          | protein_coding                   | CCDS14779      | ENSG00000092377 | TBL1Y                  | protein_coding
+ 13847 | ENSG00000279102 | TBL1Y          | protein_coding                   | CCDS14779      | ENSG00000092377 | TBL1Y                  | protein_coding
+ 13847 | ENSG00000279102 | TBL1Y          | protein_coding                   | CCDS14779      | ENSG00000092377 | TBL1Y                  | protein_coding
+ 22890 | ENSG00000279760 | TSPY4          | protein_coding                   | CCDS48202      | ENSG00000233803 | TSPY4                  | protein_coding
+ 27245 | ENSG00000278940 | TSPY8          | protein_coding                   | CCDS59533      | ENSG00000229549 | TSPY8                  | protein_coding
+ 22891 | ENSG00000279506 | TSPY3          | protein_coding                   | CCDS48204      | ENSG00000228927 | TSPY3                  | protein_coding
+ 22891 | ENSG00000279506 | TSPY3          | protein_coding                   | CCDS48204      | ENSG00000280203 | TSPY3                  | protein_coding
+ 22892 | ENSG00000258992 | TSPY1          | protein_coding                   | CCDS48205      | ENSG00000280313 | TSPY1                  | protein_coding
+ 30341 | ENSG00000258992 | TSPY1          | protein_coding                   | CCDS76071      | ENSG00000279293 | AC006156.1             | protein_coding
+ 28181 | ENSG00000236424 | TSPY10         | protein_coding                   | CCDS65365      | ENSG00000279506 | TSPY3                  | protein_coding
+ 13848 | ENSG00000279327 | USP9Y          | protein_coding                   | CCDS14781      | ENSG00000114374 | USP9Y                  | protein_coding
+ 13849 | ENSG00000280001 | DDX3Y          | protein_coding                   | CCDS14782      | ENSG00000067048 | DDX3Y                  | protein_coding
+ 13849 | ENSG00000280001 | DDX3Y          | protein_coding                   | CCDS14782      | ENSG00000067048 | DDX3Y                  | protein_coding
+ 13850 | ENSG00000279383 | UTY            | protein_coding                   | CCDS14783      | ENSG00000183878 | UTY                    | protein_coding
+ 30347 | ENSG00000279383 | UTY            | protein_coding                   | CCDS76078      | ENSG00000183878 | UTY                    | protein_coding
+ 30345 | ENSG00000279383 | UTY            | protein_coding                   | CCDS76076      | ENSG00000183878 | UTY                    | protein_coding
+ 30348 | ENSG00000279383 | UTY            | protein_coding                   | CCDS76079      | ENSG00000183878 | UTY                    | protein_coding
+ 30346 | ENSG00000279383 | UTY            | protein_coding                   | CCDS76077      | ENSG00000183878 | UTY                    | protein_coding
+ 30344 | ENSG00000279383 | UTY            | protein_coding                   | CCDS76075      | ENSG00000183878 | UTY                    | protein_coding
+ 30342 | ENSG00000279383 | UTY            | protein_coding                   | CCDS76073      | ENSG00000183878 | UTY                    | protein_coding
+ 26958 | ENSG00000279383 | UTY            | protein_coding                   | CCDS59184      | ENSG00000183878 | UTY                    | protein_coding
+ 30343 | ENSG00000279383 | UTY            | protein_coding                   | CCDS76074      | ENSG00000183878 | UTY                    | protein_coding
+ 26958 | ENSG00000279383 | UTY            | protein_coding                   | CCDS59184      | ENSG00000279545 | UTY                    | protein_coding
+ 30342 | ENSG00000279383 | UTY            | protein_coding                   | CCDS76073      | ENSG00000279896 | UTY                    | protein_coding
+ 30343 | ENSG00000279383 | UTY            | protein_coding                   | CCDS76074      | ENSG00000279823 | UTY                    | protein_coding
+ 30344 | ENSG00000279383 | UTY            | protein_coding                   | CCDS76075      | ENSG00000278906 | UTY                    | protein_coding
+ 30345 | ENSG00000279383 | UTY            | protein_coding                   | CCDS76076      | ENSG00000279596 | UTY                    | protein_coding
+ 30346 | ENSG00000279383 | UTY            | protein_coding                   | CCDS76077      | ENSG00000279449 | UTY                    | protein_coding
+ 30347 | ENSG00000279383 | UTY            | protein_coding                   | CCDS76078      | ENSG00000279052 | UTY                    | protein_coding
+ 30348 | ENSG00000279383 | UTY            | protein_coding                   | CCDS76079      | ENSG00000279938 | UTY                    | protein_coding
+ 13850 | ENSG00000279383 | UTY            | protein_coding                   | CCDS14783      | ENSG00000279053 | UTY                    | protein_coding
+ 13851 | ENSG00000279383 | UTY            | protein_coding                   | CCDS14784      | ENSG00000183878 | UTY                    | protein_coding
+ 13851 | ENSG00000279383 | UTY            | protein_coding                   | CCDS14784      | ENSG00000279947 | UTY                    | protein_coding
+ 13852 | ENSG00000279383 | UTY            | protein_coding                   | CCDS14785      | ENSG00000183878 | UTY                    | protein_coding
+ 13853 | ENSG00000279828 | TMSB4Y         | protein_coding                   | CCDS14786      | ENSG00000154620 | TMSB4Y                 | protein_coding
+ 25846 | ENSG00000279451 | VCY            | protein_coding                   | CCDS56617      | ENSG00000129864 | VCY                    | protein_coding
+ 25846 | ENSG00000279451 | VCY            | protein_coding                   | CCDS56617      | ENSG00000279158 | VCY1B                  | protein_coding
+ 25847 | ENSG00000129862 | VCY1B          | protein_coding                   | CCDS56618      | ENSG00000279451 | VCY                    | protein_coding
+ 25848 | ENSG00000279292 | NLGN4Y         | protein_coding                   | CCDS56619      | ENSG00000165246 | NLGN4Y                 | protein_coding
+ 13854 | ENSG00000279292 | NLGN4Y         | protein_coding                   | CCDS14788      | ENSG00000165246 | NLGN4Y                 | protein_coding
+ 13854 | ENSG00000279292 | NLGN4Y         | protein_coding                   | CCDS14788      | ENSG00000165246 | NLGN4Y                 | protein_coding
+ 24908 | ENSG00000279292 | NLGN4Y         | protein_coding                   | CCDS55553      | ENSG00000165246 | NLGN4Y                 | protein_coding
+ 24908 | ENSG00000279292 | NLGN4Y         | protein_coding                   | CCDS55553      | ENSG00000278904 | AC010879.1             | protein_coding
+ 25848 | ENSG00000279292 | NLGN4Y         | protein_coding                   | CCDS56619      | ENSG00000280442 | AC010879.2             | protein_coding
+ 17489 | ENSG00000279820 | CDY2B          | protein_coding                   | CCDS35473      | ENSG00000280290 | CDY2A                  | protein_coding
+ 17489 | ENSG00000279820 | CDY2B          | protein_coding                   | CCDS35473      | ENSG00000129873 | CDY2B                  | protein_coding
+ 13855 | ENSG00000182415 | CDY2A          | protein_coding                   | CCDS14789      | ENSG00000279820 | CDY2B                  | protein_coding
+ 17490 | ENSG00000279079 | HSFY1          | protein_coding                   | CCDS35475      | ENSG00000172468 | HSFY1                  | protein_coding
+ 13856 | ENSG00000279079 | HSFY1          | protein_coding                   | CCDS14790      | ENSG00000172468 | HSFY1                  | protein_coding
+ 17490 | ENSG00000279079 | HSFY1          | protein_coding                   | CCDS35475      | ENSG00000279680 | HSFY2                  | protein_coding
+ 13856 | ENSG00000279079 | HSFY1          | protein_coding                   | CCDS14790      | ENSG00000280293 | AC022486.2             | protein_coding
+ 17491 | ENSG00000169953 | HSFY2          | protein_coding                   | CCDS35476      | ENSG00000280031 | AC007379.1             | protein_coding
+ 13857 | ENSG00000169953 | HSFY2          | protein_coding                   | CCDS14791      | ENSG00000279079 | HSFY1                  | protein_coding
+ 13858 | ENSG00000278871 | KDM5D          | protein_coding                   | CCDS14794      | ENSG00000012817 | KDM5D                  | protein_coding
+ 24910 | ENSG00000278871 | KDM5D          | protein_coding                   | CCDS55555      | ENSG00000012817 | KDM5D                  | protein_coding
+ 24909 | ENSG00000278871 | KDM5D          | protein_coding                   | CCDS55554      | ENSG00000012817 | KDM5D                  | protein_coding
+ 24909 | ENSG00000278871 | KDM5D          | protein_coding                   | CCDS55554      | ENSG00000280101 | AC010889.1             | protein_coding
+ 24910 | ENSG00000278871 | KDM5D          | protein_coding                   | CCDS55555      | ENSG00000280358 | AC010889.2             | protein_coding
+ 13859 | ENSG00000279290 | EIF1AY         | protein_coding                   | CCDS14795      | ENSG00000198692 | EIF1AY                 | protein_coding
+ 28182 | ENSG00000279290 | EIF1AY         | protein_coding                   | CCDS65368      | ENSG00000198692 | EIF1AY                 | protein_coding
+ 28182 | ENSG00000279290 | EIF1AY         | protein_coding                   | CCDS65368      | ENSG00000279898 | AC007678.1             | protein_coding
+ 19443 | ENSG00000279854 | RPS4Y2         | protein_coding                   | CCDS44028      | ENSG00000280146 | RPS4Y2                 | protein_coding
+ 28183 | ENSG00000279826 | PRORY          | protein_coding                   | CCDS65369      | ENSG00000183146 | PRORY                  | protein_coding
+ 17492 | ENSG00000278984 | RBMY1B         | protein_coding                   | CCDS35479      | ENSG00000242875 | RBMY1B                 | protein_coding
+ 13860 | ENSG00000279934 | RBMY1A1        | protein_coding                   | CCDS14796      | ENSG00000234414 | RBMY1A1                | protein_coding
+ 17493 | ENSG00000279309 | RBMY1D         | protein_coding                   | CCDS35480      | ENSG00000244395 | RBMY1D                 | protein_coding
+ 17494 | ENSG00000280343 | RBMY1E         | protein_coding                   | CCDS35481      | ENSG00000242389 | RBMY1E                 | protein_coding
+ 17495 | ENSG00000278968 | PRY2           | protein_coding                   | CCDS35482      | ENSG00000169807 | PRY2                   | protein_coding
+ 17496 | ENSG00000280386 | RBMY1F         | protein_coding                   | CCDS35483      | ENSG00000169800 | RBMY1F                 | protein_coding
+ 17497 | ENSG00000279323 | RBMY1J         | protein_coding                   | CCDS35484      | ENSG00000226941 | RBMY1J                 | protein_coding
+ 17497 | ENSG00000279323 | RBMY1J         | protein_coding                   | CCDS35484      | ENSG00000226941 | RBMY1J                 | protein_coding
+ 13861 | ENSG00000279944 | PRY            | protein_coding                   | CCDS14799      | ENSG00000169789 | PRY                    | protein_coding
+ 13862 | ENSG00000280052 | BPY2           | protein_coding                   | CCDS14800      | ENSG00000183753 | BPY2                   | protein_coding
+ 13862 | ENSG00000280052 | BPY2           | protein_coding                   | CCDS14800      | ENSG00000183753 | BPY2                   | protein_coding
+ 22893 | ENSG00000279194 | DAZ1           | protein_coding                   | CCDS48209      | ENSG00000188120 | DAZ1                   | protein_coding
+ 22893 | ENSG00000279194 | DAZ1           | protein_coding                   | CCDS48209      | ENSG00000280084 | DAZ1                   | protein_coding
+ 17498 | ENSG00000279634 | DAZ2           | protein_coding                   | CCDS35485      | ENSG00000205944 | DAZ2                   | protein_coding
+ 22894 | ENSG00000279634 | DAZ2           | protein_coding                   | CCDS48210      | ENSG00000205944 | DAZ2                   | protein_coding
+ 28184 | ENSG00000279634 | DAZ2           | protein_coding                   | CCDS65375      | ENSG00000205944 | DAZ2                   | protein_coding
+ 22894 | ENSG00000279634 | DAZ2           | protein_coding                   | CCDS48210      | ENSG00000280421 | DAZ1                   | protein_coding
+ 28184 | ENSG00000279634 | DAZ2           | protein_coding                   | CCDS65375      | ENSG00000279915 | DAZ1                   | protein_coding
+ 17499 | ENSG00000279150 | CDY1B          | protein_coding                   | CCDS35486      | ENSG00000172352 | CDY1B                  | protein_coding
+ 17499 | ENSG00000279150 | CDY1B          | protein_coding                   | CCDS35486      | ENSG00000279867 | AC068601.1             | protein_coding
+ 17500 | ENSG00000279150 | CDY1B          | protein_coding                   | CCDS35487      | ENSG00000172352 | CDY1B                  | protein_coding
+ 17500 | ENSG00000279150 | CDY1B          | protein_coding                   | CCDS35487      | ENSG00000279787 | CDY1                   | protein_coding
+ 19444 | ENSG00000279564 | BPY2B          | protein_coding                   | CCDS44029      | ENSG00000183795 | BPY2B                  | protein_coding
+ 19444 | ENSG00000279564 | BPY2B          | protein_coding                   | CCDS44029      | ENSG00000183795 | BPY2B                  | protein_coding
+ 17501 | ENSG00000187191 | DAZ3           | protein_coding                   | CCDS35489      | ENSG00000280045 | DAZ1                   | protein_coding
+ 24911 | ENSG00000205916 | DAZ4           | protein_coding                   | CCDS55557      | ENSG00000279194 | DAZ1                   | protein_coding
+ 19445 | ENSG00000279258 | BPY2C          | protein_coding                   | CCDS44030      | ENSG00000185894 | BPY2C                  | protein_coding
+ 19445 | ENSG00000279258 | BPY2C          | protein_coding                   | CCDS44030      | ENSG00000185894 | BPY2C                  | protein_coding
+ 13863 | ENSG00000172288 | CDY1           | protein_coding                   | CCDS14801      | ENSG00000279736 | AC007562.2             | protein_coding
+ 13864 | ENSG00000172288 | CDY1           | protein_coding                   | CCDS14802      | ENSG00000279150 | CDY1B                  | protein_coding
+(394 rows)
+
+!! there are 207 distinct cds.gene_id in the above list
+select 
+count(distinct cds_gene.accession)
+from 
+gene cds_gene, gene cds_transcript_gene, cds, transcript 
+where
+cds.gene_id = cds_gene.id and
+cds.name = transcript.ccds_accession and
+transcript.gene_id = cds_transcript_gene.id
+and cds_gene.id != cds_transcript_gene.id;
+ count 
+-------
+   207
+(1 row)
+
+!! transcripts with ccds_accessions correspond to genes with the following biotypes:
+select gene.biotype, count(distinct(gene.id)) from 
+gene, transcript where 
+gene.id = transcript.gene_id and 
+not transcript.ccds_accession is null 
+group by gene.biotype;
+        biotype         | count 
+------------------------+-------
+ polymorphic_pseudogene |    29
+ protein_coding         | 18918
+(2 rows)
+
+!! the gene names are far from unique, even in the subset of genes with transcripts with CCDS 
+select gene.accession, gene.name, count(*) as pop from 
+gene, transcript where 
+gene.id = transcript.gene_id and 
+not transcript.ccds_accession is null 
+group by gene.accession, gene.name
+order by pop desc
+limit 100;
+    accession    |   name    | pop 
+-----------------+-----------+-----
+ ENSG00000006283 | CACNA1G   |  25
+ ENSG00000126091 | ST3GAL3   |  24
+ ENSG00000198561 | CTNND1    |  23
+ ENSG00000112715 | VEGFA     |  21
+ ENSG00000095794 | CREM      |  21
+ ENSG00000204179 | PTPN20A   |  20
+ ENSG00000151067 | CACNA1C   |  19
+ ENSG00000008517 | IL32      |  18
+ ENSG00000162910 | MRPL55    |  18
+ ENSG00000196628 | TCF4      |  17
+ ENSG00000176697 | BDNF      |  17
+ ENSG00000153094 | BCL2L11   |  17
+ ENSG00000141644 | MBD1      |  16
+ ENSG00000124092 | CTCFL     |  16
+ ENSG00000141510 | TP53      |  16
+ ENSG00000143257 | NR1I3     |  16
+ ENSG00000161405 | IKZF3     |  15
+ ENSG00000134769 | DTNA      |  15
+ ENSG00000141552 | ANAPC11   |  15
+ ENSG00000099622 | CIRBP     |  14
+ ENSG00000196482 | ESRRG     |  14
+ ENSG00000112038 | OPRM1     |  14
+ ENSG00000049540 | ELN       |  13
+ ENSG00000165795 | NDRG2     |  13
+ ENSG00000172995 | ARPP21    |  13
+ ENSG00000109332 | UBE2D3    |  13
+ ENSG00000158488 | CD1E      |  13
+ ENSG00000147642 | SYBU      |  13
+ ENSG00000160191 | PDE9A     |  13
+ ENSG00000184640 | SEPT9     |  13
+ ENSG00000079102 | RUNX1T1   |  13
+ ENSG00000133943 | C14orf159 |  12
+ ENSG00000017260 | ATP2C1    |  12
+ ENSG00000065809 | FAM107B   |  12
+ ENSG00000186868 | MAPT      |  12
+ ENSG00000185499 | MUC1      |  12
+ ENSG00000048540 | LMO3      |  12
+ ENSG00000129810 | SGOL1     |  11
+ ENSG00000198363 | ASPH      |  11
+ ENSG00000183878 | UTY       |  11
+ ENSG00000196104 | SPOCK3    |  11
+ ENSG00000010803 | SCMH1     |  11
+ ENSG00000138674 | SEC31A    |  11
+ ENSG00000078900 | TP73      |  11
+ ENSG00000134986 | NREP      |  11
+ ENSG00000139220 | PPFIA2    |  11
+ ENSG00000152601 | MBNL1     |  11
+ ENSG00000140464 | PML       |  11
+ ENSG00000135636 | DYSF      |  11
+ ENSG00000126456 | IRF3      |  11
+ ENSG00000188655 | RNASE9    |  11
+ ENSG00000196092 | PAX5      |  11
+ ENSG00000204580 | DDR1      |  11
+ ENSG00000136754 | ABI1      |  11
+ ENSG00000167733 | HSD11B1L  |  11
+ ENSG00000145901 | TNIP1     |  11
+ ENSG00000138078 | PREPL     |  11
+ ENSG00000177426 | TGIF1     |  11
+ ENSG00000152942 | RAD17     |  11
+ ENSG00000171476 | HOPX      |  11
+ ENSG00000113494 | PRLR      |  11
+ ENSG00000091592 | NLRP1     |  10
+ ENSG00000114861 | FOXP1     |  10
+ ENSG00000168421 | RHOH      |  10
+ ENSG00000113578 | FGF1      |  10
+ ENSG00000173918 | C1QTNF1   |  10
+ ENSG00000131196 | NFATC1    |  10
+ ENSG00000105483 | CARD8     |  10
+ ENSG00000156265 | MAP3K7CL  |  10
+ ENSG00000110931 | CAMKK2    |  10
+ ENSG00000196091 | MYBPC1    |  10
+ ENSG00000086666 | ZFAND6    |  10
+ ENSG00000150275 | PCDH15    |  10
+ ENSG00000089356 | FXYD3     |  10
+ ENSG00000184154 | LRTOMT    |  10
+ ENSG00000103415 | HMOX2     |  10
+ ENSG00000058404 | CAMK2B    |  10
+ ENSG00000137872 | SEMA6D    |  10
+ ENSG00000142875 | PRKACB    |  10
+ ENSG00000204387 | C6orf48   |  10
+ ENSG00000162946 | DISC1     |  10
+ ENSG00000170579 | DLGAP1    |  10
+ ENSG00000109685 | WHSC1     |  10
+ ENSG00000136717 | BIN1      |  10
+ ENSG00000072163 | LIMS2     |  10
+ ENSG00000178053 | MLF1      |  10
+ ENSG00000164919 | COX6C     |  10
+ ENSG00000143420 | ENSA      |  10
+ ENSG00000079459 | FDFT1     |  10
+ ENSG00000010704 | HFE       |  10
+ ENSG00000221983 | UBA52     |  10
+ ENSG00000121964 | GTDC1     |   9
+ ENSG00000112759 | SLC29A1   |   9
+ ENSG00000197111 | PCBP2     |   9
+ ENSG00000205133 | TRIQK     |   9
+ ENSG00000101901 | ALG13     |   9
+ ENSG00000007372 | PAX6      |   9
+ ENSG00000180398 | MCFD2     |   9
+ ENSG00000077264 | PAK3      |   9
+ ENSG00000048052 | HDAC9     |   9
+(100 rows)
+
+The cds gene id was excluded from the test, and the test was rerun
+
+===== Run 4 =====
