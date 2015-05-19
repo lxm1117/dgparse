@@ -19,7 +19,7 @@ The GTF file used was
 Some obvious discrepancies were:
 
 - semi-colons in the database gene names (13 accessions) and transcripts (45 accessions) problem seems to originate at Ensembl but the GTF is not affected
-- CDS records linking to the wrong gene (207 cases) due to erroneous gene name mappings in the CCDS loader
+- records in the database cds table linking to the wrong gene (207 cases) attributed to erroneous gene name mappings in the CCDS loader
 
 The above differences were noted, then the comparisons were excluded from the test. 
 The modified test was re-run, with results as follows:
