@@ -18,8 +18,8 @@ The GTF file used was
 
 Some obvious discrepancies were:
 
-- semi-colons in the database gene names (13 accessions) and transcripts (45 accessions) problem seems to originate at Ensembl but the GTF is not affected
-- records in the database cds table linking to the wrong gene (207 cases) attributed to erroneous gene name mappings in the CCDS loader
+- semi-colons in the database gene names (13 accessions) and transcripts (45 accessions); this problem seems to originate at Ensembl but the GTF is not affected
+- records in the database cds table linking to the wrong gene (207 cases); this attributed to erroneous gene name mappings in the CCDS loader
 
 The above differences were noted, then the fields in question were excluded from further comparisons. 
 The modified test was re-run, with results as follows:
@@ -30,9 +30,9 @@ The modified test was re-run, with results as follows:
 4. the parser finds a small number (~1%) of additional entries for the cdsregion table; data is identical in the overlap set
 5. the exon.end_phase for the stop codon in the exon table differs in a 0.1% of cases
 
-Differences 3 and 4 are attributed to better capture of the relationships between coding sequence, transcript accession and CCDS identifier via the GTF file compared to the existing process involving matching names and CCDS ids from the NCBI CCDS file with Ensembl.
+Differences 3 and 4 are attributed to better capture of the relationships between coding sequence, transcript accession and CCDS identifier via the GTF file, compared to the existing process involving matching names and CCDS ids from the NCBI CCDS file with Ensembl. The tuple (cds.name, hash(ordered_cdsregion_coords)) is unique in the parser output. 
 
-Difference 5 is very minor. The end_phase of the stop codon is almost always set to -1 in the database, following the convention used elsewhere for the non-coding end of an exon, but very occasionally (0.1% of exons) it is not set to -1. In contrast, the parser calculates the exon.end_phase from based on frame in the CDS file, and sets it to -1 at the end of the stop codon.
+Difference 5 is very minor. The end_phase of the stop codon is almost always set to -1 in the database, following the convention used elsewhere for the non-coding end of an exon, but very occasionally (0.1% of exons) it is not set to -1. In contrast, the parser calculates the exon.end_phase using the CDS/stop_codon frame from the GTF file, and sets it to -1 at the end of the stop codon. 
 
 ##Data
 
