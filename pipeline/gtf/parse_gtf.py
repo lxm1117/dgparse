@@ -1,17 +1,19 @@
 """Parse GTF for Gene, Transcript, Exon and CDS features
 
 Usage:
-  parse_gtf.py (--input=<file.gz>) (--template=<file>) (--config=<file>) (--namespace=<str>) [--transform=<bool>] [--require-ccds=<bool>] [--log=<loglevel>]
+  parse_gtf.py (--input=<file.gz>) (--template=<file>) (--config=<file>) (--namespace=<str>) [--output=<dir>] [--require-ccds=<bool>] [--translate=<bool>] [--transform=<bool>] [--log=<loglevel>]
 
 Options:
   --help                    Show this screen
-  --input=<name>            GTF file, gzipped
+  --input=<file>            GTF file, gzipped
   --template=<file>         JSON template for I/O field mapping
-  --config=<file>           Genome config, CSV file specifying the seqnames to extract features for
-  --namespace=<str>         Where the data comes from
+  --config=<file>           Genome config, CSV file specifying the seqnames to extract features for and other data
+  --namespace=<str>         Default name space
   --transform=<bool>        Prepare files ready for database loading [default: 1]
   --require-ccds=<bool>     Output cds/cdsregions only if there is a CCDS identifier [default: 1]
+  --translate=<bool>        Attempt to construct and translate the coding sequence [default: 1]
   --log=<loglevel>          Logging level [default: ERROR]
+  --output=<dir>            Output/working directory [default: ./]
 
 """
 import os
@@ -21,7 +23,9 @@ import gzip
 import logging
 import collections
 import json
+import yaml
 
+from bio.sequtils import get_reverse_complement
 from operator import itemgetter
 from docopt import docopt
 from hashlib import md5
@@ -30,7 +34,7 @@ from pprint import pprint
 logging.basicConfig()
 log = logging.getLogger(__name__)
 
-# GFF/GTF is a standard format for DNA sequence features:
+# GTF/GFF is a standard format for DNA sequence features:
 # http://www.ensembl.org/info/website/upload/gff.html
 #
 # The format is TSV with 9 fields as follows:
@@ -38,53 +42,53 @@ log = logging.getLogger(__name__)
 gtf_fields = [
     'seqname',            # e.g. chr1
     'source',             # e.g. ensembl_havana
-    'feature',            # feature name e.g. CDS, transcript, exon
-    'start',              # one-based [,]
-    'end',                # 
-    'score',              # Unused in Ensembl GFF
+    'feature',            # e.g. transcript, exon, CDS
+    'start',              # one-based, inclusive 
+    'end',                # one-based, inclusive
+    'score',              # a score (unused in Ensembl GTF)
     'strand',             # + (forward), - (reverse)
-    'frame',              # 0, 1, 2 (frame + phase) % 3 = 0
+    'frame',              # 0, 1, 2 
     'attribute'           # key1, val1; key2, val2; ... etc.
 ]
 #
-# The parser takes a JSON template file which specifies the 
-# features, common fields and feature-specific attributes 
-# to be extracted from the GTF file, and the aliases to be 
-# applied. Example features are: gene, CDS, stop_codon. 
-# Example feature-specific attributes are (respectively)
-# gene_biotype, protein_id, exon_number. Common fields 
-# include the annotation source and the coordinates. A
-# second config file is a genome configuration CSV file which 
-# specifes aliases for the chromosome names use in the 
-# GTF file.
+# The JSON template file specifies the features, fields and 
+# feature-specific attributes to be extracted from the GTF 
+# file, and the aliases to be applied. Example features are: 
+# gene, CDS, stop_codon. Example feature-specific attributes 
+# are (respectively) gene_biotype, protein_id, exon_number. 
+# Fields include the annotation source and the coordinates. 
+# The genome configuration CSV specifes aliases for the 
+# chromosome names used in the GTF file.
 #
 # The are two stages to the parsing. 
 #
 # In the first stage a raw parse is made of the GTF file,
-# producing one <feature>.csv file per feature. These files
+# producing a <feature>.csv file for each feature. These files
 # apply the aliases specified in the JSON template and
-# transform the coordinates to zero-based [,). The 'unique' 
-# field of the JSON template specifies a list of 
-# field/attribute values that are expected to occur no 
-# more than once in the file. An exception occurs if this
-# is violated.
+# transform the coordinates to in-house zero-based [,) standard.
+# The 'unique' field of the JSON template specifies a list 
+# of parsed values that are expected to occur no more than 
+# once in the file. An exception occurs if this is violated.
 #
-# The second stage (optional) can be run if the JSON template 
-# specifies a minimum of gene, transcript and exon and CDS 
-# features. It is to transform the output of the first stage
-# into a set of CSV files which correspond closely to the
-# database tables into which they can be loaded. These files
-# are therefore an external representation of the core 
-# genome annotations in the database. 
+# The second stage (optional, but the default) will be run if 
+# the JSON template specifies a minimum of gene, transcript 
+# and exon and CDS features. In this stage, the output of the 
+# first stage is transformed into a set of CSV files which 
+# correspond closely to the database tables into which they 
+# can subsequently be loaded using the appropriate manifest 
+# loader. These files are therefore an external representation 
+# of the core genome annotation tables in the database. 
 #
 # Logically the second stage could be in a separate script,
 # but practically the two stages will almost always be run
-# in sequence, so the two are combined.
+# in sequence, so the two are combined here.
 
-def main():
+def main(args=None):
+    """ Obtain from docopt if no args passed """
 
     # Parse args
-    args = docopt(__doc__, version='Breakpoints Annotator')
+    if not args:
+        args = docopt(__doc__, version='GTF Parser')
 
     # Set logging level
     loglevel = getattr(logging, args['--log'].upper())
@@ -97,19 +101,21 @@ def main():
     input_file = os.path.abspath(args['--input'])
     template_file = os.path.abspath(args['--template'])
     config_file = os.path.abspath(args['--config'])
+    work_dir = os.path.abspath(args['--output'])
 
     # Flags
     transform = int(args['--transform'])
     require_ccds = int(args['--require-ccds'])
+    translate = int(args['--require-ccds'])
     namespace = args['--namespace']
 
     # Read template
-    template = None
+    template_dict = None
     with open(template_file) as template_fh:
         template_str = template_fh.read()
-        template = json.JSONDecoder(object_pairs_hook=collections.OrderedDict).decode(template_str)
+        template_dict = json.JSONDecoder(object_pairs_hook=collections.OrderedDict).decode(template_str)
 
-    # Chromosome map using genome config file
+    # Extract chromosome name map from the genome config file
     seqname_dict = collections.OrderedDict()
     with open(config_file) as config_fh:
         reader = csv.DictReader(config_fh)
@@ -117,75 +123,79 @@ def main():
             seqname_dict[config_dict['seqname']] = config_dict['chromosome_name']
 
     # Stage one parse
-    raw_parse(template, seqname_dict, input_file)
+    raw_parse(work_dir, template_dict, seqname_dict, input_file)
 
     # Proceed to second stage?
     if not transform:
-        log.info('Transform disabled, returning')
+        log.info('Second stage transform disabled, so all done')
         return        
     for feature in 'gene', 'transcript', 'exon', 'CDS':
-        if not feature in template:
-            log.info('Feature %s not parsed, returning')
+        if not feature in template_dict:
+            log.info('Feature %s required for second stage has not been parsed, quitting')
             return
 
     # File names for output
-    db_dict = { key: "db.{0}.csv".format(key) for key in [
+    db_dict = { key: "{0}/db.{1}.csv".format(work_dir, key) for key in [
         'gene', 'cds', 'cdsregion', 'transcript', 'exon']}
     
-    # Stage two parse
-    db_transform(template, db_dict, require_ccds, namespace)
+    # Stage two parse and output
+    db_transform(template_dict, db_dict, require_ccds, translate, namespace)
                   
 
-def raw_parse(template, seqname_dict, input_file):
+def raw_parse(work_dir, template_dict, seqname_dict, input_file):
     """ Parse specified features, fields, attributes to CSV"""
+
+    log.info('===== Raw parse =====')
 
     # Features of interest
     interest = set()
-    for key, obj in template.items():
+    for key, obj in template_dict.items():
         interest.add(key)
 
     # Open CSV files, write header
-    for key, obj in template.items():
-        obj['output_file'] = "{0}.csv".format(key)
-        obj['output_fh'] = open(obj['output_file'], 'w')
-        obj['writer'] = csv.DictWriter(
-            obj['output_fh'],
-            obj['attributes'].values() + obj['fields'].values())
-        obj['writer'].writeheader()
+    for key, template in template_dict.items():
+        template['output_file'] = "{0}/{1}.csv".format(work_dir, key)
+        template['output_fh'] = open(template['output_file'], 'w')
+        template['writer'] = csv.DictWriter(
+            template['output_fh'],
+            template['attributes'].values() + template['fields'].values())
+        template['writer'].writeheader()
+        template['written'] = 0
 
-    # If a unique field name tuple has been defined, prepare a dejavu set
-    for key, obj in template.items():
-        if 'unique' in obj:
-            obj['dejavu'] = set()
-
+    # If a unique key tuple has been defined, prepare a dejavu set
+    for key, template in template_dict.items():
+        if 'unique' in template:
+            template['dejavu'] = set()
+        
     # Parse for features of interest
     log.info('Reading %s...', input_file)
     with gzip.open(input_file) as input_fh:
-        # Uncertain number of header lines, tricky to use csv.reader
+        # Uncertain number of header lines, so awkward to use csv.reader
         for line in input_fh:
             if line.startswith('#'):
                 continue
             parts = line.rstrip().split('\t')
             assert len(parts) == len(gtf_fields)
             feature_dict = dict(zip(gtf_fields, parts))
+            # Handle specified features for configured chromosomes/sequences, ignore otherwise
             if (feature_dict['feature'] in interest and
                 feature_dict['seqname'] in seqname_dict):
-                _handle(template, feature_dict, seqname_dict, line)
+                _handle(template_dict, feature_dict, seqname_dict, line)
 
     # Output
-    for key, obj in template.items():
-        obj['output_fh'].close()
-        log.info('Wrote %d items to %s', len(obj['dejavu']), obj['output_file'])
+    for key, template in template_dict.items():
+        template['output_fh'].close()
+        log.info('Wrote %d items to %s', 
+                 template['written'], template['output_file'])
 
 
-def _handle(template, feature_dict, seqname_dict, line_for_log):
+def _handle(template_dict, feature_dict, seqname_dict, line_for_log):
     """
-    Handle a single feature, write to file
+    Instantiate a new dict collecting the templated fields and 
+    attributes from the feature_dict, applying aliases and 
+    transforming the coordinates. Write to file.
     """
-
-    # Deal with coordinates
-    _transform_coordinates(feature_dict, seqname_dict, line_for_log)
-
+    
     # Unpack the attribute field
     attribute_regex = r"(.*?)\s+\"(.*?)\";\s?"
     attribute_dict = {}
@@ -193,33 +203,45 @@ def _handle(template, feature_dict, seqname_dict, line_for_log):
         kv_pairs = re.findall(attribute_regex, feature_dict['attribute'])
         attribute_dict = collections.OrderedDict(kv_pairs)
 
+    # Do we have a template for this feature?
     feature = feature_dict['feature']
+    if not feature in template_dict:
+        raise Exception('No template provided for %s' % (feature))
+    template = template_dict[feature]
 
-    for gtf_key, obj in template.items():
-        if feature == gtf_key:
+    # The target
+    templated_dict = collections.OrderedDict()
 
-            model = collections.OrderedDict()
+    # Transform coordinates in place, overwriting feature_dict (..)
+    _transform_coordinates(feature_dict, seqname_dict, line_for_log)
+    
+    # Collect specified fields and attributes, apply aliases
+    for source_dict, alias_dict in [
+            (attribute_dict, template['attributes']),
+            (feature_dict, template['fields'])
+    ]:
+        for from_key in sorted(alias_dict.keys()):
+            if from_key in source_dict:
+                to_key = alias_dict[from_key]
+                if source_dict[from_key] != '.':
+                    templated_dict[to_key] = source_dict[from_key]
 
-            for source_dict, map_dict in [
-                    (attribute_dict, obj['attributes']),
-                    (feature_dict, obj['fields'])
-            ]:
-                for from_key in sorted(map_dict.keys()):
-                    if from_key in source_dict:
-                        to_key = map_dict[from_key]
-                        if source_dict[from_key] != '.':
-                            model[to_key] = source_dict[from_key]
+    # If unique keys not specified, no check to do - just write and return
+    if not 'unique' in template:
+        template['writer'].writerow(templated_dict)
+        template['written'] += 1
+        return
+        
+    # Check the tuple of fields that are meant to be unique
+    tup = tuple(map(templated_dict.get, template['unique']))
+    if tup in template['dejavu']:
+        raise Exception("Error %s %s occurs more than once\n%s" % 
+                        (str(template['unique']), str(tup), line_for_log))
 
-            if not 'unique' in obj:
-                obj['writer'].writerow(model)
-                continue
-
-            tup = tuple(map(model.get, obj['unique']))
-            if tup in obj['dejavu']:
-                raise Exception("Error %s occurs more than once" % str(tup))
-            else:
-                obj['dejavu'].add(tup)
-                obj['writer'].writerow(model)
+    # Passes, record tuple and write out
+    template['dejavu'].add(tup)
+    template['writer'].writerow(templated_dict)
+    template['written'] += 1
 
 
 def _hash_dict(input_dict):
@@ -228,18 +250,20 @@ def _hash_dict(input_dict):
     return inst.hexdigest()
 
 
-def db_transform(template, db_dict, require_ccds, namespace):
+def db_transform(template_dict, db_dict, require_ccds, translate, namespace):
     """
     Transform data from raw parse to produce CSV files for database load
     """
 
+    log.info('===== Reading data for transform =====')
+
     # Read gene file
     gene_dict = {}
-    with open(template['gene']['output_file'], 'r') as input_fh:
+    with open(template_dict['gene']['output_file'], 'r') as input_fh:
         reader = csv.DictReader(input_fh)
         for row_dict in reader:
-            gene_dict[row_dict['accession']] = row_dict
-    log.debug('Loaded %d genes', len(gene_dict))
+            gene_dict[row_dict['gene_accession']] = row_dict
+    log.info('Loaded %d genes', len(gene_dict))
 
     # Add a namespace for gene if not provided
     for gene_accession, gene in gene_dict.items():
@@ -248,15 +272,18 @@ def db_transform(template, db_dict, require_ccds, namespace):
 
     # Read transcripts file
     transcript_dict = {}
-    with open(template['transcript']['output_file'], 'r') as input_fh:
+    with open(template_dict['transcript']['output_file'], 'r') as input_fh:
         reader = csv.DictReader(input_fh)
         for row_dict in reader:
-            transcript_dict[row_dict['accession']] = row_dict
-    log.debug('Loaded %d transcripts', len(transcript_dict))
+            transcript_dict[row_dict['transcript_accession']] = row_dict
+    log.info('Loaded %d transcripts', len(transcript_dict))
 
-    # Read the coding exons and index conveniently on transcript_accession, transcript_order
+    # Read the coding exons into a handy dict of dicts
+    # To access exon_dict for transcript_order within transcript 
+    # transcript_accession use
+    # exon_dict = cds_dict[transcript_accesson][transcript_order]
     cds_dict = collections.OrderedDict()
-    with open(template['CDS']['output_file'], 'r') as input_fh:
+    with open(template_dict['CDS']['output_file'], 'r') as input_fh:
         reader = csv.DictReader(input_fh)
         for exon_dict in reader:
             transcript_accession = exon_dict['transcript_accession']
@@ -265,12 +292,14 @@ def db_transform(template, db_dict, require_ccds, namespace):
                 cds_dict[transcript_accession] = collections.OrderedDict()
             cds_dict[transcript_accession][transcript_order] = exon_dict
         input_fh.close()
-    log.debug('Loaded %d CDS', len(cds_dict))
+    log.info('Loaded %d CDS', len(cds_dict))
 
     # Read stop codons if present
+    # This is a dict of codon_dicts keyed on tuple 
+    # (transcript_accession, transcript_order)
     stop_dict = {}
-    if 'stop_codon' in template:
-        with open(template['stop_codon']['output_file'], 'r') as input_fh:
+    if 'stop_codon' in template_dict:
+        with open(template_dict['stop_codon']['output_file'], 'r') as input_fh:
             reader = csv.DictReader(input_fh)
             for codon_dict in reader:
                 transcript_accession = codon_dict['transcript_accession']
@@ -280,7 +309,80 @@ def db_transform(template, db_dict, require_ccds, namespace):
                     raise Exception('Multiple stop features for same codon %s', str(tup))
                 stop_dict[tup] = codon_dict
             input_fh.close()
-        log.debug('Loaded %d stop codons', len(stop_dict))
+        log.info('Loaded %d stop codons', len(stop_dict))
+
+    log.info('===== Cross feature checks =====')
+                                 
+    # Is there a gene_accession for every transcript?
+    zap = set(gene_dict.keys())
+    for transcript_accession, transcript in transcript_dict.items():
+        if not 'gene_accession' in transcript:
+            raise Exception('No gene accession provided for %s', transcript_accession)
+        zap.discard(transcript['gene_accession'])
+        gene = gene_dict[transcript['gene_accession']]
+        # Are the transcript coordinates within the gene coordinates?
+        check_contained('Transcript', transcript, transcript_accession,
+                        'gene', gene, gene['gene_accession'])
+    # Did we find a transcript for all genes?
+    if len(zap):
+        raise Exception('Gene %s has no associated transcript' % (zap.pop()))
+        
+    # Did we read a transcript feature for every coding exon?
+    for transcript_accession, cds in cds_dict.items():
+        for transcript_order, exon_dict in cds.items():
+            if not transcript_accession in transcript_dict:
+                 raise Exception('No transcript feature read for CDS exon %s:%s' %
+                                 (transcript_accession, transcript_order))
+            # Are the exon coordinates within the transcript coordinates?
+            transcript = transcript_dict[transcript_accession]
+            if not 'transcript_order' in exon_dict:
+                raise Exception('No exon number in %s\n' % (str(exon_dict)))
+            check_contained('CDS exon', exon_dict, exon_dict['transcript_order'],
+                            'transcript', transcript, transcript_accession)
+
+    # Did we find a transcript and CDS for every stop codon?
+    for (transcript_accession, transcript_order), codon_dict in stop_dict.items():
+        if not transcript_accession in cds_dict:
+            raise Exception('Failed to find transcript for stop codon %s:%d' % 
+                            (transcript_accession, codon_dict['transcript_order']))
+            # Are the stop codon coordinates within the transcript coordinates?
+            transcript = transcript_dict[transcript_accession]
+            check_contained('Stop codon', codon_dict, codon_dict['transcript_order'],
+                            'transcript', transcript, transcript_accession)
+
+    # Did we read a transcript feature for every exon?
+    with open(template_dict['exon']['output_file'], 'r') as input_fh:
+        # Exon data not read in since no real need and can be large
+        reader = csv.DictReader(input_fh)
+        for exon_dict in reader:
+            transcript_accession = exon_dict['transcript_accession']
+            if not transcript_accession in transcript_dict:
+                 raise Exception('No transcript feature read for exon %s:%s' %
+                                 (transcript_accession, transcript_order))
+            # Are the exon coordinates within the transcript coordinates?
+            transcript = transcript_dict[transcript_accession]
+            check_contained('Exon', exon_dict, exon_dict['transcript_order'],
+                            'transcript', transcript, transcript_accession)
+
+    # Are the coding exons in transcript_order in the sequence
+    # and non-overlapping?
+    for transcript_accession, cds in cds_dict.items():
+        prev_dict = None
+        # Order on sequence; cds_keys are ints
+        order = cds.keys()
+        if int(transcript_dict[transcript_accession]['strand']) == -1:
+            order = sorted(order, reverse=True)
+        for transcript_order in order:
+            exon_dict = cds[transcript_order]
+            if not prev_dict:
+                prev_dict = exon_dict
+                continue
+            if int(exon_dict['start']) <= int(prev_dict['end']):
+                raise Exception('CDS exon %s %s at\n   %s\noverlaps previous exon %s %s at \n   %s' %
+                                (transcript_accession, exon_dict['transcript_order'], str(exon_dict),
+                                 transcript_accession, prev_dict['transcript_order'], str(prev_dict)))
+
+    log.info('===== Applying transformations =====')
 
     # Integrate the stop codons
     # Important to do this before calculating phases
@@ -323,6 +425,9 @@ def db_transform(template, db_dict, require_ccds, namespace):
             exon_dict['phase_start'] = (- int(exon_dict['frame'])) % 3
             exon_dict['phase_end'] = (exon_dict['phase_start'] + exon_length) % 3
 
+    if translate:
+        pass
+                       
     # Calculate cds and cdsregions data
     #
     # The cds and cdsregion tables in the database represent
@@ -433,7 +538,7 @@ def db_transform(template, db_dict, require_ccds, namespace):
         if not hash_val in cds_to_transcript:
             # No, add it
             cds_to_transcript[hash_val] = {
-                'accession': "eq_{0}".format(len(cds_to_transcript)), 
+                'cds_accession': "eq_{0}".format(len(cds_to_transcript)), 
                 'namespace': dict_to_hash['namespace'],
                 'name': dict_to_hash['name'],
                 'gene_accession': transcript_dict[transcript_accession]['gene_accession'],
@@ -446,7 +551,7 @@ def db_transform(template, db_dict, require_ccds, namespace):
         # Cross reference cds/transcript
         cds_to_transcript[hash_val]['transcript_accession_list'].append(transcript_accession)
         transcript_to_cds[transcript_accession] = hash_val
-    log.debug('Found %d coding sequences with total %d exons', 
+    log.info('Found %d coding sequences with total %d exons', 
               len(cds_to_transcript), count)
 
     # Calculate cds coordinates as the envelope of it's constituent exons
@@ -492,13 +597,13 @@ def db_transform(template, db_dict, require_ccds, namespace):
     for transcript_accession, transcript in transcript_dict.items():
         transcript['cds_accession'] = None
         if transcript_accession in transcript_to_cds:
-            transcript['cds_accession'] = cds_to_transcript[transcript_to_cds[transcript_accession]]['accession']
+            transcript['cds_accession'] = cds_to_transcript[transcript_to_cds[transcript_accession]]['cds_accession']
 
-    # =============== OUTPUT ================== 
+    log.info('===== Output =====')
 
     # Produce the gene file
     fieldnames = [
-        'accession',
+        'gene_accession',
         'name',
         'namespace',
         'biotype',
@@ -516,11 +621,11 @@ def db_transform(template, db_dict, require_ccds, namespace):
             writer.writerow(row_dict)
             count += 1
         output_fh.close()
-        log.debug('Wrote %d regions to %s', count, db_dict['gene'])
+        log.info('Wrote %d regions to %s', count, db_dict['gene'])
 
     # Produce the cds file
     fieldnames = [
-        'accession',
+        'cds_accession',
         'name',
         'namespace',
         'gene_accession',
@@ -540,7 +645,7 @@ def db_transform(template, db_dict, require_ccds, namespace):
             writer.writerow(row_dict)
             count += 1
         output_fh.close()
-        log.debug('Wrote %d regions to %s', count, db_dict['cds'])
+        log.info('Wrote %d regions to %s', count, db_dict['cds'])
 
     # Produce the cdsregions file
     fieldnames = [
@@ -559,16 +664,16 @@ def db_transform(template, db_dict, require_ccds, namespace):
         count = 0
         for hash_val, obj in cds_to_transcript.items():
             for coord_dict in obj['exon_coords']:
-                coord_dict['cds_accession'] = obj['accession']
+                coord_dict['cds_accession'] = obj['cds_accession']
                 row_dict = {key: coord_dict[key] for key in fieldnames}
                 writer.writerow(row_dict)
                 count += 1
         output_fh.close()
-        log.debug('Wrote %d exons to %s', count, db_dict['cdsregion'])
+        log.info('Wrote %d exons to %s', count, db_dict['cdsregion'])
 
     # Produce the transcripts file
     fieldnames = [
-        'accession',
+        'transcript_accession',
         'gene_accession',
         'ccds_accession',
         'name',
@@ -590,18 +695,17 @@ def db_transform(template, db_dict, require_ccds, namespace):
             writer.writerow(row_dict)
             count += 1
         output_fh.close()
-        log.debug('Wrote %d regions to %s', count, db_dict['transcript'])
+        log.info('Wrote %d regions to %s', count, db_dict['transcript'])
 
-    # Read and write exon file - quite large so modify on the 
-    # fly rather than holding in memory.
-    # Merge the data for coding exons. Include the coding start and
-    # end as separate columns, to support a possible future
-    # coding_track_id in the exon table.
+    # Exon data are not read in since no real need and can be large.
+    # No transformations, but extra columns are included when the
+    # exon has a coding region.
     # REGRESSION NOTE
-    # In the current database, if the transcript has a cds entry,
-    # the exon phase start/ends are OVERWRITTEN with the coding
-    # coordinate start/end. The column 'phase_db_overwrite'
-    # indicates to the loader when to do this.
+    # In the current database, if the transcript has a corresponding
+    # entry in the cds table, the exon phase start/ends are OVERWRITTEN 
+    # with the coding coordinate start/end. The column 
+    # 'phase_db_overwrite' in the output file indicates to the loader 
+    # when to do this.
     fieldnames = [
         'transcript_accession',
         'transcript_order',
@@ -619,7 +723,7 @@ def db_transform(template, db_dict, require_ccds, namespace):
         writer = csv.DictWriter(output_fh, fieldnames=fieldnames)
         writer.writeheader()
         count = 0
-        with open(template['exon']['output_file'], 'r') as input_fh:
+        with open(template_dict['exon']['output_file'], 'r') as input_fh:
             reader = csv.DictReader(input_fh)
             for exon_dict in reader:
                 transcript_accession = exon_dict['transcript_accession']
@@ -660,30 +764,41 @@ def db_transform(template, db_dict, require_ccds, namespace):
                 writer.writerow(exon_dict)
                 count += 1
         output_fh.close()
-        log.debug('Wrote %d exons to %s', count, db_dict['exon'])
+        log.info('Wrote %d exons to %s', count, db_dict['exon'])
 
+
+def check_contained(feature_one, coords_one, accession_one,
+                    feature_two, coords_two, accession_two):
+    # Raise exception if coords_one are not within coords two
+    if (coords_one['chromosome_name'] != coords_two['chromosome_name'] or
+        coords_one['strand'] != coords_two['strand'] or
+        int(coords_one['start']) < int(coords_two['start']) or
+        int(coords_one['end']) > int(coords_two['end'])):
+        raise Exception('%s %s at\n   %s\nis not contained within the coordinates of %s %s at\n   %s' % 
+                        (feature_one, accession_one, str(coords_one),
+                         feature_two, accession_two, str(coords_two)))
 
 def _transform_coordinates(feature_dict, seqname_dict, line_for_log):
 
+    # Modifications in place, input overwritten
+
     # Sequence name must be in the config
     if not feature_dict['seqname'] in seqname_dict:
-        raise Exception('Invalid seqname does not match config\n%s',
-                        line_for_log)
+        raise Exception('Invalid seqname, not in config\n%s' % (line_for_log))
     feature_dict['seqname'] = seqname_dict[feature_dict['seqname']]
 
     # Strand must be '+' or '-'
     if not feature_dict['strand'] in ('+', '-'):
-        raise Exception('Invalid strand does not match config\n%s',
-                        line_for_log)
+        raise Exception('Invalid strand\n%s' % (line_for_log))
     feature_dict['strand'] = 1 if feature_dict['strand'] == '+' else -1
 
     # Validate coordinates
-    # Input is one-based [,] per GTF specification
-    if int(feature_dict['start']) > int(feature_dict['end']):
-        log.warn('Invalid coordinates\n%s',
-                 line_for_log)
-    # CSV output is zero-based [,)
-    # Recast to str for consistency
+    # Checks uses pre-transformed, one-based [,] per GTF specification
+    if int(feature_dict['end']) < int(feature_dict['start']):
+        raise Exception('Inverted coordinates\n%s' % (line_for_log))
+    if int(feature_dict['start']) < 1:
+        raise Exception('Start coordinate out of bounds\n%s' % (line_for_log))
+    # Transform to zero-based [,) and recast to str for consistency
     feature_dict['start'] = str(int(feature_dict['start']) - 1)
 
 
