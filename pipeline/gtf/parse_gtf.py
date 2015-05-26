@@ -318,11 +318,15 @@ def db_transform(template_dict, db_dict, require_ccds, translate, namespace):
     for transcript_accession, transcript in transcript_dict.items():
         if not 'gene_accession' in transcript:
             raise Exception('No gene accession provided for %s', transcript_accession)
-        zap.discard(transcript['gene_accession'])
-        gene = gene_dict[transcript['gene_accession']]
+        gene_accession = transcript['gene_accession'] 
+        if not gene_accession in gene_dict:
+            raise Exception('No gene feature was loaded for gene %s referred to in transcript %s', 
+                            gene_accession, transcript_accession)
+        zap.discard(gene_accession)
+        gene = gene_dict[gene_accession]
         # Are the transcript coordinates within the gene coordinates?
         check_contained('Transcript', transcript, transcript_accession,
-                        'gene', gene, gene['gene_accession'])
+                        'gene', gene, gene_accession)
     # Did we find a transcript for all genes?
     if len(zap):
         raise Exception('Gene %s has no associated transcript' % (zap.pop()))

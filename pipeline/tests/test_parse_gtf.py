@@ -43,6 +43,7 @@ def test_main():
         '--require-ccds': True,
         '--template': template_file,
         '--transform': True,
+        '--translate': False,
         '--output': work_dir,
         '--log': 'INFO',
     })
