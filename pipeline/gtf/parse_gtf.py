@@ -25,7 +25,7 @@ import collections
 import json
 import yaml
 
-from bio.sequtils import get_reverse_complement
+#from bio.sequtils import get_reverse_complement
 from operator import itemgetter
 from docopt import docopt
 from hashlib import md5

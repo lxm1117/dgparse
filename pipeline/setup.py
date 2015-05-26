@@ -9,7 +9,7 @@ config = {
     'description': 'Parsers',
     'author': 'mc',
     'install_requires': [
-        'bio',
+#        'bio',
         'hashlib',
     ],
     'packages': ['gtf'],
