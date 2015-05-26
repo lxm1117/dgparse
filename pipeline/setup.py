@@ -8,14 +8,17 @@ config = {
     'version': '0.1',
     'description': 'Parsers',
     'author': 'mc',
-    'install_requires': ['nose'],
+    'install_requires': [
+        'bio',
+        'hashlib',
+    ],
     'packages': ['gtf'],
     'scripts': [],
     'name': 'gtf',
     'package_data': {'tests': ['data/*'],},
     'entry_points': {
         'console_scripts': [
-            'parse-gtf = gtf.parse_gtf:main',
+            'parse-gtf=gtf.parse_gtf:main',
             ],
         },
 }
