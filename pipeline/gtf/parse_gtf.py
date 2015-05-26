@@ -106,7 +106,7 @@ def main(args=None):
     # Flags
     transform = int(args['--transform'])
     require_ccds = int(args['--require-ccds'])
-    translate = int(args['--require-ccds'])
+    translate = int(args['--translate'])
     namespace = args['--namespace']
 
     # Read template
@@ -426,7 +426,7 @@ def db_transform(template_dict, db_dict, require_ccds, translate, namespace):
             exon_dict['phase_end'] = (exon_dict['phase_start'] + exon_length) % 3
 
     if translate:
-        raise Exception('Not implemented')
+        raise Exception('Translate option not yet implemented')
         pass
                        
     # Calculate cds and cdsregions data
