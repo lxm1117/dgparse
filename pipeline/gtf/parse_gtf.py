@@ -11,7 +11,7 @@ Options:
   --namespace=<str>         Default name space
   --transform=<bool>        Prepare files ready for database loading [default: 1]
   --require-ccds=<bool>     Output cds/cdsregions only if there is a CCDS identifier [default: 1]
-  --translate=<bool>        Attempt to construct and translate the coding sequence [default: 1]
+  --translate=<bool>        Attempt to construct and translate the coding sequence [default: 0]
   --log=<loglevel>          Logging level [default: ERROR]
   --output=<dir>            Output/working directory [default: ./]
 
@@ -426,6 +426,7 @@ def db_transform(template_dict, db_dict, require_ccds, translate, namespace):
             exon_dict['phase_end'] = (exon_dict['phase_start'] + exon_length) % 3
 
     if translate:
+        raise Exception('Not implemented')
         pass
                        
     # Calculate cds and cdsregions data
