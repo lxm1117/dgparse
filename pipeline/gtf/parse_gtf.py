@@ -393,7 +393,7 @@ def db_transform(template_dict, db_dict, require_ccds, translate, namespace):
             if not prev_dict:
                 prev_dict = exon_dict
                 continue
-            if int(exon_dict['start']) <= int(prev_dict['end']):
+            if int(exon_dict['start']) < int(prev_dict['end']):
                 print transcript
                 raise Exception('Overlapping CDS exons %s %s at\n   %s\nand %s %s at\n   %s\n' %
                                 (transcript_accession, exon_dict['transcript_order'], str(exon_dict),
