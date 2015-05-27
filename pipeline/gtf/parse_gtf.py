@@ -373,7 +373,7 @@ def db_transform(template_dict, db_dict, require_ccds, translate, namespace):
     for transcript_accession, cds in cds_dict.items():
         prev_dict = None
         # Order on sequence; cds_keys are ints
-        order = cds.keys()
+        order = sorted(cds.keys())
         if int(transcript_dict[transcript_accession]['strand']) == -1:
             order = sorted(order, reverse=True)
         for transcript_order in order:
@@ -382,6 +382,9 @@ def db_transform(template_dict, db_dict, require_ccds, translate, namespace):
                 prev_dict = exon_dict
                 continue
             if int(exon_dict['start']) <= int(prev_dict['end']):
+                print exon_dict
+                print order
+                print transcript
                 raise Exception('CDS exon %s %s at\n   %s\noverlaps previous exon %s %s at \n   %s' %
                                 (transcript_accession, exon_dict['transcript_order'], str(exon_dict),
                                  transcript_accession, prev_dict['transcript_order'], str(prev_dict)))
