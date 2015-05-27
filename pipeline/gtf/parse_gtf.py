@@ -368,11 +368,10 @@ def db_transform(template_dict, db_dict, require_ccds, translate, namespace):
             check_contained('Exon', exon_dict, exon_dict['transcript_order'],
                             'transcript', transcript, transcript_accession)
 
-    # Are the coding exons in transcript_order in the sequence
-    # and non-overlapping?
+    # Are the coding exons in transcript_order in the sequence?
     for transcript_accession, cds in cds_dict.items():
         prev_dict = None
-        # Order on sequence; cds_keys are ints
+        # Order by exon_number
         order = sorted(cds.keys())
         if int(transcript_dict[transcript_accession]['strand']) == -1:
             order = sorted(order, reverse=True)
@@ -381,11 +380,9 @@ def db_transform(template_dict, db_dict, require_ccds, translate, namespace):
             if not prev_dict:
                 prev_dict = exon_dict
                 continue
-            if int(exon_dict['start']) <= int(prev_dict['end']):
-                print exon_dict
-                print order
+            if int(exon_dict['start']) <= int(prev_dict['start']):
                 print transcript
-                raise Exception('CDS exon %s %s at\n   %s\noverlaps previous exon %s %s at \n   %s' %
+                raise Exception('Transcript/sequence order inconsistency for CDS exons %s %s at\n   %s\nand %s %s at\n   %s\n' %
                                 (transcript_accession, exon_dict['transcript_order'], str(exon_dict),
                                  transcript_accession, prev_dict['transcript_order'], str(prev_dict)))
 
