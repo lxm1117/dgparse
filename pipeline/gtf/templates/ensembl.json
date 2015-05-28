@@ -65,7 +65,7 @@
         },
 	"unique": [
 	    "transcript_accession",
-	    "transcript_order",
+	    "transcript_order"
 	]
     },
     "stop_codon": {
