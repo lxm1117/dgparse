@@ -176,8 +176,8 @@ def raw_parse(work_dir, template_dict, seqname_dict, input_file):
                 continue
             parts = line.rstrip().split('\t')
             if len(parts) != len(gtf_fields):
-                raise Exception("Unexpected number of columns (%d not %d) in gtf file line %s\n", 
-                                % (len(parts), len(gtf_fields), line))
+                raise Exception("Unexpected number of columns (%d not %d) in gtf file line %s\n" % 
+                                (len(parts), len(gtf_fields), line))
             feature_dict = dict(zip(gtf_fields, parts))
             # Handle specified features for configured chromosomes/sequences, ignore otherwise
             if (feature_dict['feature'] in interest and
