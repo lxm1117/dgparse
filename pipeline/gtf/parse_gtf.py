@@ -544,15 +544,16 @@ def db_transform(template_dict, db_dict, require_ccds, translate, namespace):
             dict_to_hash['namespace'] = 'ccds'
             dict_to_hash['is_consensus'] = 1
         # Else attach a protein id
-        if not dict_to_hash['name'] and transcript_accession in cds_dict:
-            cds = cds_dict[transcript_accession]
-            for transcript_order, exon_dict in cds.items():
-                if 'protein_id' in exon_dict:
-                    dict_to_hash['name'] = exon_dict['protein_id']
-                    break
-        # Else create an id
+        # No - looks awful in front end
+        # if not dict_to_hash['name'] and transcript_accession in cds_dict:
+        #    cds = cds_dict[transcript_accession]
+        #    for transcript_order, exon_dict in cds.items():
+        #        if 'protein_id' in exon_dict:
+        #            dict_to_hash['name'] = exon_dict['protein_id']
+        #            break
+        # Else write 'Coding'
         if not dict_to_hash['name']:
-            dict_to_hash['name'] = 'CDS%06d' % (len(cds_to_transcript) + 1)
+            dict_to_hash['name'] = 'Coding'
         hash_val = _hash_dict(dict_to_hash)
         # Have we got it?
         if not hash_val in cds_to_transcript:
