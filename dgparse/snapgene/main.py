@@ -26,7 +26,8 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-""" Parse SnapGene .dna files. See Docmentation folder for details on the file
+"""
+Parse SnapGene .dna files. See Documentation folder for details on the file
 format.
 """
 
@@ -37,6 +38,9 @@ from __future__ import unicode_literals
 
 import struct
 import json
+
+from ..exc import ParserException, FormatException
+
 # from xml.dom import minidom
 
 # setting up a dictionary of parsing functions for each segment
@@ -59,16 +63,21 @@ SEGMENT_PARSERS = {
     3: noop,
     5: parse_primers,
     6: parse_notes,
+    7: noop,  # Private segment
     8: parse_properties,
-    0: parse_dna,
     9: parse_descriptor,
     10: parse_features,
+    11: noop,  # private used for history or indexing
     13: noop,
+    14: noop,  # private segment
+    16: noop,  # Alignable sequence segment
+    17: noop,  # Alignable sequences segment
+    18: noop,  # Sequence Trace Segment
 }
 
 SEGMENT_NAME = {
-    0: 'DNA',
-    5: 'primers',
+    0: 'DNA',  # Information about the DNA sequence itself
+    5: 'primers',  # associated primers
     8: 'other_properties',
     6: 'notes',
     9: 'descriptor',
@@ -76,7 +85,7 @@ SEGMENT_NAME = {
 }
 
 
-def snapgene(f):
+def parse_snapgene(f):
     """
     snapgene class holds parsed Snapgene data.
 
@@ -90,10 +99,10 @@ def snapgene(f):
 
     More information about the data attribute:
     data has six keys (str): DNA, descriptor, features, primers,
-        other_properties and notes, which correspond to the six file segments
-        described in the SnapGene specifications. Each of these values is a
-        further dictionary of key:value pairs, except for features, which is a
-        list of feature dictionaries.
+    other_properties and notes, which correspond to the six file segments
+    described in the SnapGene specifications. Each of these values is a
+    dictionary of key:value pairs, except for features, which is a
+    list of feature dictionaries.
 
     Keys for the DNA dictionary:
     "sequence": DNA sequence
@@ -133,18 +142,6 @@ def snapgene(f):
     "readingFrame": reading frame (int)
     "Segment": sement information (dict). Keys: "color", "range", "type"
 
-
-
-    Example usage -- DNA sequence and properties:
-    mySnapgene = snapgene(myfile)
-    myDNASequence = mySnapgene.data["DNA"]["sequence"]
-    myDNATopology = mySnapgene.data["DNA"]["topology"]
-
-    Example usage -- SnapGene file type and version:
-    mySnapgene = snapgene(myfile)
-    myFileType = mySnapgene.data["descriptor"]["f_type"]
-    myFileVesrsion = mySnapgene.data["descriptor"]["import_version"]
-
     """
     container = {
         "DNA": None,
@@ -171,12 +168,12 @@ def snapgene(f):
             # key error following the wrong number of bytes in the previous
             # segment. It is possible that this still gives a valid key,
             # despite earlier error.
-            raise Exception("Badly formed segment or missing segment. Current segment: %s Previous Segment: %s" % (seg, lastSeg))
+            raise FormatException("Badly formed segment or missing segment. Current segment: %s Previous Segment: %s" % (seg, lastSeg))
 
         if seg in SEGMENT_NAME:
             if container[SEGMENT_NAME[seg]] is not None:
                 errMsg = "Duplicate segments. Current segment: %s Previous segment: %s" % (seg, lastSeg)
-                raise Exception(errMsg)
+                raise FormatException(errMsg)
             else:
                 container[SEGMENT_NAME[seg]] = parsed_data
         else:
@@ -216,7 +213,7 @@ def main():
     args = parser.parse_args()
 
     with open(args.SnapGeneFile, "r") as f:
-        mySnapgene = snapgene(f)
+        mySnapgene = parse_snapgene(f)
 
     print json.dumps(mySnapgene, sort_keys=True, indent=4,
                      separators=(',', ': '))
