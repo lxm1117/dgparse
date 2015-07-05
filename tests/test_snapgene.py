@@ -30,7 +30,7 @@ Describe your test, its assumptions, and expected results
 
 # importing required modules
 import pytest
-from dgparse.snapgene.main import snapgene
+from dgparse.snapgene.main import parse_snapgene
 
 # put some fixtures here
 
@@ -40,7 +40,7 @@ from dgparse.snapgene.main import snapgene
 @pytest.fixture(scope="module")
 def fulldata():
     with open("testdata/pDONR223 empty vector.dna", "rb") as f:
-        fulldata = snapgene(f)
+        fulldata = parse_snapgene(f)
     return fulldata
 
 # parameters of test datasets
@@ -72,7 +72,7 @@ class TestSnapgeneDNA(object):
     def testDNAMissing(self):
         with pytest.raises(Exception) as excinfo:
             with open("testdata/test_no0.dna", "rb") as f:
-                noDNA = snapgene(f)
+                noDNA = parse_snapgene(f)
         assert excinfo.value.message == "No DNA Sequence Provided!"
 
     def testDNAPresent(self, fulldata):
@@ -93,13 +93,13 @@ class TestSnapgeneDNA(object):
     def testTruncatedSequence(self):
         with pytest.raises(Exception) as excinfo:
             with open("testdata/truncated.dna", "rb") as f:
-                truncatedDNA = snapgene(f)
+                truncatedDNA = parse_snapgene(f)
         assert excinfo.value.message == "Badly formed segment or missing segment. Current segment: 29 Previous Segment: 0"
 
     def testDuplicateSequence(self):
         with pytest.raises(Exception) as excinfo:
             with open("testdata/duplicate.dna", "rb") as f:
-                truncatedDNA = snapgene(f)
+                truncatedDNA = parse_snapgene(f)
         assert excinfo.value.message == "Duplicate segments. Current segment: 0 Previous segment: 0"
 
 
@@ -117,7 +117,7 @@ class TestSnapgeneDescriptor(object):
     def testMissingDescriptor(self):
         with pytest.raises(Exception) as excinfo:
             with open("testdata/test_no9.dna", "rb") as f:
-                noDescriptor = snapgene(f)
+                noDescriptor = parse_snapgene(f)
         assert excinfo.value.message == "No snapgene Descriptor. Is this a snapgene .dna file?"
 
 
@@ -125,20 +125,20 @@ class TestOtherFeatures(object):
     """Test correct handling of missing non-essential segments"""
     def testFeaturesMissing(self):
         with open("testdata/test_no10.dna", "rb") as f:
-            noFeatures = snapgene(f)
+            noFeatures = parse_snapgene(f)
         assert noFeatures["features"] is None
 
     def testPrimersMissing(self):
         with open("testdata/test_no5.dna", "rb") as f:
-            noPrimers = snapgene(f)
+            noPrimers = parse_snapgene(f)
         assert noPrimers["primers"] is None
 
     def testOtherMissing(self):
         with open("testdata/test_no8.dna", "rb") as f:
-            noOther = snapgene(f)
+            noOther = parse_snapgene(f)
         assert noOther["other_properties"] is None
 
     def testNotesMissing(self):
         with open("testdata/test_no6.dna", "rb") as f:
-            noNotes = snapgene(f)
+            noNotes = parse_snapgene(f)
         assert noNotes["notes"] is None
