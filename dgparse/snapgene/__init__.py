@@ -1,5 +1,9 @@
 
 import hashlib
+import functools
+
+from dgparse import sequtils
+
 from .main import main, parse_snapgene
 from ..exc import ParserException
 
@@ -26,22 +30,24 @@ def extract_feature_category(snapfeat):
     }
 
 
-def extract_feature(annotation_data):
+def extract_feature(annotation_data, bases):
     """
     Extract the underlying feature
     :return:
     """
     name = annotation_data.pop('name')
     category = extract_feature_category(annotation_data)
-    if category['accession'] == 'source':
-        return  # No source features
     accession = category['name'] + '-' + name
+    pattern = {'bases': bases, 'sha1': hashlib.sha1(bases).hexdigest()}
+    description = annotation_data['Notes'].pop('note', None)
     return {
         'type_': 'dnafeature',
         'name': name,
         'category': category,
+        'description': description,
         'accession': accession,
-        'properties': annotation_data
+        'properties': annotation_data['Notes'],
+        'pattern': pattern,
     }
 
 def extract_coordinates(annotation_data):
@@ -54,22 +60,26 @@ def extract_coordinates(annotation_data):
     # may need to subtract one
     directionality = annotation_data.pop('directionality', 0)
     start = int(range[0])
-    end = int(range[0])
+    end = int(range[1])
     return start, end, STRAND[directionality]
 
-def extract_annotation(annotation_data):
+def extract_annotation(sequence, annotation_data):
     """
     Extract the list of annotated features in this sequence
     :return:
     """
     # TODO this object will also need properties to store formatting info
     start, end, strand = extract_coordinates(annotation_data)
+    bases = sequence['bases'][start:end]
+    if strand < 0:
+        bases = sequtils.get_reverse_complement(bases)
+    dnafeature = extract_feature(annotation_data, bases)
     return {
         'type_': 'dnamolecule_dnafeature',
         'start': start,
         'end': end,
         'strand': strand,
-        'dnafeature': extract_feature(annotation_data),
+        'dnafeature': dnafeature,
     }
 
 def extract_molecule(molecule):
@@ -79,11 +89,12 @@ def extract_molecule(molecule):
     :return:
     """
     is_circular = (molecule['DNA'].pop('topology') == 'circular')
-    annotations = map(extract_annotation, molecule.pop('features'))
+    sequence = extract_sequence(molecule)
+    extractor = functools.partial(extract_annotation, sequence)
+    annotations = map(extractor, molecule.pop('features'))
     description = molecule.pop('descriptor')
     properties = molecule.pop('notes')
     more_props = molecule.pop('other_properties')
-    sequence = extract_sequence(molecule)
     seq_props = molecule.pop('DNA')  # get the remaining items
     properties.update(more_props)
     properties.update(seq_props)
