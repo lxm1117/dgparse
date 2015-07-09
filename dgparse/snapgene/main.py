@@ -159,7 +159,7 @@ def parse_snapgene(f):
     while segment:
         if seg is not None:
             lastSeg = seg
-        seg, seg_len = struct.unpack('>BI', segment)
+        seg, seg_len = struct.unpack(b'>BI', segment)
         try:
             data = f.read(seg_len)
             parsed_data = decode(seg, data, SEGMENT_PARSERS)
