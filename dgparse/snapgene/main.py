@@ -163,6 +163,9 @@ def parse_snapgene(f):
         try:
             data = f.read(seg_len)
             parsed_data = decode(seg, data, SEGMENT_PARSERS)
+        except UnicodeEncodeError:
+            # intercept these
+            raise
         except:
             # this is not totally robust: the error is raised because of a
             # key error following the wrong number of bytes in the previous
