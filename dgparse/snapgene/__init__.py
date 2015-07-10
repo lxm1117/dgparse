@@ -37,7 +37,7 @@ def extract_feature(annotation_data, bases):
     """
     name = annotation_data.pop('name')
     category = extract_feature_category(annotation_data)
-    accession = category['name'] + '-' + name
+    accession = category['name'] + '/' + name.lower().replace(' ', '_')
     pattern = {'bases': bases, 'sha1': hashlib.sha1(bases).hexdigest()}
     description = annotation_data['Notes'].pop('note', None)
     return {
@@ -96,7 +96,8 @@ def extract_molecule(molecule):
     is_circular = (molecule['DNA'].pop('topology') == 'circular')
     sequence = extract_sequence(molecule)
     extractor = functools.partial(extract_annotation, sequence)
-    annotations = map(extractor, molecule.pop('features'))
+    feature_array = molecule.pop('features', [])
+    annotations = map(extractor, feature_array) if feature_array else []
     description = molecule.pop('descriptor')
     properties = molecule.pop('notes')
     more_props = molecule.pop('other_properties')
