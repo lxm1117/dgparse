@@ -88,7 +88,7 @@ def parse_notes(data):
 
                }
 
-    ref_level = {"title": str,
+    ref_level = {"title": unicode,
                  "pubMedID": int,
                  "journal": str,
                  "authors": str
@@ -141,8 +141,8 @@ def parse_primers(data):
 
     level_0 = {"recentID": str,
                "sequence": str,
-               "description": str,
-               "name": str,
+               "description": unicode,
+               "name": unicode,
                "minContinuousMatchLen": int,
                "minMeltingTemperature": int,
                "allowMismatch": int
@@ -183,7 +183,7 @@ def parse_primers(data):
 
 def parse_features(data):
     all_features = []
-    top_level = {"name": str,
+    top_level = {"name": unicode,  # Need to use unicode here for name
                  "swappedSegmentNumbering": bool,
                  "allowSegmentOverlaps": bool,
                  "directionality": int,
