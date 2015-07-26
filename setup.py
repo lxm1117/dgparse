@@ -8,6 +8,8 @@ setup(
     install_requires=[
         'pytest',
         'click',
+        'openpyxl',
+        'marshmallow',
     ],
     entry_points={
         'console_scripts': ['snapgene-json = dgparse.snapgene.main:main'],
