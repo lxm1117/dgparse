@@ -1,5 +1,5 @@
 """
-Unit tests for the excel parser.
+Unit tests for the delimited file (CSV) parser.
 """
 
 import os

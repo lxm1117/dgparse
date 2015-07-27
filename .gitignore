@@ -54,3 +54,5 @@ docs/_build/
 target/
 # Pycharm files
 .idea
+
+extracted_dnafeatures.xlsx
