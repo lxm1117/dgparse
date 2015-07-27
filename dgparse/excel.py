@@ -9,8 +9,15 @@ import openpyxl
 
 def row_to_dict(headers, constants, row_data):
     """Convert a row to a valid dictionary"""
-    record = {key: value for key, value in zip(headers, row_data)}
+    record = {}
     record.update(constants)
+    for key, value in zip(headers, row_data):
+        if key.value is None:
+            continue
+        if '.' in key.value:
+            key, child_attr = key.value.split('.')
+            value = {child_attr: value.value}
+        record[key] = value
     return record
 
 

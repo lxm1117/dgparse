@@ -18,8 +18,12 @@ is called that returns a dictionary (or optionally dictionary-like) data structu
 Ultimately this module should be automatically generated from the backend
 Schema.
 """
-from marshmallow import Schema, fields
+import hashlib
 
+from marshmallow import Schema, fields, pre_load, validates
+
+from dgparse import exc
+from dgparse.sequtils import NOT_UNAMBIG_DNA, NOT_DNA
 # Start with the primitives and simple elements then build up
 
 
@@ -37,9 +41,22 @@ class SequenceSchema(Schema):
     Sequence is a child attribute so the underlying implementation may be
     altered provided the same interface is supported.
     """
-    accession = fields.String()  # The Sha1 keep a consistent interface
+    accession = fields.String(required=True)
     alphabet = fields.String(default=b'ACGT')  # Must be in lexographic order
     bases = fields.String()  # really a property
+
+    @pre_load
+    def get_accession(self, data):
+        bases = data.get('bases')
+        data['accession'] = hashlib.sha1(bases).hexdigest()
+        return data
+
+    @validates('bases')
+    def validate_bases(self, obj):
+        hit = NOT_UNAMBIG_DNA.search(obj)
+        if hit:
+            msg = "Non-IUPAC Unambiguous DNA base found at {0}".format(hit.regs[0][0])
+            raise exc.IllegalCharacter(msg)
 
 
 class CoordinatesSchema(Schema):
@@ -54,6 +71,21 @@ class PatternSchema(SequenceSchema):
     A continuous regular pattern of bases used to define a feature
     """
     alphabet = fields.String(default=b'ACGNT')
+
+    @validates('bases')
+    def validate_bases(self, obj):
+        hit = NOT_DNA.search(obj)
+        if hit:
+            msg = "Non-IUPAC Ambiguous DNA bases found at {0}".format(hit.regs[0][0])
+            raise exc.IllegalCharacter(msg)
+
+
+class RepositorySchema(Schema):
+    """
+    Represents a collection of biological objects either in vitro, such as
+    an Inventory or in vivo such as a Genome
+    """
+    name = fields.String(required=True)
 
 
 class BaseRepositoryItemSchema(Schema):
@@ -91,7 +123,20 @@ class SequencingReadFile(BaseRepositoryFileSchema):
     A file representing the raw, experimental support for the existence of a
     biopolymer.
     """
-    molecule_accession = fields.String()  # pseudo fkey back to molecule
+    molecule_accession = fields.String(required=True)  # pseudo fkey back to molecule
+
+
+class BaseAnnotationSchema(BaseRepositoryItemSchema):
+    quality = fields.Float()  # How true is this annotation
+    # relationships
+    order = fields.Int(default=0)
+    length = fields.Int()
+    alignment = fields.String()
+    regions = fields.Nested('self', many=True, order=True)
+    # relationships
+    coordinates = fields.Nested(CoordinatesSchema)
+    # Properties
+    sequence = fields.Nested(SequenceSchema)
 
 
 class BaseMoleculeSchema(BaseRepositoryItemSchema):
@@ -105,17 +150,25 @@ class BaseMoleculeSchema(BaseRepositoryItemSchema):
     sequence_file_path = fields.String()  # if the sequence is not present
     location = fields.String()
     # properties
-    length = fields.Int()
+    length = fields.Integer(required=True)
     mol_weight = fields.Float()
     concentration = fields.Float()
     concentration_units = fields.String(default='ng/ul')
 
     # relationships
     sequence = fields.Nested(SequenceSchema)
-    annotations = fields.Nested(many=True)
+    annotations = fields.Nested(BaseAnnotationSchema, many=True)
     reads = fields.Nested(SequencingReadFile, many=True)
     source_file = fields.Nested(BaseRepositoryFileSchema)
     files = fields.Nested(BaseRepositoryFileSchema, many=True)
+
+    @pre_load
+    def get_length(self, data):
+        if 'length' in data and data['length'] > 0:
+            return data
+        sequence = data.get('sequence')
+        data['length'] = len(sequence['bases'])
+        return data
 
 
 class DnaMoleculeSchema(BaseMoleculeSchema):
@@ -168,7 +221,7 @@ class DnaOligoSchema(DnaMoleculeSchema):
     target = fields.String()
 
 
-class DnaPrimer(DnaOligoSchema):
+class DnaPrimerSchema(DnaOligoSchema):
     """
     A DNA Oligo that is used to prime a PCR reaction.
     """
@@ -182,19 +235,6 @@ class Chromosome(DnaMoleculeSchema):
     Represents a Chromosome
     """
     genome = fields.String()
-
-
-class BaseAnnotationSchema(BaseRepositoryItemSchema):
-    quality = fields.Float()  # How true is this annotation
-    # relationships
-    order = fields.Int(default=0)
-    length = fields.Int()
-    alignment = fields.String()
-    regions = fields.Nested('self', many=True, order=True)
-    # relationships
-    coordinates = fields.Nested(CoordinatesSchema)
-    # Properties
-    sequence = fields.Nested(SequenceSchema)
 
 
 class GeneSchema(BaseAnnotationSchema):
@@ -222,6 +262,18 @@ class NucleaseCutSiteSchema(BaseAnnotationSchema):
     """
 
 
+class PolypeptideSchema(BaseRepositoryItemSchema):
+    """
+    Represents a protein
+    """
+
+
+class NucleaseSchema(PolypeptideSchema):
+    """
+    A protein that cuts DNA
+    """
+
+
 class GuideRnaCutSchema(NucleaseCutSiteSchema):
     """
     Guide Cut Site Schema
@@ -246,28 +298,31 @@ class GuideRnaCutSchema(NucleaseCutSiteSchema):
 
 
 class BaseFeatureSchema(BaseRepositoryItemSchema):
-    pattern = fields.Nested(PatternSchema)
+    pattern = fields.Nested(PatternSchema, required=True)
+    length = fields.Integer(required=True)
+
+
+class DnaFeatureSchema(BaseFeatureSchema):
+    accession = fields.String(required=True)
+    pattern = fields.Nested(PatternSchema, required=True)
+
+    @pre_load
+    def make_accession(self, obj):
+        if 'accession' not in obj:
+            accession = '/'.join([obj['category'], obj['name']])
+            obj['accession'] = accession
+        return obj
+
+    @pre_load
+    def get_length(self, data):
+        pattern = data.get('pattern')
+        data['length'] = len(pattern['bases'])
+        return data
 
 
 class BaseDesignSchema(BaseRepositoryItemSchema):
     sequence = fields.Nested(SequenceSchema)
     annotations = fields.Nested(BaseAnnotationSchema, many=True)
-
-# RNA Objects
-
-
-# Protein Objects
-
-class PolypeptideSchema(BaseRepositoryItemSchema):
-    """
-    Represents a protein
-    """
-
-
-class NucleaseSchema(PolypeptideSchema):
-    """
-    A protein that cuts DNA
-    """
 
 
 class RnaGuidedNucleaseSchema(NucleaseSchema):
@@ -276,9 +331,3 @@ class RnaGuidedNucleaseSchema(NucleaseSchema):
     """
 
 
-class RepositorySchema(Schema):
-    """
-    Represents a collection of biological objects either in vitro, such as
-    an Inventory or in vivo such as a Genome
-    """
-    name = fields.String(required=True)
