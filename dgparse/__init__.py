@@ -7,14 +7,37 @@ from __future__ import division
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import logging
-import click
-import sys
+from . import schema
+from . import exc
+from . import delimited
+
+VALIDATORS = {
+    'oligo': schema.DnaOligoSchema(),
+    'primer': schema.DnaPrimerSchema(),
+    'plasmid': schema.DnaPlasmidSchema(),
+    'dnafeature': schema.DnaFeatureSchema(),
+}
+
+PARSERS = {
+    '.csv': delimited.parse
+}
 
 
-def main():
-    pass
-
-
-if __name__ == '__main__':
-    sys.exit(main())
+def validate(record):
+    """
+    Returns
+    :param type_:
+    :param record:
+    :return:
+    """
+    if 'ERROR' in record:
+        raise exc.FormatException(record['ERROR'])
+    type_ = record.get('type_')
+    try:
+        validator = VALIDATORS[type_]
+    except KeyError:
+        msg = "No record type defined for {0}".format(record)
+        raise exc.UndefinedRecordType(msg)
+    # IMPORTANT: load doesn't construct an object but MAPS it to the new schema
+    data, errors = validator.load(record)
+    return data, errors
