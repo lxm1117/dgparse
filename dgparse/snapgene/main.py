@@ -166,7 +166,7 @@ def parse_snapgene(f):
         except UnicodeEncodeError:
             # intercept these
             raise
-        except:
+        except Exception as exc:
             # this is not totally robust: the error is raised because of a
             # key error following the wrong number of bytes in the previous
             # segment. It is possible that this still gives a valid key,

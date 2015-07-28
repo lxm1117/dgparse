@@ -51,5 +51,3 @@ def test_csv_parse(record_buffer):
             assert 'pattern' in record
         elif record['type_'].lower() == 'plasmid':
             assert 'sequence' in record
-
-
