@@ -32,10 +32,3 @@ def test_excel_parse(record_buffer):
     assert len(records) > 0
 
 
-def test_write(out_book, records_to_write):
-    """
-    Test writing out set of records to a sheet
-    :return:
-    """
-    for record in records_to_write:
-        excel.write(out_book, record)
