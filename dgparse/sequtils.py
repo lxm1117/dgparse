@@ -99,11 +99,6 @@ NOT_DNA = re.compile(r"[^ACGTacgtMmRrWwSsYyKkVvHhDdBbXxNn]")
 unicode_table = dict((ord(key), value) for key, value in
                 DNA_COMPLEMENTS.iteritems())
 
-GC_CONTENT_REGEX = re.compile(r'[GC]')
-CONSECUTIVE_BASE_REGEX = re.compile(r'(.)\1{3,}')
-SAPI_FWD = 'GCTCTTC'
-SAPI_REV = 'GAAGAGC'
-
 
 def get_complement(seq_str):
     """get the complement of this sequence G --> C"""
@@ -130,32 +125,5 @@ def get_reverse_complement(seq_str):
 
 rev_comp = get_reverse_complement
 comp = get_complement
-
-
-def compare_sequences(seq1, seq2):
-    """Ideally an implementation of the SW or NW alignment algorithms"""
-    #print len(seq1), len(seq2)
-    for i, base in enumerate(seq1):
-        if i > len(seq2):
-            break
-        if i<len(seq2):
-            print i, base, seq2[i]
-            if seq2[i] != base:
-                print "FAIL at", i, base, seq2[i]
-
-
-def get_translation(seq, table):
-    seq = seq.upper()
-    n = len(seq)
-    amino_acids = [table[seq[i:i+3]]for i in range(0, n-n%3, 3)]
-    return "".join(amino_acids)
-
-
-def find_mismatches(left, right):
-    mismatches = []
-    for i, c in enumerate(left):
-        if right[i] != c:
-            mismatches.append(i)
-    return mismatches
 
 
