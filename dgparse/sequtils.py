@@ -115,7 +115,7 @@ def get_complement(seq_str):
         return seq_str.translate(unicode_table)
 
 
-def reverse(seq_str):
+def get_reverse(seq_str):
     """reverse the sequence, read 3' to 5'  """
     output = seq_str[::-1]
     return output
@@ -131,6 +131,7 @@ def get_reverse_complement(seq_str):
 rev_comp = get_reverse_complement
 comp = get_complement
 
+
 def compare_sequences(seq1, seq2):
     """Ideally an implementation of the SW or NW alignment algorithms"""
     #print len(seq1), len(seq2)
@@ -143,23 +144,7 @@ def compare_sequences(seq1, seq2):
                 print "FAIL at", i, base, seq2[i]
 
 
-class Keeper(object):
-    def __init__(self, keep):
-        self.keep = set(map(ord, keep))
-
-    def __getitem__(self, n):
-        if n not in self.keep:
-            return None
-        return unichr(n)
-
-    def __call__(self, s):
-        return unicode(s).translate(self)
-
-
-makefilter = Keeper
-
-
-def translate(seq, table):
+def get_translation(seq, table):
     seq = seq.upper()
     n = len(seq)
     amino_acids = [table[seq[i:i+3]]for i in range(0, n-n%3, 3)]
