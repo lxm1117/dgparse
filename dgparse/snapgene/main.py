@@ -171,7 +171,9 @@ def parse_snapgene(f):
             # key error following the wrong number of bytes in the previous
             # segment. It is possible that this still gives a valid key,
             # despite earlier error.
-            raise FormatException("Badly formed segment or missing segment. Current segment: %s Previous Segment: %s" % (seg, lastSeg))
+            fmt_str = ('Badly formed segment or missing segment. '
+                       'Current segment: {0} Previous Segment: {1}')
+            raise FormatException(fmt_str.format(seg, lastSeg))
 
         if seg in SEGMENT_NAME:
             if container[SEGMENT_NAME[seg]] is not None:
