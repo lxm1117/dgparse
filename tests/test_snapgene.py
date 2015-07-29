@@ -29,6 +29,7 @@ Describe your test, its assumptions, and expected results
 """
 
 # importing required modules
+import os
 import pytest
 from dgparse.snapgene.main import parse_snapgene
 
@@ -39,15 +40,20 @@ from dgparse.snapgene.main import parse_snapgene
 
 @pytest.fixture(scope="module")
 def fulldata():
-    with open("testdata/pDONR223 empty vector.dna", "rb") as f:
+    path = os.path.join(os.path.dirname(__file__), "testdata/pDONR223 empty vector.dna")
+    with open(path, "rb") as f:
         fulldata = parse_snapgene(f)
     return fulldata
 
 # parameters of test datasets
 len_DNA = 5005
 
-with open("testdata/sequence.txt", "r") as seq:
-    fullSequence = seq.read()
+
+@pytest.fixture(scope="module")
+def full_sequence():
+    path = os.path.join(os.path.dirname(__file__), "testdata/sequence.txt")
+    with open(path, "r") as seq:
+        return seq.read()
 
 
 # put some tests here
@@ -71,7 +77,8 @@ class TestSnapgeneDNA(object):
 
     def testDNAMissing(self):
         with pytest.raises(Exception) as excinfo:
-            with open("testdata/test_no0.dna", "rb") as f:
+            path = os.path.join(os.path.dirname(__file__), "testdata/test_no0.dna")
+            with open(path, "rb") as f:
                 noDNA = parse_snapgene(f)
         assert excinfo.value.message == "No DNA Sequence Provided!"
 
@@ -81,8 +88,8 @@ class TestSnapgeneDNA(object):
     def testParsedDNALength(self, fulldata):
         assert len(fulldata["DNA"]["sequence"]) == len_DNA
 
-    def testParsedDNASequence(self, fulldata):
-        assert fulldata["DNA"]["sequence"] == fullSequence
+    def testParsedDNASequence(self, fulldata, full_sequence):
+        assert fulldata["DNA"]["sequence"] == full_sequence
 
     def testMethylation(self, fulldata):
         assert (fulldata["DNA"]["Dam"] is True) and (fulldata["DNA"]["Dcm"] is True) and (fulldata["DNA"]["EcoK1"] is True)
@@ -92,13 +99,15 @@ class TestSnapgeneDNA(object):
 
     def testTruncatedSequence(self):
         with pytest.raises(Exception) as excinfo:
-            with open("testdata/truncated.dna", "rb") as f:
+            path = os.path.join(os.path.dirname(__file__), "testdata/truncated.dna")
+            with open(path, "rb") as f:
                 truncatedDNA = parse_snapgene(f)
         assert excinfo.value.message == "Badly formed segment or missing segment. Current segment: 29 Previous Segment: 0"
 
     def testDuplicateSequence(self):
         with pytest.raises(Exception) as excinfo:
-            with open("testdata/duplicate.dna", "rb") as f:
+            path = os.path.join(os.path.dirname(__file__), "testdata/duplicate.dna")
+            with open(path, "rb") as f:
                 truncatedDNA = parse_snapgene(f)
         assert excinfo.value.message == "Duplicate segments. Current segment: 0 Previous segment: 0"
 
@@ -116,7 +125,8 @@ class TestSnapgeneDescriptor(object):
 
     def testMissingDescriptor(self):
         with pytest.raises(Exception) as excinfo:
-            with open("testdata/test_no9.dna", "rb") as f:
+            path = os.path.join(os.path.dirname(__file__), "testdata/test_no9.dna")
+            with open(path, "rb") as f:
                 noDescriptor = parse_snapgene(f)
         assert excinfo.value.message == "No snapgene Descriptor. Is this a snapgene .dna file?"
 
@@ -124,21 +134,25 @@ class TestSnapgeneDescriptor(object):
 class TestOtherFeatures(object):
     """Test correct handling of missing non-essential segments"""
     def testFeaturesMissing(self):
-        with open("testdata/test_no10.dna", "rb") as f:
+        path = os.path.join(os.path.dirname(__file__), "testdata/test_no10.dna")
+        with open(path, "rb") as f:
             noFeatures = parse_snapgene(f)
         assert noFeatures["features"] is None
 
     def testPrimersMissing(self):
-        with open("testdata/test_no5.dna", "rb") as f:
+        path = os.path.join(os.path.dirname(__file__), "testdata/test_no5.dna")
+        with open(path, "rb") as f:
             noPrimers = parse_snapgene(f)
         assert noPrimers["primers"] is None
 
     def testOtherMissing(self):
-        with open("testdata/test_no8.dna", "rb") as f:
+        path = os.path.join(os.path.dirname(__file__), "testdata/test_no8.dna")
+        with open(path, "rb") as f:
             noOther = parse_snapgene(f)
         assert noOther["other_properties"] is None
 
     def testNotesMissing(self):
-        with open("testdata/test_no6.dna", "rb") as f:
+        path = os.path.join(os.path.dirname(__file__), "testdata/test_no6.dna")
+        with open(path, "rb") as f:
             noNotes = parse_snapgene(f)
         assert noNotes["notes"] is None
