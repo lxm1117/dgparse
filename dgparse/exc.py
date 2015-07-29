@@ -31,3 +31,9 @@ class IllegalCharacter(ValidationError):
     """
     Raise when a disallowed character is present
     """
+
+
+class NoSequence(ValidationError):
+    """
+    Raise when an empty sequence or pattern is provided
+    """

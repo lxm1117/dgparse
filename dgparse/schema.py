@@ -20,7 +20,7 @@ Schema.
 """
 import hashlib
 
-from marshmallow import Schema, fields, pre_load, validates
+from marshmallow import Schema, fields, pre_load, validates, pre_dump
 
 from dgparse import exc
 from dgparse.sequtils import NOT_UNAMBIG_DNA, NOT_DNA
@@ -42,7 +42,7 @@ class SequenceSchema(Schema):
     altered provided the same interface is supported.
     """
     accession = fields.String(required=True)
-    alphabet = fields.String(default=b'ACGT')  # Must be in lexographic order
+    alphabet = fields.String(default=b'ACGT', load_only=True)  # Must be in lexographic order
     bases = fields.String()  # really a property
 
     @pre_load
@@ -53,6 +53,8 @@ class SequenceSchema(Schema):
 
     @validates('bases')
     def validate_bases(self, obj):
+        if len(obj) < 12:   # no null sequences
+            raise exc.NoSequence("No sequence provided.")
         hit = NOT_UNAMBIG_DNA.search(obj)
         if hit:
             msg = "Non-IUPAC Unambiguous DNA base found at {0}".format(hit.regs[0][0])
@@ -70,10 +72,12 @@ class PatternSchema(SequenceSchema):
     """
     A continuous regular pattern of bases used to define a feature
     """
-    alphabet = fields.String(default=b'ACGNT')
+    alphabet = fields.String(default=b'ACGNT', load_only=True)
 
     @validates('bases')
     def validate_bases(self, obj):
+        if len(obj) < 4:
+            raise exc.NoSequence("No Pattern Provided")
         hit = NOT_DNA.search(obj)
         if hit:
             msg = "Non-IUPAC Ambiguous DNA bases found at {0}".format(hit.regs[0][0])
@@ -146,14 +150,14 @@ class BaseMoleculeSchema(BaseRepositoryItemSchema):
     # attributes
     is_available = fields.Bool(default=True)
     is_circular = fields.Bool(default=False)  # *topology*
-    strand_count = fields.Int(default=1)
-    sequence_file_path = fields.String()  # if the sequence is not present
+    strand_count = fields.Int(default=1, load_only=True)
+    sequence_file_path = fields.String(load_only=True)  # if the sequence is not present
     location = fields.String()
     # properties
     length = fields.Integer(required=True)
     mol_weight = fields.Float()
     concentration = fields.Float()
-    concentration_units = fields.String(default='ng/ul')
+    concentration_units = fields.String(default='ng/ul', load_only=True)
 
     # relationships
     sequence = fields.Nested(SequenceSchema)
@@ -171,14 +175,33 @@ class BaseMoleculeSchema(BaseRepositoryItemSchema):
         return data
 
 
+class DnaMoleculeFileSchema(Schema):
+
+    name = fields.String(default="DirectUpload")
+    contents = fields.String(default='EMPTY')
+    format_ = fields.String(default='fasta')
+    parsed = fields.Boolean(default=False)
+
+
 class DnaMoleculeSchema(BaseMoleculeSchema):
-
+    type_ = fields.Constant('dnamolecule')
     date_stored = fields.DateTime()  # When the banking took place
-    quality = fields.Float()
-    sequencing_notes = fields.String()
-    strand_count = fields.Integer(default=2)
-    notebook_page = fields.String(default="Undefined")
+    quality = fields.Float(load_only=True)
+    sequencing_notes = fields.String(load_only=True)
+    strand_count = fields.Integer(default=2, load_only=True)
+    notebook_page = fields.String(default="Undefined", load_only=True)
+    dnamoleculefile = fields.Nested(DnaMoleculeFileSchema, dump_only=True)
 
+    @pre_dump
+    def make_fake_file(self, data):
+        if 'dnamoleculefile' or 'dnamoleculefile_id' not in data:
+            fake_file = {
+                'name': "DirectUpload",
+                'contents': 'EMPTY',
+                'parsed': True
+            }
+            data['dnamoleculefile'] = fake_file
+        return data
 
 class DnaPlasmidSchema(DnaMoleculeSchema):
     """
@@ -302,17 +325,24 @@ class BaseFeatureSchema(BaseRepositoryItemSchema):
     length = fields.Integer(required=True)
 
 
+class DnaFeatureCategorySchema(Schema):
+    name = fields.String()
+
+
 class DnaFeatureSchema(BaseFeatureSchema):
+    type_ = fields.Constant("dnafeature")
     accession = fields.String(required=True)
     pattern = fields.Nested(PatternSchema, required=True)
+    category = fields.Nested(DnaFeatureCategorySchema)
 
     @pre_load
     def make_accession(self, obj):
         if 'accession' not in obj:
-            accession = '/'.join([obj['category'], obj['name']])
+            accession = '/'.join([obj['category']['name'], obj['name']])
             obj['accession'] = accession
         return obj
 
+    @pre_dump
     @pre_load
     def get_length(self, data):
         pattern = data.get('pattern')

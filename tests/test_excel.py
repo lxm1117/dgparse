@@ -4,8 +4,10 @@ Unit tests for the excel parser.
 
 import os
 import pytest
+import xlsxwriter
 
 from dgparse import excel
+
 
 @pytest.fixture(params=[
     '../data/excel/oligos.xlsx',
@@ -30,3 +32,10 @@ def test_excel_parse(record_buffer):
     assert len(records) > 0
 
 
+def test_write(out_book, records_to_write):
+    """
+    Test writing out set of records to a sheet
+    :return:
+    """
+    for record in records_to_write:
+        excel.write(out_book, record)

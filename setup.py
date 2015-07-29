@@ -9,6 +9,7 @@ setup(
         'pytest',
         'click',
         'openpyxl',
+        'xlsxwriter',
         'marshmallow',
     ],
     entry_points={

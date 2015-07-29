@@ -10,16 +10,20 @@ from __future__ import unicode_literals
 from . import schema
 from . import exc
 from . import delimited
+from . import snapgene
+from . import excel
 
 VALIDATORS = {
     'oligo': schema.DnaOligoSchema(),
     'primer': schema.DnaPrimerSchema(),
     'plasmid': schema.DnaPlasmidSchema(),
     'dnafeature': schema.DnaFeatureSchema(),
+    'dnamolecule': schema.DnaMoleculeSchema(),
 }
 
 PARSERS = {
-    '.csv': delimited.parse
+    '.csv': delimited.parse,
+    '.dna': snapgene.parse
 }
 
 

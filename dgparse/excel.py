@@ -3,8 +3,13 @@
 """
 Centralized Parser for models coming from Microsoft Excel Spreadsheets
 """
+
 from functools import partial
+import logging
+
 import openpyxl
+
+log = logging.getLogger(__file__)
 
 
 def row_to_dict(headers, constants, row_data):
