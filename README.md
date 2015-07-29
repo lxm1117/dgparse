@@ -6,7 +6,7 @@ So many file formats, so little time
 ```bash
 $ git clone https://github.com/deskgen/dgparse
 $ cd dgparse
-$ sudo python setup.py
+$ sudo python setup.py develop
 ```
 
 ## Purpose and Design
