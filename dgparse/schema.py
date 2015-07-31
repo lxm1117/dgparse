@@ -47,7 +47,7 @@ class SequenceSchema(Schema):
 
     @pre_load
     def get_accession(self, data):
-        bases = data.get('bases')
+        bases = data.get('bases').replace('\n', '')
         data['accession'] = hashlib.sha1(bases).hexdigest()
         return data
 
