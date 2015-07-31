@@ -2,6 +2,12 @@ Desktop Genetics Parsing Library
 ================================
 
 So many file formats, so little time
+## Installation
+```bash
+$ git clone https://github.com/deskgen/dgparse
+$ cd dgparse
+$ sudo python setup.py develop
+```
 
 ## Purpose and Design
 The dgparse Python library contains several utility functions for transforming

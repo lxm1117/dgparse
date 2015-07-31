@@ -1,4 +1,12 @@
+"""
+Handle the various segments of the SnapGene File
+"""
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import unicode_literals
+
 import struct
+
 import xml.etree.ElementTree as ET
 
 noop = lambda x: x
@@ -55,7 +63,7 @@ def parse_descriptor(data):
     descriptor_properties["name"] = data[:8]
 
     # file type: DNA or something else
-    f_type, export_version, import_version = struct.unpack('>HHH', data[8:])
+    f_type, export_version, import_version = struct.unpack(b'>HHH', data[8:])
     if f_type == 1:
         descriptor_properties["f_type"] = "DNA"
     else:
@@ -80,7 +88,7 @@ def parse_notes(data):
 
                }
 
-    ref_level = {"title": str,
+    ref_level = {"title": unicode,
                  "pubMedID": int,
                  "journal": str,
                  "authors": str
@@ -133,8 +141,8 @@ def parse_primers(data):
 
     level_0 = {"recentID": str,
                "sequence": str,
-               "description": str,
-               "name": str,
+               "description": unicode,
+               "name": unicode,
                "minContinuousMatchLen": int,
                "minMeltingTemperature": int,
                "allowMismatch": int
@@ -175,7 +183,7 @@ def parse_primers(data):
 
 def parse_features(data):
     all_features = []
-    top_level = {"name": str,
+    top_level = {"name": unicode,  # Need to use unicode here for name
                  "swappedSegmentNumbering": bool,
                  "allowSegmentOverlaps": bool,
                  "directionality": int,
