@@ -184,7 +184,7 @@ class DnaMoleculeFileSchema(Schema):
 
 
 class DnaMoleculeSchema(BaseMoleculeSchema):
-    type_ = fields.Constant('dnamolecule')
+    __class__ = fields.Constant('dnamolecule', dump_only=True)
     date_stored = fields.DateTime()  # When the banking took place
     quality = fields.Float(load_only=True)
     sequencing_notes = fields.String(load_only=True)
@@ -330,7 +330,7 @@ class DnaFeatureCategorySchema(Schema):
 
 
 class DnaFeatureSchema(BaseFeatureSchema):
-    type_ = fields.Constant("dnafeature")
+    __class__ = fields.Constant("dnafeature", dump_only=True)
     accession = fields.String(required=True)
     pattern = fields.Nested(PatternSchema, required=True)
     category = fields.Nested(DnaFeatureCategorySchema)
@@ -355,9 +355,31 @@ class BaseDesignSchema(BaseRepositoryItemSchema):
     annotations = fields.Nested(BaseAnnotationSchema, many=True)
 
 
+class DnaDesignSchema(BaseDesignSchema):
+    sequence = fields.String(required=True)
+
+    @pre_load
+    def adapt_sequence(self, data):
+        # TODO remove this after updating AC schema
+        sequence = data.pop('sequence')
+        if isinstance(sequence, dict):
+            try:
+                data['sequence'] = sequence.get('bases')
+            except KeyError:
+                data['sequence'] = sequence
+        else:
+            data['sequence'] = sequence
+        return data
+
+
 class RnaGuidedNucleaseSchema(NucleaseSchema):
     """
     The actual RNA Guided Nuclease itself.
     """
 
+
+class SegmentSchema(Schema):
+    """
+    A segment of a cloning solution
+    """
 

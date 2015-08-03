@@ -23,6 +23,7 @@ def test_validate_plasmids():
     for number, record in enumerate(record_array):
         data, errors = dgparse.validate(record)
         assert data['length'] > 0
+        assert errors == {}
         assert len(data['sequence']['bases']) == int(data['length'])
 
 

@@ -19,6 +19,7 @@ VALIDATORS = {
     'plasmid': schema.DnaPlasmidSchema(),
     'dnafeature': schema.DnaFeatureSchema(),
     'dnamolecule': schema.DnaMoleculeSchema(),
+    'dnadesign': schema.DnaDesignSchema(),
 }
 
 PARSERS = {
@@ -36,7 +37,7 @@ def validate(record):
     """
     if 'ERROR' in record:
         raise exc.FormatException(record['ERROR'])
-    type_ = record.get('type_')
+    type_ = record.get('__class__')
     try:
         validator = VALIDATORS[type_]
     except KeyError:

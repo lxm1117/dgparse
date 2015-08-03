@@ -10,7 +10,7 @@ import functools
 
 
 def clean_record(basename, record):
-    result = {'type_': basename.split('.')[0]}
+    result = {'__class__': basename.split('.')[0]}
     for key, value in record.iteritems():
         value = value.replace(' ', '')
         if key is '':

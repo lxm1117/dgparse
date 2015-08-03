@@ -47,7 +47,7 @@ def test_csv_parse(record_buffer):
     records = []
     records.extend(delimited.parse(record_buffer))  # path or buffer?
     for record in records:
-        if record['type_'].lower() == 'dnafeature':
+        if record['__class__'].lower() == 'dnafeature':
             assert 'pattern' in record
-        elif record['type_'].lower() == 'plasmid':
+        elif record['__class__'].lower() == 'plasmid':
             assert 'sequence' in record

@@ -103,7 +103,7 @@ def extract_molecule(molecule):
     properties.update(more_props)
     properties.update(seq_props)
     return {
-        'type_': 'dnamolecule',
+        '__class__': 'dnamolecule',
         'sequence': sequence,
         'length': len(sequence['bases']),
         'dnafeatures': annotations,  # using updated naming

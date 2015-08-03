@@ -34,6 +34,6 @@ def parse(open_file):
     for sheet in sheets:
         wsheet = wbook[sheet]  # name of sheet is always the record type
         headers = wsheet.rows[0]  # always the attributes
-        record_factory = partial(row_to_dict, headers, {'type_': sheet})
+        record_factory = partial(row_to_dict, headers, {'__class__': sheet})
         records.extend(map(record_factory, wsheet.rows[1:]))
     return records
