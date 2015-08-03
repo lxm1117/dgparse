@@ -37,7 +37,7 @@ def validate(record):
     """
     if 'ERROR' in record:
         raise exc.FormatException(record['ERROR'])
-    type_ = record.get('__class__')
+    type_ = record.pop('__class__')
     try:
         validator = VALIDATORS[type_]
     except KeyError:

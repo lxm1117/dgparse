@@ -184,7 +184,6 @@ class DnaMoleculeFileSchema(Schema):
 
 
 class DnaMoleculeSchema(BaseMoleculeSchema):
-    __class__ = fields.Constant('dnamolecule', dump_only=True)
     date_stored = fields.DateTime()  # When the banking took place
     quality = fields.Float(load_only=True)
     sequencing_notes = fields.String(load_only=True)
@@ -330,7 +329,6 @@ class DnaFeatureCategorySchema(Schema):
 
 
 class DnaFeatureSchema(BaseFeatureSchema):
-    __class__ = fields.Constant("dnafeature", dump_only=True)
     accession = fields.String(required=True)
     pattern = fields.Nested(PatternSchema, required=True)
     category = fields.Nested(DnaFeatureCategorySchema)
