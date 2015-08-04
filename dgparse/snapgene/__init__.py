@@ -5,11 +5,9 @@ import functools
 from dgparse import sequtils
 
 from .main import main, parse_snapgene
-from ..exc import ParserException
 
 # Explicitly define our mapping
 STRAND = [0, 1, -1, 0]
-
 
 
 def extract_sequence(snap_data):
@@ -20,6 +18,7 @@ def extract_sequence(snap_data):
     bases = snap_data['DNA'].pop('sequence').upper()  # normalize case
     sha1 = hashlib.sha1(bases).hexdigest()
     return {'bases': bases, 'sha1': sha1, 'type_': "dnamoleculesequence"}
+
 
 def extract_feature_category(snapfeat):
     feature_type = snapfeat.pop('type')
@@ -50,6 +49,7 @@ def extract_feature(annotation_data, bases):
         'pattern': pattern,
     }
 
+
 def extract_coordinates(annotation_data):
     """
     Split range and return coordinates
@@ -67,6 +67,7 @@ def extract_coordinates(annotation_data):
         start = int(range[0])
         end = int(range[1]) + 1
     return start, end, strand
+
 
 def extract_annotation(sequence, annotation_data):
     """
@@ -86,6 +87,7 @@ def extract_annotation(sequence, annotation_data):
         'strand': strand,
         'dnafeature': dnafeature,
     }
+
 
 def extract_molecule(molecule):
     """
