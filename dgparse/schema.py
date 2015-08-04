@@ -202,6 +202,7 @@ class DnaMoleculeSchema(BaseMoleculeSchema):
             data['dnamoleculefile'] = fake_file
         return data
 
+
 class DnaPlasmidSchema(DnaMoleculeSchema):
     """
     A banked plasmid in an Inventory.
