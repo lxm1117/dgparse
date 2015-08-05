@@ -60,12 +60,8 @@ def extract_coordinates(annotation_data):
     # may need to subtract one
     directionality = annotation_data.pop('directionality', 0)
     strand = STRAND[directionality]
-    if strand >= 0:
-        start = int(range[0]) - 1  # snap gene correction
-        end = int(range[1])
-    else:
-        start = int(range[0])
-        end = int(range[1]) + 1
+    start = int(range[0]) - 1  # snap gene correction
+    end = int(range[1])
     return start, end, strand
 
 
