@@ -90,7 +90,7 @@ ambiguous_codes = {'W': ['A', 'T'],
 DNA_BYTES = {"A": b"0", "C": b"1", "G": b"2", "T": b"3"}
 
 DNA_CHAR = set("ACGT")
-
+AMBIG_CHAR = set("ACGTacgtMmRrWwSsYyKkVvHhDdBbXxNn")
 NOT_UNAMBIG_DNA = re.compile(r"[^ACGTacgt]") #anything that's not ACGT
 
 #Anything that is not

@@ -12,6 +12,8 @@ from . import exc
 from . import delimited
 from . import snapgene
 from . import excel
+from . import genbank
+from . import fasta
 
 VALIDATORS = {
     'oligo': schema.DnaOligoSchema(),
@@ -24,7 +26,13 @@ VALIDATORS = {
 
 PARSERS = {
     '.csv': delimited.parse,
-    '.dna': snapgene.parse
+    '.dna': snapgene.parse,
+    '.xlsx': excel.parse,
+    '.gb': genbank.parse,
+    '.gbk': genbank.parse,
+    '.genbank': genbank.parse,
+    '.fa': fasta.parse,
+    '.fasta': fasta.parse,
 }
 
 

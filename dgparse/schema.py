@@ -19,11 +19,11 @@ Ultimately this module should be automatically generated from the backend
 Schema.
 """
 import hashlib
-
+import re
 from marshmallow import Schema, fields, pre_load, validates, pre_dump
 
 from dgparse import exc
-from dgparse.sequtils import NOT_UNAMBIG_DNA, NOT_DNA
+from dgparse.sequtils import NOT_UNAMBIG_DNA, NOT_DNA, AMBIG_CHAR
 # Start with the primitives and simple elements then build up
 
 
@@ -47,9 +47,13 @@ class SequenceSchema(Schema):
 
     @pre_load
     def get_accession(self, data):
-        bases = data.get('bases').replace('\n', '')
-        data['accession'] = hashlib.sha1(bases).hexdigest()
-        return data
+        try:
+            bases = data.get('bases').replace('\n', '')
+            data['accession'] = hashlib.sha1(bases).hexdigest()
+        except AttributeError:
+            pass  # let the validator catch this
+        finally:
+            return data
 
     @validates('bases')
     def validate_bases(self, obj):
@@ -105,8 +109,32 @@ class BaseRepositoryItemSchema(Schema):
     name = fields.String(required=True)
     repository = fields.Nested(RepositorySchema)  # defines accession namespace
     description = fields.String()
-    notes = fields.String()
     properties = fields.Raw()  # General Key Value Store
+
+    @pre_load
+    def make_properties(self, data):
+        """Grab out extra data and stuff it into the properties dictionary or
+        it will be lost"""
+        properties = data.get('properties', {})
+        for key, val in data.iteritems():
+            if val is None:
+                continue # skip blank fields
+            if val is "":
+                continue
+            if key in self.fields:
+                continue  # we'll grab it properly later
+            if key not in properties:  #don't over-write
+                properties[key] = val
+        data['properties'] = properties
+        return data
+
+    @pre_dump
+    def move_to_properties(self, obj):
+        """Move unsupported attributes to the properties dictionary"""
+        for key in self.fields.iterkeys():
+            field_obj = self.fields[key]
+            if field_obj.load_only:  # convention for things we don't serialize
+                obj['properties'][key] = obj.get(key)
 
 
 # The Physical Things
@@ -156,11 +184,11 @@ class BaseMoleculeSchema(BaseRepositoryItemSchema):
     # properties
     length = fields.Integer(required=True)
     mol_weight = fields.Float()
-    concentration = fields.Float()
+    concentration = fields.Float(load_from='conc_um')
     concentration_units = fields.String(default='ng/ul', load_only=True)
 
     # relationships
-    sequence = fields.Nested(SequenceSchema)
+    sequence = fields.Nested(SequenceSchema, required=True)
     annotations = fields.Nested(BaseAnnotationSchema, many=True)
     reads = fields.Nested(SequencingReadFile, many=True)
     source_file = fields.Nested(BaseRepositoryFileSchema)
@@ -170,8 +198,14 @@ class BaseMoleculeSchema(BaseRepositoryItemSchema):
     def get_length(self, data):
         if 'length' in data and data['length'] > 0:
             return data
-        sequence = data.get('sequence')
-        data['length'] = len(sequence['bases'])
+        try:
+            sequence = data['sequence']
+            data['length'] = len(sequence['bases'])
+        except TypeError:
+            data['length'] = None
+        except KeyError:
+            # raise exc.NoSequence("No Sequence Provided")
+            data['length'] = None
         return data
 
 
@@ -232,16 +266,44 @@ class DnaOligoSchema(DnaMoleculeSchema):
     A linear, single-stranded piece of DNA
     """
     #accession must start with o
-    is_circular = fields.Boolean(False)
-    strand_count = fields.Integer(default=1)
-    concentration_units = fields.String(default=u'uM')
-    t_melt_method = fields.String(default='Primer3')
-    works = fields.Boolean()
-    notebook_xref = fields.String()
-    sequence = fields.Nested(SequenceSchema)
+    accession = fields.String(load_from="name")
+    is_circular = fields.Boolean(False, load_only=True)  # for now
+    strand_count = fields.Integer(default=1, load_only=True)
+    concentration_units = fields.String(default=u'uM', load_only=True)
+    t_melt = fields.Float(load_only=True)
+    t_melt_method = fields.String(default='Nearest Neighbor', load_only=True)
+    works = fields.Boolean(load_only=True)
+    notebook_xref = fields.String(load_only=True)
+    sequence = fields.Nested(SequenceSchema, required=True)
     modifications = fields.Nested(SequenceModSchema, many=True)
-    delta_g = fields.Float()
+    delta_g = fields.Float(allow_none=True, load_only=True)
     target = fields.String()
+
+    @pre_load
+    def extract_modifications(self, data):
+        clean_bases = []
+        modifications = []
+        if not data['sequence']['bases']:
+           return data  # let the validator handle it
+        for i, base in enumerate(data['sequence']['bases']):
+            if base not in AMBIG_CHAR:
+                modifications.append({'position': i, 'symbol': base})
+            else:
+                clean_bases.append(base)
+        data['sequence']['bases'] = ''.join(clean_bases)
+        data['modifications'] = modifications
+        return data
+
+    @pre_load
+    def parse_concentration(self, data):
+        conc_string = data.pop('concentration', None)
+        if conc_string:
+            pattern = r'(\d+)\s?(\w+)'
+            match = re.search(pattern, conc_string)
+            if match:
+                data['concentration'] = match.group(1)
+                data['concentration_units'] = match.group(2)
+        return data
 
 
 class DnaPrimerSchema(DnaOligoSchema):
@@ -249,8 +311,8 @@ class DnaPrimerSchema(DnaOligoSchema):
     A DNA Oligo that is used to prime a PCR reaction.
     """
     # accession must start with "m"
-    homology_sequence = fields.String()
-    priming_sequence = fields.String()
+    homology_sequence = fields.String(load_only=True)
+    priming_sequence = fields.String(load_only=True)
 
 
 class Chromosome(DnaMoleculeSchema):

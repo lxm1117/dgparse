@@ -31,4 +31,3 @@ def test_excel_parse(record_buffer):
     records.extend(excel.parse(record_buffer))  # path or buffer?
     assert len(records) > 0
 
-

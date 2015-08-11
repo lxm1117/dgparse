@@ -16,12 +16,18 @@ def row_to_dict(headers, constants, row_data):
     """Convert a row to a valid dictionary"""
     record = {}
     record.update(constants)
+    if row_data is None:  # handle dead rows
+        return
     for key, value in zip(headers, row_data):
         if key.value is None:
             continue
-        if '.' in key.value:
-            key, child_attr = key.value.split('.')
-            value = {child_attr: value.value}
+        if hasattr(key, 'value'):
+            key = key.value
+        if hasattr(value, 'value'):
+            value = value.value
+        if '.' in key:
+            key, child_attr = key.split('.')
+            value = {child_attr: value}
         record[key] = value
     return record
 
@@ -34,6 +40,7 @@ def parse(open_file):
     for sheet in sheets:
         wsheet = wbook[sheet]  # name of sheet is always the record type
         headers = wsheet.rows[0]  # always the attributes
-        record_factory = partial(row_to_dict, headers, {'__class__': sheet})
-        records.extend(map(record_factory, wsheet.rows[1:]))
+        record_factory = partial(row_to_dict, headers, {})  # no constants yet
+        records.extend(filter(None, map(record_factory, wsheet.rows[1:])))
+
     return records
