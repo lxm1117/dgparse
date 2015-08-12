@@ -7,6 +7,9 @@ from __future__ import division
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import os
+import logging
+
 from . import schema
 from . import exc
 from . import delimited
@@ -35,6 +38,8 @@ PARSERS = {
     '.fasta': fasta.parse,
 }
 
+log = logging.getLogger(__file__)
+
 
 def validate(record):
     """
@@ -54,3 +59,22 @@ def validate(record):
     # IMPORTANT: load doesn't construct an object but MAPS it to the new schema
     data, errors = validator.load(record)
     return data, errors
+
+
+def load_iter(record_type, record_files):
+    """Load a file and return a single array of records"""
+    record_schema = VALIDATORS[record_type]
+    for record_path in record_files:
+        path, format = os.path.splitext(record_path)
+        parser = PARSERS[format]
+        with open(record_path, 'r') as record_file:
+            try:
+                raw_records = parser(record_file)
+                if isinstance(raw_records, dict):
+                    yield record_schema.load(raw_records)
+                else:
+                    for item in raw_records:
+                        yield record_schema.load(item)
+            except exc.ParserException as exception:
+                log.error(exception)
+                raise exception
