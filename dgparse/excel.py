@@ -23,11 +23,16 @@ def row_to_dict(headers, constants, row_data):
             continue
         if hasattr(key, 'value'):
             key = key.value
-        if hasattr(value, 'value'):
+        if hasattr(value, 'value') and value.value is not None:
             value = value.value
+        else:
+            continue
         if '.' in key:
-            key, child_attr = key.split('.')
-            value = {child_attr: value}
+            parent_key, child_key = key.split('.')
+            if parent_key in record:
+                record[parent_key].update({child_key: value})
+            else:
+                record[parent_key] = {child_key: value}
         record[key] = value
     return record
 

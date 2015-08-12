@@ -19,6 +19,7 @@ Ultimately this module should be automatically generated from the backend
 Schema.
 """
 import hashlib
+import json
 import re
 from marshmallow import Schema, fields, pre_load, validates, pre_dump
 
@@ -41,16 +42,18 @@ class SequenceSchema(Schema):
     Sequence is a child attribute so the underlying implementation may be
     altered provided the same interface is supported.
     """
-    accession = fields.String(required=True)
+    accession = fields.String(load_only=True)
     alphabet = fields.String(default=b'ACGT', load_only=True)  # Must be in lexographic order
     bases = fields.String()  # really a property
 
     @pre_load
     def get_accession(self, data):
         try:
-            bases = data.get('bases').replace('\n', '')
+            bases = data.get('bases').replace('\n', '').upper()
             data['accession'] = hashlib.sha1(bases).hexdigest()
+            data['bases'] = bases
         except AttributeError:
+            import ipdb;ipdb.set_trace()
             pass  # let the validator catch this
         finally:
             return data
@@ -116,6 +119,12 @@ class BaseRepositoryItemSchema(Schema):
         """Grab out extra data and stuff it into the properties dictionary or
         it will be lost"""
         properties = data.get('properties', {})
+        if isinstance(properties, basestring):
+            try:
+                properties = json.loads(properties)
+            except ValueError:
+                import ipdb;ipdb.set_trace()
+                return data
         for key, val in data.iteritems():
             if val is None:
                 continue # skip blank fields
@@ -131,10 +140,12 @@ class BaseRepositoryItemSchema(Schema):
     @pre_dump
     def move_to_properties(self, obj):
         """Move unsupported attributes to the properties dictionary"""
+        if isinstance(obj, list):
+            return
         for key in self.fields.iterkeys():
             field_obj = self.fields[key]
-            if field_obj.load_only:  # convention for things we don't serialize
-                obj['properties'][key] = obj.get(key)
+            if field_obj.load_only and key in obj:  # convention for things we don't serialize
+                obj['properties'][key] = obj.pop(key)
 
 
 # The Physical Things
@@ -176,8 +187,6 @@ class BaseMoleculeSchema(BaseRepositoryItemSchema):
     Represents the record of some sort of biologically important Molecule.
     """
     # attributes
-    is_available = fields.Bool(default=True)
-    is_circular = fields.Bool(default=False)  # *topology*
     strand_count = fields.Int(default=1, load_only=True)
     sequence_file_path = fields.String(load_only=True)  # if the sequence is not present
     location = fields.String()
@@ -191,8 +200,6 @@ class BaseMoleculeSchema(BaseRepositoryItemSchema):
     sequence = fields.Nested(SequenceSchema, required=True)
     annotations = fields.Nested(BaseAnnotationSchema, many=True)
     reads = fields.Nested(SequencingReadFile, many=True)
-    source_file = fields.Nested(BaseRepositoryFileSchema)
-    files = fields.Nested(BaseRepositoryFileSchema, many=True)
 
     @pre_load
     def get_length(self, data):
@@ -223,7 +230,19 @@ class DnaMoleculeSchema(BaseMoleculeSchema):
     sequencing_notes = fields.String(load_only=True)
     strand_count = fields.Integer(default=2, load_only=True)
     notebook_page = fields.String(default="Undefined", load_only=True)
+
+
+class DnaPlasmidSchema(DnaMoleculeSchema):
+    """
+    A banked plasmid in an Inventory.
+    """
+    is_available = fields.Bool(load_only=True)
+    is_circular = fields.Boolean(True)
+    integration_locus = fields.String()
+    carrier_strain = fields.String()
     dnamoleculefile = fields.Nested(DnaMoleculeFileSchema, dump_only=True)
+    source_file = fields.Nested(BaseRepositoryFileSchema)
+    files = fields.Nested(BaseRepositoryFileSchema, many=True)
 
     @pre_dump
     def make_fake_file(self, data):
@@ -235,15 +254,6 @@ class DnaMoleculeSchema(BaseMoleculeSchema):
             }
             data['dnamoleculefile'] = fake_file
         return data
-
-
-class DnaPlasmidSchema(DnaMoleculeSchema):
-    """
-    A banked plasmid in an Inventory.
-    """
-    is_circular = fields.Boolean(True)
-    integration_locus = fields.String()
-    carrier_strain = fields.String()
 
 
 class DnaConstruct(DnaMoleculeSchema):
@@ -266,7 +276,7 @@ class DnaOligoSchema(DnaMoleculeSchema):
     A linear, single-stranded piece of DNA
     """
     #accession must start with o
-    accession = fields.String(load_from="name")
+    external_identifier = fields.String(load_only=True)
     is_circular = fields.Boolean(False, load_only=True)  # for now
     strand_count = fields.Integer(default=1, load_only=True)
     concentration_units = fields.String(default=u'uM', load_only=True)
@@ -275,14 +285,16 @@ class DnaOligoSchema(DnaMoleculeSchema):
     works = fields.Boolean(load_only=True)
     notebook_xref = fields.String(load_only=True)
     sequence = fields.Nested(SequenceSchema, required=True)
-    modifications = fields.Nested(SequenceModSchema, many=True)
+    modifications = fields.Nested(SequenceModSchema, many=True, load_only=True)
     delta_g = fields.Float(allow_none=True, load_only=True)
-    target = fields.String()
+    target = fields.String(load_only=True)
 
     @pre_load
     def extract_modifications(self, data):
         clean_bases = []
         modifications = []
+        if 'sequence' not in data:
+            return data
         if not data['sequence']['bases']:
            return data  # let the validator handle it
         for i, base in enumerate(data['sequence']['bases']):
@@ -297,12 +309,36 @@ class DnaOligoSchema(DnaMoleculeSchema):
     @pre_load
     def parse_concentration(self, data):
         conc_string = data.pop('concentration', None)
-        if conc_string:
+        if conc_string is None:
+            conc_string = data.pop('conc_um', None)
+        if isinstance(conc_string, basestring):
             pattern = r'(\d+)\s?(\w+)'
             match = re.search(pattern, conc_string)
             if match:
                 data['concentration'] = match.group(1)
+                data['conc_um'] = match.group(1)
                 data['concentration_units'] = match.group(2)
+        return data
+
+    @pre_load
+    def clean_t_melt(self, data):
+        if 't_melt' in data:
+            t_melt = data.pop('t_melt')
+            if isinstance(t_melt, basestring):
+                value, units = t_melt.split(u'°')
+                data['t_melt'] = value
+            else:
+                data['t_melt'] = t_melt
+        return data
+
+    @pre_dump
+    def put_length(self, data):
+        if data['length'] < 1:
+            data['length'] = len(data['sequence']['bases'])
+        if 'concentration' in data:
+            data.pop('concentration')  # not supported
+        if 'concentration_units' in data:
+            data.pop('concentration_units')
         return data
 
 
@@ -393,6 +429,7 @@ class DnaFeatureCategorySchema(Schema):
 
 class DnaFeatureSchema(BaseFeatureSchema):
     accession = fields.String(required=True)
+    dnafeaturecategory_id = fields.Integer()
     pattern = fields.Nested(PatternSchema, required=True)
     category = fields.Nested(DnaFeatureCategorySchema)
 
@@ -406,8 +443,9 @@ class DnaFeatureSchema(BaseFeatureSchema):
     @pre_dump
     @pre_load
     def get_length(self, data):
-        pattern = data.get('pattern')
-        data['length'] = len(pattern['bases'])
+        if 'pattern' in data and 'bases' in data['pattern']:
+            pattern = data.get('pattern')
+            data['length'] = len(pattern['bases'])
         return data
 
 
