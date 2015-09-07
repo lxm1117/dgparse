@@ -1,4 +1,7 @@
-
+# encoding=utf-8
+"""
+Parse Snap Gene File Format and adapt to DTG Schema.
+"""
 import hashlib
 import functools
 
@@ -56,12 +59,12 @@ def extract_coordinates(annotation_data):
     :return:
     """
     # keep segment as it contains additional data
-    range = annotation_data['Segment']['range'].split('-')
+    range_ = annotation_data['Segment']['range'].split('-')
     # may need to subtract one
     directionality = annotation_data.pop('directionality', 0)
     strand = STRAND[directionality]
-    start = int(range[0]) - 1  # snap gene correction
-    end = int(range[1])
+    start = int(range_[0]) - 1  # snap gene correction
+    end = int(range_[1])
     return start, end, strand
 
 

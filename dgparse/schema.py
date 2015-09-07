@@ -209,7 +209,10 @@ class BaseMoleculeSchema(BaseRepositoryItemSchema):
 
     @pre_load
     def get_length(self, data):
-        """Compute the length of the molecule"""
+        """
+        Compute the length of the molecule
+        :data:
+        """
         if 'length' in data and data['length'] > 0:
             return data
         try:

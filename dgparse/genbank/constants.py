@@ -1,3 +1,7 @@
+# encoding=utf-8
+"""
+Genbank Schema Constants
+"""
 GENBANK_HEADERS = (
     # standard
     'LOCUS',
