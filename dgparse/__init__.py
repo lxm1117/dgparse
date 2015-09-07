@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This script does something ...
+Desktop Genetics Parsing and Valdiation Python Package
+This package contains parsers for a wide range of biology file formats
+and accompanying schema validators and serialization code to ensure
+compatibility with the current DeskGen genome editing platform domain model.
 """
 from __future__ import division
 from __future__ import absolute_import
@@ -38,7 +41,7 @@ PARSERS = {
     '.fasta': fasta.parse,
 }
 
-log = logging.getLogger(__file__)
+LOG = logging.getLogger(__file__)
 
 
 def validate(record):
@@ -65,8 +68,8 @@ def load_iter(record_type, record_files):
     """Load a file and return a single array of records"""
     record_schema = VALIDATORS[record_type]
     for record_path in record_files:
-        path, format = os.path.splitext(record_path)
-        parser = PARSERS[format]
+        format_ = os.path.splitext(record_path)[-1]
+        parser = PARSERS[format_]
         with open(record_path, 'r') as record_file:
             try:
                 raw_records = parser(record_file)
@@ -76,5 +79,5 @@ def load_iter(record_type, record_files):
                     for item in raw_records:
                         yield record_schema.load(item)
             except exc.ParserException as exception:
-                log.error(exception)
+                LOG.error(exception)
                 raise exception
