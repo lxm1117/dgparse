@@ -1,5 +1,9 @@
 sudo: false
 language: python
+python:
+    - "2.7"
+before_install:
+    -pip install pytest pytest-cov
 install:
     - pip install -r requirements.txt
     - pip install --pre -e .
