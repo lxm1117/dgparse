@@ -1,14 +1,12 @@
-
+# encoding=utf-8
 """
 A collection of functions for dealing with sequences. Generally designed
 to accept an input string and out either a modified output string or list of
 results.
-
-Imported from AutoClone
 """
-from __future__ import unicode_literals
+from __future__ import unicode_literals, division, absolute_import
 
-import itertools
+import hashlib
 import re
 import string
 
@@ -25,7 +23,8 @@ TRANSLATE = {
     'GTT': 'V', 'GTC': 'V', 'GTA': 'V', 'GTG': 'V', 'GCT': 'A',
     'GCC': 'A', 'GCA': 'A', 'GCG': 'A', 'GAT': 'D', 'GAC': 'D',
     'GAA': 'E', 'GAG': 'E', 'GGT': 'G', 'GGC': 'G', 'GGA': 'G',
-    'GGG': 'G', 'TAA': "*", 'TAG': "*", 'TGA': "*", }
+    'GGG': 'G', 'TAA': "*", 'TAG': "*", 'TGA': "*",
+}
 
 AA_SHORTNAME = {
     'G': 'Gly',
@@ -69,22 +68,23 @@ DNA_COMPLEMENTS = {
     "B": "V",
     "X": "X",
     "N": "N",
-    }
+}
 
 ASCII_DNA_COMP = {str(k): str(v) for k, v in DNA_COMPLEMENTS.iteritems()}
 
-ambiguous_codes = {'W': ['A', 'T'],
-                   'N': ['A', 'C', 'G', 'T'],
-                   'S': ['C', 'G'],
-                   'M': ['A', 'C'],
-                   'K': ['G', 'T'],
-                   'R': ['A', 'G'],
-                   'Y': ['C', 'T'],
-                   'B': ['C', 'G', 'T'],
-                   'D': ['A', 'G', 'T'],
-                   'H': ['A', 'C', 'T'],
-                   'V': ['A', 'C', 'G'],
-                   }
+AMBIGUOUS_CODES = {
+    'W': ['A', 'T'],
+    'N': ['A', 'C', 'G', 'T'],
+    'S': ['C', 'G'],
+    'M': ['A', 'C'],
+    'K': ['G', 'T'],
+    'R': ['A', 'G'],
+    'Y': ['C', 'T'],
+    'B': ['C', 'G', 'T'],
+    'D': ['A', 'G', 'T'],
+    'H': ['A', 'C', 'T'],
+    'V': ['A', 'C', 'G'],
+}
 
 
 DNA_BYTES = {"A": b"0", "C": b"1", "G": b"2", "T": b"3"}
@@ -96,7 +96,7 @@ NOT_UNAMBIG_DNA = re.compile(r"[^ACGTacgt]") #anything that's not ACGT
 #Anything that is not
 NOT_DNA = re.compile(r"[^ACGTacgtMmRrWwSsYyKkVvHhDdBbXxNn]")
 
-unicode_table = dict((ord(key), value) for key, value in
+UNICODE_TABLE = dict((ord(key), value) for key, value in
                 DNA_COMPLEMENTS.iteritems())
 
 
@@ -107,7 +107,7 @@ def get_complement(seq_str):
         trans_table = string.maketrans(b'ACGTacgt', b'TGCAtgca')
         return seq_str.translate(trans_table)
     else:
-        return seq_str.translate(unicode_table)
+        return seq_str.translate(UNICODE_TABLE)
 
 
 def get_reverse(seq_str):
@@ -122,6 +122,19 @@ def get_reverse_complement(seq_str):
 
     compliment = get_complement(seq_str)
     return compliment[::-1]
+
+
+def compute_sha1(data):
+    """Compute the sha1 hash of a sequence"""
+    try:
+        bases = data.get('bases').replace('\n', '').upper()
+        data['sha1'] = hashlib.sha1(bases).hexdigest()
+        data['bases'] = bases
+    except AttributeError:
+        pass  # let the validator catch this
+    finally:
+        return data
+
 
 rev_comp = get_reverse_complement
 comp = get_complement

@@ -16,7 +16,7 @@ def row_to_dict(headers, constants, row_data):
     """Convert a row to a valid dictionary"""
     record = {}
     record.update(constants)
-    if row_data is None:  # handle dead rows
+    if not row_data:  # handle dead rows
         return
     for key, value in zip(headers, row_data):
         if key.value is None:
@@ -46,6 +46,10 @@ def parse(open_file):
         wsheet = wbook[sheet]  # name of sheet is always the record type
         headers = wsheet.rows[0]  # always the attributes
         record_factory = partial(row_to_dict, headers, {})  # no constants yet
-        records.extend(filter(None, map(record_factory, wsheet.rows[1:])))
-
+        # This is dumb, but simpler than the broken comprehension
+        for row in wsheet.rows[1:]:
+            if row:
+                record = record_factory(row)
+                if record:
+                    records.append(record)
     return records

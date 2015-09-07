@@ -37,5 +37,6 @@ def parse(open_file, fieldnames=None, record_type=None):
     if not record_type:
         record_type = os.path.basename(open_file.name)
     record_cleaner = functools.partial(clean_record, record_type)
-    return map(record_cleaner, csv.DictReader(open_file, fieldnames))
+    return [record_cleaner(row)
+            for row in csv.DictReader(open_file, fieldnames)]
 

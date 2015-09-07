@@ -4,6 +4,7 @@ Parser Exceptions shared by all Parsers
 
 from marshmallow import ValidationError
 
+
 class ParserException(Exception):
     pass
 

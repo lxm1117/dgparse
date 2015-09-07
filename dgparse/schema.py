@@ -18,20 +18,19 @@ is called that returns a dictionary (or optionally dictionary-like) data structu
 Ultimately this module should be automatically generated from the backend
 Schema.
 """
-import hashlib
 import json
 import re
 from marshmallow import Schema, fields, pre_load, validates, pre_dump
 
 from dgparse import exc
-from dgparse.sequtils import NOT_UNAMBIG_DNA, NOT_DNA, AMBIG_CHAR
+from dgparse.sequtils import NOT_UNAMBIG_DNA, NOT_DNA, AMBIG_CHAR, compute_sha1
 # Start with the primitives and simple elements then build up
 
 
 class SequenceSchema(Schema):
     """
     An array of characters selected from a finite alphabet used
-    to represent the linear structure of a biopolymer.
+    to represent the linear structure of biopolymer (DNA, RNA, Protein).
 
     Sequence is a child attribute so the underlying implementation may be
     altered provided the same interface is supported.
@@ -41,18 +40,13 @@ class SequenceSchema(Schema):
     bases = fields.String()  # really a property
 
     @pre_load
-    def get_accession(self, data):
-        try:
-            bases = data.get('bases').replace('\n', '').upper()
-            data['sha1'] = hashlib.sha1(bases).hexdigest()
-            data['bases'] = bases
-        except AttributeError:
-            pass  # let the validator catch this
-        finally:
-            return data
+    def compute_sha1(self, data):
+        """If the sha1 hash is not provided, compute it."""
+        return compute_sha1(data)
 
     @validates('bases')
     def validate_bases(self, obj):
+        """Validate dirty bases are not passed"""
         if len(obj) < 12:   # no null sequences
             raise exc.NoSequence("No sequence provided.")
         hit = NOT_UNAMBIG_DNA.search(obj)
@@ -63,7 +57,7 @@ class SequenceSchema(Schema):
 
 class PatternSchema(SequenceSchema):
     """
-    A continuous regular pattern of bases used to define a feature
+    A continuous regular pattern of bases used to define a feature of a molecule.
     """
     alphabet = fields.String(default=b'ACGNT', load_only=True)
 
@@ -176,6 +170,10 @@ class SequencingReadFile(BaseRepositoryFileSchema):
 
 
 class BaseAnnotationSchema(BaseRepositoryItemSchema):
+    """
+    Represents an annotation of a region of a molecule, something that has
+    coordinates in a molecule.
+    """
     quality = fields.Float(default=0.5, allow_none=True)  # How true is this annotation
     # relationships
     order = fields.Int(default=0)
@@ -211,6 +209,7 @@ class BaseMoleculeSchema(BaseRepositoryItemSchema):
 
     @pre_load
     def get_length(self, data):
+        """Compute the length of the molecule"""
         if 'length' in data and data['length'] > 0:
             return data
         try:
@@ -225,7 +224,7 @@ class BaseMoleculeSchema(BaseRepositoryItemSchema):
 
 
 class DnaMoleculeFileSchema(Schema):
-
+    """An accessory data file for a DNA Molecule"""
     name = fields.String(default="DirectUpload")
     contents = fields.String(default='EMPTY')
     format_ = fields.String(default='fasta')
@@ -233,6 +232,9 @@ class DnaMoleculeFileSchema(Schema):
 
 
 class DnaMoleculeSchema(BaseMoleculeSchema):
+    """
+    A double stranded DNA molecule.
+    """
     date_stored = fields.DateTime(allow_none=True)  # When the banking took place
     quality = fields.Float(load_only=True, default=0.5)
     sequencing_notes = fields.String(load_only=True)
@@ -257,6 +259,10 @@ class DnaPlasmidSchema(DnaMoleculeSchema):
 
     @pre_dump
     def make_fake_file(self, data):
+        """
+        A temp work around as files are currently required of all molecules
+        in the database.
+        """
         if 'dnamoleculefile' or 'dnamoleculefile_id' not in data:
             fake_file = {
                 'name': "DirectUpload",
@@ -303,12 +309,15 @@ class DnaOligoSchema(DnaMoleculeSchema):
 
     @pre_load
     def extract_modifications(self, data):
+        """
+        Extract chemical modifications to the bonds or bases of a sequence.
+        """
         clean_bases = []
         modifications = []
         if 'sequence' not in data:
             return data
         if not data['sequence']['bases']:
-           return data  # let the validator handle it
+            return data  # let the validator handle it
         for i, base in enumerate(data['sequence']['bases']):
             if base not in AMBIG_CHAR:
                 modifications.append({'position': i, 'symbol': base})
@@ -320,6 +329,9 @@ class DnaOligoSchema(DnaMoleculeSchema):
 
     @pre_load
     def parse_concentration(self, data):
+        """
+        Figure out which sort of concentration units have been provided
+        """
         conc_string = data.pop('concentration', None)
         if conc_string is None:
             conc_string = data.pop('conc_um', None)
@@ -334,6 +346,7 @@ class DnaOligoSchema(DnaMoleculeSchema):
 
     @pre_load
     def clean_t_melt(self, data):
+        """Parse and clean up the Melting Temperature and handle unicode"""
         if 't_melt' in data:
             t_melt = data.pop('t_melt')
             if isinstance(t_melt, basestring):
@@ -345,6 +358,7 @@ class DnaOligoSchema(DnaMoleculeSchema):
 
     @pre_dump
     def put_length(self, data):
+        """Add the length to the oligo"""
         if data['length'] < 1:
             data['length'] = len(data['sequence']['bases'])
         if 'concentration' in data:
@@ -446,15 +460,25 @@ class GuideRnaCutSchema(BaseCutSiteSchema):
 
 
 class BaseFeatureSchema(BaseRepositoryItemSchema):
+    """
+    The basic definition of a biological part, a functional unit of a molecule.
+    """
     pattern = fields.Nested(PatternSchema, required=True)
     length = fields.Integer(required=True)
 
 
 class DnaFeatureCategorySchema(Schema):
+    """
+    Represents a 'soft class' of DNA Feature with a particular function.
+    """
     name = fields.String()
 
 
 class DnaFeatureSchema(BaseFeatureSchema):
+    """
+    A Dna Part Definition. A grammatical unit of DNA which has some biological
+    significance.
+    """
     accession = fields.String(required=True)
     dnafeaturecategory_id = fields.Integer()
     pattern = fields.Nested(PatternSchema, required=True)
@@ -462,6 +486,9 @@ class DnaFeatureSchema(BaseFeatureSchema):
 
     @pre_load
     def make_accession(self, obj):
+        """
+        Construct a unique identifier for the feature if not provided.
+        """
         if 'sha1' not in obj:
             accession = '/'.join([obj['category']['name'], obj['name']])
             obj['sha1'] = accession
@@ -470,6 +497,9 @@ class DnaFeatureSchema(BaseFeatureSchema):
     @pre_dump
     @pre_load
     def get_length(self, data):
+        """
+        Construct the length of the feature from it's pattern if not provided.
+        """
         if 'pattern' in data and 'bases' in data['pattern']:
             pattern = data.get('pattern')
             data['length'] = len(pattern['bases'])
@@ -477,15 +507,27 @@ class DnaFeatureSchema(BaseFeatureSchema):
 
 
 class BaseDesignSchema(BaseRepositoryItemSchema):
+    """
+    A category of DNAMolecule that has not yet by physically constructed.
+    These are used to represent the goal molecule of a genome editing or cloning
+    experiment.
+    """
     sequence = fields.Nested(SequenceSchema)
     annotations = fields.Nested(BaseAnnotationSchema, many=True)
 
 
 class DnaDesignSchema(BaseDesignSchema):
+    """
+    A goal DNA molecule; something the user is trying to obtain.
+    """
     sequence = fields.String(required=True)
 
     @pre_load
     def adapt_sequence(self, data):
+        """
+        Temporary adapter to put sequence on the primary object rather than
+        a child table.
+        """
         # TODO remove this after updating AC schema
         sequence = data.pop('sequence')
         if isinstance(sequence, dict):
@@ -505,8 +547,14 @@ class BaseRestrictionEnzymeSchema(NucleaseSchema):
 
 
 class BaseExperimentItemSchema(BaseRepositoryItemSchema):
+    """
+    A step in a magical laboratory quest.
+    """
     objects = fields.Raw()
 
 
 class BaseExperimentSchema(BaseRepositoryItemSchema):
+    """
+    A magical laboratory quest.
+    """
     items = fields.Nested(BaseExperimentItemSchema, many=True)
