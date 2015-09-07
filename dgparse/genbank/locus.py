@@ -1,3 +1,7 @@
+# encoding=utf-8
+"""
+Parse the locus line of a genbank file
+"""
 from . import constants
 from datetime import datetime
 from dgparse.exc import ParserException
@@ -58,7 +62,7 @@ def division_or_orientation_or_both(header_tokens, three_chances):
 
 
 def parse(line, out):
-    'Have a good go at parsing data from the LOCUS line'
+    """Have a good go at parsing data from the LOCUS line"""
     locus_tokens = line.split()
     potential_date_str = locus_tokens[-1]
     accessed = parse_known_date_formats(potential_date_str)

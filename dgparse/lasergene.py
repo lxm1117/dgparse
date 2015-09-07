@@ -7,13 +7,8 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 
-import sys
-
-
-def main():
+def parse():
+    """Parse an open lasergene file"""
     #TODO
     pass
 
-
-if __name__ == '__main__':
-    sys.exit(main())

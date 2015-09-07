@@ -9,7 +9,8 @@ setup(
         'pytest',
         'click',
         'openpyxl',
-        'marshmallow',
+        'xlsxwriter',
+        'marshmallow>=2.0.0b4',
     ],
     entry_points={
         'console_scripts': ['snapgene-json = dgparse.snapgene.main:main'],

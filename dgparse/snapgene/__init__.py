@@ -1,4 +1,7 @@
-
+# encoding=utf-8
+"""
+Parse Snap Gene File Format and adapt to DTG Schema.
+"""
 import hashlib
 import functools
 
@@ -25,7 +28,7 @@ def extract_feature_category(snapfeat):
     return {
         'type_': 'dnafeaturecategory',
         'name': feature_type,
-        'accession': feature_type.lower(),  # normalize caps
+        'sha1': feature_type.lower(),  # normalize caps
     }
 
 
@@ -44,7 +47,7 @@ def extract_feature(annotation_data, bases):
         'name': name,
         'category': category,
         'description': description,
-        'accession': accession,
+        'sha1': accession,
         'properties': annotation_data['Notes'],
         'pattern': pattern,
     }
@@ -56,12 +59,12 @@ def extract_coordinates(annotation_data):
     :return:
     """
     # keep segment as it contains additional data
-    range = annotation_data['Segment']['range'].split('-')
+    range_ = annotation_data['Segment']['range'].split('-')
     # may need to subtract one
     directionality = annotation_data.pop('directionality', 0)
     strand = STRAND[directionality]
-    start = int(range[0]) - 1  # snap gene correction
-    end = int(range[1])
+    start = int(range_[0]) - 1  # snap gene correction
+    end = int(range_[1])
     return start, end, strand
 
 
@@ -103,7 +106,7 @@ def extract_molecule(molecule):
     properties.update(more_props)
     properties.update(seq_props)
     return {
-        'type_': 'dnamolecule',
+        '__class__': 'dnamolecule',
         'sequence': sequence,
         'length': len(sequence['bases']),
         'dnafeatures': annotations,  # using updated naming
