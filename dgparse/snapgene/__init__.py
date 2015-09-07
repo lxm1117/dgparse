@@ -25,7 +25,7 @@ def extract_feature_category(snapfeat):
     return {
         'type_': 'dnafeaturecategory',
         'name': feature_type,
-        'accession': feature_type.lower(),  # normalize caps
+        'sha1': feature_type.lower(),  # normalize caps
     }
 
 
@@ -44,7 +44,7 @@ def extract_feature(annotation_data, bases):
         'name': name,
         'category': category,
         'description': description,
-        'accession': accession,
+        'sha1': accession,
         'properties': annotation_data['Notes'],
         'pattern': pattern,
     }

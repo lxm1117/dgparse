@@ -28,12 +28,6 @@ from dgparse.sequtils import NOT_UNAMBIG_DNA, NOT_DNA, AMBIG_CHAR
 # Start with the primitives and simple elements then build up
 
 
-class BaseProperties(fields.Field):
-    """
-    Represents a key value store (JSON object) or certain properties
-    """
-
-
 class SequenceSchema(Schema):
     """
     An array of characters selected from a finite alphabet used
@@ -42,7 +36,7 @@ class SequenceSchema(Schema):
     Sequence is a child attribute so the underlying implementation may be
     altered provided the same interface is supported.
     """
-    accession = fields.String(load_only=True)
+    sha1 = fields.String(load_only=True)
     alphabet = fields.String(default=b'ACGT', load_only=True)  # Must be in lexographic order
     bases = fields.String()  # really a property
 
@@ -50,10 +44,9 @@ class SequenceSchema(Schema):
     def get_accession(self, data):
         try:
             bases = data.get('bases').replace('\n', '').upper()
-            data['accession'] = hashlib.sha1(bases).hexdigest()
+            data['sha1'] = hashlib.sha1(bases).hexdigest()
             data['bases'] = bases
         except AttributeError:
-            import ipdb;ipdb.set_trace()
             pass  # let the validator catch this
         finally:
             return data
@@ -66,13 +59,6 @@ class SequenceSchema(Schema):
         if hit:
             msg = "Non-IUPAC Unambiguous DNA base found at {0}".format(hit.regs[0][0])
             raise exc.IllegalCharacter(msg)
-
-
-class CoordinatesSchema(Schema):
-    sequence_accession = fields.String()
-    start = fields.Int()
-    end = fields.Int  # aka lower
-    strand = fields.Int
 
 
 class PatternSchema(SequenceSchema):
@@ -91,12 +77,33 @@ class PatternSchema(SequenceSchema):
             raise exc.IllegalCharacter(msg)
 
 
+class BaseOrganisationSchema(Schema):
+    """Basic Organisation Schema"""
+    name = fields.String()
+    domain = fields.String()
+    admin_email = fields.Email()
+
+
+class BaseUserSchema(Schema):
+    """Basic User Schema"""
+    name = fields.String()
+    email = fields.Email()
+
+
 class RepositorySchema(Schema):
     """
     Represents a collection of biological objects either in vitro, such as
     an Inventory or in vivo such as a Genome
     """
     name = fields.String(required=True)
+
+
+class CoordinatesSchema(Schema):
+    """
+    Absolute Coordinates in a molecule
+    """
+    start_end = fields.Raw(required=True)
+    strand = fields.Integer(required=True)
 
 
 class BaseRepositoryItemSchema(Schema):
@@ -106,12 +113,13 @@ class BaseRepositoryItemSchema(Schema):
     program.
     """
     accession = fields.String(required=True)  # A unique key for BIO objects
-    created = fields.DateTime()
-    modified = fields.DateTime()
+    created = fields.String()  # Crudpile constructor current handles these
+    modified = fields.String()
     category = fields.String()  # the "Type"
     name = fields.String(required=True)
-    repository = fields.Nested(RepositorySchema)  # defines accession namespace
-    description = fields.String()
+    repository = fields.Nested(RepositorySchema)  # defines sha1 namespace
+    description = fields.String(required=False)
+    notes = fields.String(required=False, allow_none=True)
     properties = fields.Raw()  # General Key Value Store
 
     @pre_load
@@ -123,7 +131,6 @@ class BaseRepositoryItemSchema(Schema):
             try:
                 properties = json.loads(properties)
             except ValueError:
-                import ipdb;ipdb.set_trace()
                 return data
         for key, val in data.iteritems():
             if val is None:
@@ -148,7 +155,6 @@ class BaseRepositoryItemSchema(Schema):
                 obj['properties'][key] = obj.pop(key)
 
 
-# The Physical Things
 class BaseRepositoryFileSchema(BaseRepositoryItemSchema):
     """
     The Source files uploaded for various items.
@@ -157,7 +163,7 @@ class BaseRepositoryFileSchema(BaseRepositoryItemSchema):
     parsed = fields.Bool()
     record_type = fields.String()
     contents = fields.Raw()
-    file_path = fields.String()
+    filepath = fields.String()
     size = fields.Integer()
 
 
@@ -170,7 +176,7 @@ class SequencingReadFile(BaseRepositoryFileSchema):
 
 
 class BaseAnnotationSchema(BaseRepositoryItemSchema):
-    quality = fields.Float()  # How true is this annotation
+    quality = fields.Float(default=0.5, allow_none=True)  # How true is this annotation
     # relationships
     order = fields.Int(default=0)
     length = fields.Int()
@@ -188,14 +194,16 @@ class BaseMoleculeSchema(BaseRepositoryItemSchema):
     """
     # attributes
     strand_count = fields.Int(default=1, load_only=True)
-    sequence_file_path = fields.String(load_only=True)  # if the sequence is not present
     location = fields.String()
+    is_available = fields.Bool(default=True)
+    is_circular = fields.Bool(default=False)  # *topology*
     # properties
     length = fields.Integer(required=True)
     mol_weight = fields.Float()
     concentration = fields.Float(load_from='conc_um')
     concentration_units = fields.String(default='ng/ul', load_only=True)
-
+    volume = fields.Float()
+    volume_units = fields.String(default='ul')
     # relationships
     sequence = fields.Nested(SequenceSchema, required=True)
     annotations = fields.Nested(BaseAnnotationSchema, many=True)
@@ -225,11 +233,13 @@ class DnaMoleculeFileSchema(Schema):
 
 
 class DnaMoleculeSchema(BaseMoleculeSchema):
-    date_stored = fields.DateTime()  # When the banking took place
-    quality = fields.Float(load_only=True)
+    date_stored = fields.DateTime(allow_none=True)  # When the banking took place
+    quality = fields.Float(load_only=True, default=0.5)
     sequencing_notes = fields.String(load_only=True)
     strand_count = fields.Integer(default=2, load_only=True)
-    notebook_page = fields.String(default="Undefined", load_only=True)
+    notebook_page = fields.String(default="Undefined", load_only=True, allow_none=True)
+    location = fields.String(allow_none=True)
+    description = fields.String(allow_none=True)
 
 
 class DnaPlasmidSchema(DnaMoleculeSchema):
@@ -237,6 +247,7 @@ class DnaPlasmidSchema(DnaMoleculeSchema):
     A banked plasmid in an Inventory.
     """
     is_available = fields.Bool(load_only=True)
+    category = fields.String(default='plasmid')
     is_circular = fields.Boolean(True)
     integration_locus = fields.String()
     carrier_strain = fields.String()
@@ -256,11 +267,12 @@ class DnaPlasmidSchema(DnaMoleculeSchema):
         return data
 
 
-class DnaConstruct(DnaMoleculeSchema):
+class DnaConstructSchema(DnaMoleculeSchema):
     """
     A linear fragment of DNA in an inventory.
     """
     is_circular = fields.Boolean(default=False)
+    category = fields.String(default='construct')
 
 
 class SequenceModSchema(Schema):
@@ -275,7 +287,7 @@ class DnaOligoSchema(DnaMoleculeSchema):
     """
     A linear, single-stranded piece of DNA
     """
-    #accession must start with o
+    #sha1 must start with o
     external_identifier = fields.String(load_only=True)
     is_circular = fields.Boolean(False, load_only=True)  # for now
     strand_count = fields.Integer(default=1, load_only=True)
@@ -346,15 +358,27 @@ class DnaPrimerSchema(DnaOligoSchema):
     """
     A DNA Oligo that is used to prime a PCR reaction.
     """
-    # accession must start with "m"
+    is_circular = fields.Boolean(False)
+    strand_count = fields.Integer(default=1)
+    concentration_units = fields.String(default=u'uM')
+    t_melt_method = fields.String(default='Primer3')
+    works = fields.Boolean()
+    notebook_xref = fields.String()
+    sequence = fields.Nested(SequenceSchema)
+    modifications = fields.Nested(SequenceModSchema, many=True)
+    delta_g = fields.Float()
+    target = fields.String()
+    # sha1 must start with "m"
     homology_sequence = fields.String(load_only=True)
     priming_sequence = fields.String(load_only=True)
+    category = fields.String(default='primer')
 
 
 class Chromosome(DnaMoleculeSchema):
     """
     Represents a Chromosome
     """
+    category = fields.String(default='chromosome')
     genome = fields.String()
 
 
@@ -362,7 +386,7 @@ class GeneSchema(BaseAnnotationSchema):
     """
     Represents a gene and it's child objects.
     """
-    biotype = fields.String(default="Unknown")
+    biotype = fields.String(default="Unknown")  # category?
 
 
 class TranscriptSchema(BaseAnnotationSchema):
@@ -374,12 +398,6 @@ class TranscriptSchema(BaseAnnotationSchema):
 class ExonSchema(BaseAnnotationSchema):
     """
     Represents an Exon.
-    """
-
-
-class NucleaseCutSiteSchema(BaseAnnotationSchema):
-    """
-    The target of a
     """
 
 
@@ -395,7 +413,19 @@ class NucleaseSchema(PolypeptideSchema):
     """
 
 
-class GuideRnaCutSchema(NucleaseCutSiteSchema):
+class BaseCutSiteSchema(BaseRepositoryItemSchema):
+    """
+    The target of a nuclease is the cut site
+    """
+    # name, sha1, etc all included
+    molecule_accession = fields.String()
+    coordinates = fields.Nested(CoordinatesSchema)
+    topcut = fields.Integer()  # absolute coordinates
+    btmcut = fields.Integer()  # absolute coordinates
+    nuclease = fields.Nested(NucleaseSchema)
+
+
+class GuideRnaCutSchema(BaseCutSiteSchema):
     """
     Guide Cut Site Schema
     """
@@ -404,9 +434,8 @@ class GuideRnaCutSchema(NucleaseCutSiteSchema):
     pam = fields.String()
     # sequence is the full sequence
     suffix = fields.String()
-    coordinates = fields.Nested(CoordinatesSchema)
-    cut_site = fields.Integer()
-    centerpoint = fields.Integer()
+    cut_site = fields.Integer()  # absolute coordinates
+    centerpoint = fields.Integer()  # absolute coordinates
     activity_score = fields.Float()  # The on-target activity score
     specificity_score = fields.Float()  #The aggregate off target score
     offtargets = fields.Nested('self', many=True)  # simpler
@@ -414,8 +443,6 @@ class GuideRnaCutSchema(NucleaseCutSiteSchema):
     coding_mismatch = None
     noncoding_mismatch = None
     gc_region = None
-    nuclease = fields.Nested(NucleaseSchema)  # change to full nuclease
-    sequence = fields.Nested(SequenceSchema)
 
 
 class BaseFeatureSchema(BaseRepositoryItemSchema):
@@ -435,9 +462,9 @@ class DnaFeatureSchema(BaseFeatureSchema):
 
     @pre_load
     def make_accession(self, obj):
-        if 'accession' not in obj:
+        if 'sha1' not in obj:
             accession = '/'.join([obj['category']['name'], obj['name']])
-            obj['accession'] = accession
+            obj['sha1'] = accession
         return obj
 
     @pre_dump
@@ -471,14 +498,15 @@ class DnaDesignSchema(BaseDesignSchema):
         return data
 
 
-class RnaGuidedNucleaseSchema(NucleaseSchema):
+class BaseRestrictionEnzymeSchema(NucleaseSchema):
     """
-    The actual RNA Guided Nuclease itself.
-    """
-
-
-class SegmentSchema(Schema):
-    """
-    A segment of a cloning solution
+    A Type II restriction endonuclease enzyme
     """
 
+
+class BaseExperimentItemSchema(BaseRepositoryItemSchema):
+    objects = fields.Raw()
+
+
+class BaseExperimentSchema(BaseRepositoryItemSchema):
+    items = fields.Nested(BaseExperimentItemSchema, many=True)

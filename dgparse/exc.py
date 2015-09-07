@@ -37,3 +37,8 @@ class NoSequence(ValidationError):
     """
     Raise when an empty sequence or pattern is provided
     """
+
+
+class NullCoordinates(ParserException):
+    """Features must have a length of 1 or more"""
+    pass
