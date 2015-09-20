@@ -37,10 +37,14 @@ def row_to_dict(headers, constants, row_data):
     return record
 
 
+import logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
 def parse(open_file):
     """Constructor which returns an excel parser callable for a given model"""
     records = []  # Use empty list to represent an empty set
-    wbook = openpyxl.load_workbook(open_file)  #turn zipped file into workbook
+    wbook = openpyxl.load_workbook(open_file, data_only=True)  #turn zipped file into workbook
     sheets = wbook.get_sheet_names()  # get the types of records included
     for sheet in sheets:
         wsheet = wbook[sheet]  # name of sheet is always the record type

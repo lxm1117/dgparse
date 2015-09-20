@@ -353,8 +353,8 @@ class DnaOligoSchema(DnaMoleculeSchema):
         if 't_melt' in data:
             t_melt = data.pop('t_melt')
             if isinstance(t_melt, basestring):
-                value, units = t_melt.split(u'°')
-                data['t_melt'] = value
+                value = t_melt.split(u'°')[0]
+                data['t_melt'] = float(value)
             else:
                 data['t_melt'] = t_melt
         return data
@@ -362,8 +362,9 @@ class DnaOligoSchema(DnaMoleculeSchema):
     @pre_dump
     def put_length(self, data):
         """Add the length to the oligo"""
-        if data['length'] < 1:
-            data['length'] = len(data['sequence']['bases'])
+        if 'length' not in data or data['length'] < 1:
+            if 'sequence' in data:
+                data['length'] = len(data['sequence']['bases'])
         if 'concentration' in data:
             data.pop('concentration')  # not supported
         if 'concentration_units' in data:

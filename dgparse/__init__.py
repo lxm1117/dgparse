@@ -25,6 +25,7 @@ VALIDATORS = {
     'oligo': schema.DnaOligoSchema(),
     'primer': schema.DnaPrimerSchema(),
     'plasmid': schema.DnaPlasmidSchema(),
+    'construct': schema.DnaConstructSchema(),
     'dnafeature': schema.DnaFeatureSchema(),
     'dnamolecule': schema.DnaMoleculeSchema(),
     'dnadesign': schema.DnaDesignSchema(),
