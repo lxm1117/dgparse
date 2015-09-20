@@ -353,7 +353,7 @@ class DnaOligoSchema(DnaMoleculeSchema):
         if 't_melt' in data:
             t_melt = data.pop('t_melt')
             if isinstance(t_melt, basestring):
-                value, units = t_melt.split(u'°')
+                value = t_melt.split(u'°')[0]
                 data['t_melt'] = value
             else:
                 data['t_melt'] = t_melt
