@@ -354,7 +354,7 @@ class DnaOligoSchema(DnaMoleculeSchema):
             t_melt = data.pop('t_melt')
             if isinstance(t_melt, basestring):
                 value = t_melt.split(u'°')[0]
-                data['t_melt'] = value
+                data['t_melt'] = float(value)
             else:
                 data['t_melt'] = t_melt
         return data
