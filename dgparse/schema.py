@@ -362,8 +362,9 @@ class DnaOligoSchema(DnaMoleculeSchema):
     @pre_dump
     def put_length(self, data):
         """Add the length to the oligo"""
-        if data['length'] < 1:
-            data['length'] = len(data['sequence']['bases'])
+        if 'length' not in data or data['length'] < 1:
+            if 'sequence' in data:
+                data['length'] = len(data['sequence']['bases'])
         if 'concentration' in data:
             data.pop('concentration')  # not supported
         if 'concentration_units' in data:
