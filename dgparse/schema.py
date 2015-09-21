@@ -319,6 +319,8 @@ class DnaOligoSchema(DnaMoleculeSchema):
         modifications = []
         if 'sequence' not in data:
             return data
+        if not isinstance(data['sequence'], dict):
+            return data
         if not data['sequence']['bases']:
             return data  # let the validator handle it
         for i, base in enumerate(data['sequence']['bases']):
