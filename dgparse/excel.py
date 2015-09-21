@@ -36,11 +36,6 @@ def row_to_dict(headers, constants, row_data):
         record[key] = value
     return record
 
-
-import logging
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
 def parse(open_file):
     """Constructor which returns an excel parser callable for a given model"""
     records = []  # Use empty list to represent an empty set
@@ -48,6 +43,8 @@ def parse(open_file):
     sheets = wbook.get_sheet_names()  # get the types of records included
     for sheet in sheets:
         wsheet = wbook[sheet]  # name of sheet is always the record type
+        if not wsheet.rows or len(wsheet.rows) == 0:
+            continue
         headers = wsheet.rows[0]  # always the attributes
         record_factory = partial(row_to_dict, headers, {})  # no constants yet
         # This is dumb, but simpler than the broken comprehension
