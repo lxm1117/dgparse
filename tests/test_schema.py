@@ -36,7 +36,7 @@ def primer_collection():
     ('modified_oligo', 'accept'),
     ('no_delta_g', 'accept'),
     ('lower_case', 'accept'),
-    ('no_target', 'reject'),
+    ('no_target', 'accept'),
     ('lower_mods', 'accept'),
     ('mixed_mods', 'accept'),
     ('no_data', 'reject'),
@@ -66,8 +66,8 @@ def test_load_oligo(case_name, expected, oligo_collection):
     ('good', 'accept'),
     ('mixed_case', 'accept')
 ])
-def test_load_oligo(case_name, expected, primer_collection):
-    """Test validation of oligos"""
+def test_load_primer(case_name, expected, primer_collection):
+    """Test validation of primers"""
     primer_schema = schema.DnaPrimerSchema()
     input_data = primer_collection[case_name]
     primer, errors = primer_schema.load(input_data)
