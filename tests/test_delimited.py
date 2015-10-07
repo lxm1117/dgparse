@@ -55,6 +55,19 @@ def test_csv_parse(record_buffer):
             assert 'sequence' in record
 
 
+def test_tsv_parse():
+    """
+    A TSV file
+    """
+    path = '../data/delimited/dnafeature.tsv'
+    test_file_path = os.path.join(os.path.dirname(__file__), path)
+    with open(test_file_path, 'rb') as test_file:
+        ret = delimited.parse(test_file, delimiter=b"\t")
+        for record in [ret] if isinstance(ret, dict) else ret:
+            if record['__class__'].lower() == 'unknown':
+                assert 'pattern' in record
+
+
 @pytest.fixture()
 def upload_request():
     """A dummy HTTP upload request"""

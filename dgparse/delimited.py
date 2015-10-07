@@ -26,7 +26,7 @@ def clean_record(basename, record):
     return result
 
 
-def parse(open_file, fieldnames=None, record_type=None):
+def parse(open_file, fieldnames=None, record_type=None, delimiter=b","):
     """
     Parse an open file object
     :param open_file:
@@ -37,4 +37,5 @@ def parse(open_file, fieldnames=None, record_type=None):
         record_type = os.path.basename(getattr(open_file, 'name', 'na.unk'))
     record_cleaner = functools.partial(clean_record, record_type)
     return [record_cleaner(row)
-            for row in csv.DictReader(open_file, fieldnames)]
+            for row in csv.DictReader(open_file, fieldnames,
+                                      delimiter=delimiter)]
