@@ -4,7 +4,9 @@ Unit tests for the delimited file (CSV) parser.
 """
 
 import os
+import io
 import pytest
+import collections
 
 from dgparse import delimited
 from dgparse import exc
@@ -51,3 +53,31 @@ def test_csv_parse(record_buffer):
             assert 'pattern' in record
         elif record['__class__'].lower() == 'plasmid':
             assert 'sequence' in record
+
+
+@pytest.fixture()
+def upload_request():
+    """A dummy HTTP upload request"""
+    file_dict = {
+        'file': io.StringIO(
+            u'name,sequence.bases\nseq1,AGTCAGTCAGTCAGTCAGTC\n'),
+        'filename': 'thing',
+    }
+    file_ = collections.namedtuple(
+        'FileDict', file_dict.keys())(**file_dict)
+    upload_dict = {
+        'POST': {'upload': file_},
+    }
+    upload_ = collections.namedtuple(
+        'UploadDict', upload_dict.keys())(**upload_dict)
+    return upload_
+
+
+def test_csv_parse_http_upload(upload_request):
+    """
+    Parse an HTTP upload request
+    """
+    ret = delimited.parse(upload_request.POST.get('upload').file)
+    for record in [ret] if isinstance(ret, dict) else ret:
+        assert 'name' in record
+        assert record['name'] == 'seq1'
