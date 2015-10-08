@@ -8,7 +8,6 @@ import csv
 import os
 import functools
 
-
 def clean_record(basename, record):
     result = {'__class__': basename.split('.')[0]}
     for key, value in record.iteritems():
@@ -27,7 +26,7 @@ def clean_record(basename, record):
     return result
 
 
-def parse(open_file, fieldnames=None, record_type=None):
+def parse(open_file, fieldnames=None, record_type=None, delimiter=b","):
     """
     Parse an open file object
     :param open_file:
@@ -35,8 +34,8 @@ def parse(open_file, fieldnames=None, record_type=None):
     """
     # What does this file contain?
     if not record_type:
-        record_type = os.path.basename(open_file.name)
+        record_type = os.path.basename(getattr(open_file, 'name', 'na.unk'))
     record_cleaner = functools.partial(clean_record, record_type)
     return [record_cleaner(row)
-            for row in csv.DictReader(open_file, fieldnames)]
-
+            for row in csv.DictReader(open_file, fieldnames,
+                                      delimiter=delimiter)]

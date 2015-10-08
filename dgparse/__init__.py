@@ -12,6 +12,7 @@ from __future__ import unicode_literals
 
 import os
 import logging
+import functools
 
 from . import schema
 from . import exc
@@ -33,6 +34,7 @@ VALIDATORS = {
 
 PARSERS = {
     '.csv': delimited.parse,
+    '.tsv': functools.partial(delimited.parse, delimiter=b"\t"),
     '.dna': snapgene.parse,
     '.xlsx': excel.parse,
     '.gb': genbank.parse,
