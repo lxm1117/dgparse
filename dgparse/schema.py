@@ -213,15 +213,9 @@ class BaseMoleculeSchema(BaseRepositoryItemSchema):
         Compute the length of the molecule
         :data:
         """
-        if 'length' in data and data['length'] > 0:
-            return data
-        try:
-            sequence = data['sequence']
-            data['length'] = len(sequence['bases'])
-        except TypeError:
-            data['length'] = None
-        except KeyError:
-            # raise exc.NoSequence("No Sequence Provided")
+        if 'sequence' in data and 'bases' in data['sequence']:
+            data['length'] = len(data['sequence']['bases'])
+        else:
             data['length'] = None
         return data
 
@@ -364,9 +358,10 @@ class DnaOligoSchema(DnaMoleculeSchema):
     @pre_dump
     def put_length(self, data):
         """Add the length to the oligo"""
-        if 'length' not in data or data['length'] < 1:
-            if 'sequence' in data:
-                data['length'] = len(data['sequence']['bases'])
+        if 'sequence' in data and 'bases' in data['sequence']:
+            data['length'] = len(data['sequence']['bases'])
+        else:
+            data['length'] = None
         if 'concentration' in data:
             data.pop('concentration')  # not supported
         if 'concentration_units' in data:
@@ -479,9 +474,8 @@ class DnaFeatureSchema(BaseFeatureSchema):
     significance.
     """
     accession = fields.String(required=True)
-    dnafeaturecategory_id = fields.Integer()
     pattern = fields.Nested(PatternSchema, required=True)
-    category = fields.String(defaut='dnafeature')
+    category = fields.String(default='dnafeature')
 
     @pre_load
     def make_accession(self, obj):
@@ -489,7 +483,7 @@ class DnaFeatureSchema(BaseFeatureSchema):
         Construct a unique identifier for the feature if not provided.
         """
         if 'sha1' not in obj:
-            accession = '/'.join([obj['category'], obj['name']])
+            accession = '/'.join([obj.get('category', 'dnafeature'), obj['name']])
             obj['sha1'] = accession
         return obj
 
@@ -500,8 +494,9 @@ class DnaFeatureSchema(BaseFeatureSchema):
         Construct the length of the feature from it's pattern if not provided.
         """
         if 'pattern' in data and 'bases' in data['pattern']:
-            pattern = data.get('pattern')
-            data['length'] = len(pattern['bases'])
+            data['length'] = len(data['pattern']['bases'])
+        else:
+            data['length'] = None
         return data
 
 
