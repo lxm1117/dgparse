@@ -473,13 +473,6 @@ class BaseFeatureSchema(BaseRepositoryItemSchema):
     length = fields.Integer(required=True)
 
 
-class DnaFeatureCategorySchema(Schema):
-    """
-    Represents a 'soft class' of DNA Feature with a particular function.
-    """
-    name = fields.String()
-
-
 class DnaFeatureSchema(BaseFeatureSchema):
     """
     A Dna Part Definition. A grammatical unit of DNA which has some biological
@@ -488,7 +481,7 @@ class DnaFeatureSchema(BaseFeatureSchema):
     accession = fields.String(required=True)
     dnafeaturecategory_id = fields.Integer()
     pattern = fields.Nested(PatternSchema, required=True)
-    category = fields.Nested(DnaFeatureCategorySchema)
+    category = fields.String(defaut='dnafeature')
 
     @pre_load
     def make_accession(self, obj):
@@ -496,7 +489,7 @@ class DnaFeatureSchema(BaseFeatureSchema):
         Construct a unique identifier for the feature if not provided.
         """
         if 'sha1' not in obj:
-            accession = '/'.join([obj['category']['name'], obj['name']])
+            accession = '/'.join([obj['category'], obj['name']])
             obj['sha1'] = accession
         return obj
 
