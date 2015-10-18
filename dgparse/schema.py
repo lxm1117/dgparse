@@ -47,8 +47,10 @@ class SequenceSchema(Schema):
     @validates('bases')
     def validate_bases(self, obj):
         """Validate dirty bases are not passed"""
-        if len(obj) < 12:   # no null sequences
+        if obj is None:
             raise exc.NoSequence("No sequence provided.")
+        if len(obj) < 12:
+            raise exc.NoSequence("Sequence is shorter than minimum length of 12 bases.")
         hit = NOT_UNAMBIG_DNA.search(obj)
         if hit:
             msg = "Non-IUPAC Unambiguous DNA base found at {0}".format(hit.regs[0][0])
