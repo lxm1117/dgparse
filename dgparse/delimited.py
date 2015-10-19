@@ -11,7 +11,7 @@ import functools
 def clean_record(basename, record):
     result = {'__class__': basename.split('.')[0]}
     for key, value in record.iteritems():
-        value = value.replace(' ', '')
+        value = '' if value is None else value.replace(' ', '')
         if key is '':
             msg = "{0} contains a NonRecord Entry {1}".format(basename, record)
             result['ERROR'] = msg
