@@ -23,9 +23,8 @@ import re
 from marshmallow import Schema, fields, pre_load, validates, pre_dump
 
 from dgparse import exc
-from dgparse.sequtils import NOT_UNAMBIG_DNA, NOT_DNA, AMBIG_CHAR, compute_sha1
+from dgparse.sequtils import NOT_UNAMBIG_DNA, NOT_DNA, AMBIG_CHAR, compute_sha1, MOD_CHAR
 # Start with the primitives and simple elements then build up
-
 
 class SequenceSchema(Schema):
     """
@@ -320,7 +319,7 @@ class DnaOligoSchema(DnaMoleculeSchema):
         if not data['sequence']['bases']:
             return data  # let the validator handle it
         for i, base in enumerate(data['sequence']['bases']):
-            if base not in AMBIG_CHAR:
+            if base in MOD_CHAR:
                 modifications.append({'position': i, 'symbol': base})
             else:
                 clean_bases.append(base)
