@@ -92,6 +92,7 @@ DNA_BYTES = {"A": b"0", "C": b"1", "G": b"2", "T": b"3"}
 DNA_CHAR = set("ACGT")
 AMBIG_CHAR = set("ACGTacgtMmRrWwSsYyKkVvHhDdBbXxNn")
 NOT_UNAMBIG_DNA = re.compile(r"[^ACGTacgt]") #anything that's not ACGT
+MOD_CHAR = set("*")
 
 #Anything that is not
 NOT_DNA = re.compile(r"[^ACGTacgtMmRrWwSsYyKkVvHhDdBbXxNn]")

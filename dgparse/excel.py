@@ -33,7 +33,8 @@ def row_to_dict(headers, constants, row_data):
                 record[parent_key].update({child_key: value})
             else:
                 record[parent_key] = {child_key: value}
-        record[key] = value
+        else:
+            record[key] = value
     return record
 
 def parse(open_file):

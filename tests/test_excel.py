@@ -31,3 +31,12 @@ def test_excel_parse(record_buffer):
     records.extend(excel.parse(record_buffer))  # path or buffer?
     assert len(records) > 0
 
+
+def test_compound_keys_removed(record_buffer):
+    """Compound keys containing a '.' e.g. sequence.bases are removed"""
+    records = []
+    records.extend(excel.parse(record_buffer))
+    for record in records:
+        for key in record.keys():
+            assert '.' not in key
+
