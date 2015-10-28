@@ -42,6 +42,8 @@ PARSERS = {
     '.genbank': genbank.parse,
     '.fa': fasta.parse,
     '.fasta': fasta.parse,
+    '.fas': fasta.parse,
+    '.fna': fasta.parse,
 }
 
 LOG = logging.getLogger(__file__)
