@@ -9,6 +9,10 @@ class ParserException(Exception):
     pass
 
 
+class NoParserException(Exception):
+    pass
+
+
 class FormatException(ParserException):
     """
     Use for badly formatted files
