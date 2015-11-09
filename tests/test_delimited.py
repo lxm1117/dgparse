@@ -5,6 +5,7 @@ Unit tests for the delimited file (CSV) parser.
 
 import os
 import io
+import csv
 import pytest
 import collections
 
@@ -94,3 +95,23 @@ def test_csv_parse_http_upload(upload_request):
     for record in [ret] if isinstance(ret, dict) else ret:
         assert 'name' in record
         assert record['name'] == 'seq1'
+
+
+def test_preserve_spaces(upload_request):
+    """
+    Preserve spaces in input data
+    """
+    stream = io.BytesIO()
+    writer = csv.DictWriter(stream, fieldnames=['name', 'sequence.bases'])
+    writer.writeheader()
+    writer.writerow({
+        'name': 'with space',
+        'sequence.bases': ' also with spaces '
+    })
+    stream.seek(0)
+
+    ret = delimited.parse(stream)
+    for record in [ret] if isinstance(ret, dict) else ret:
+        assert 'name' in record
+        assert record['name'] == 'with space'
+        assert record['sequence']['bases'] == ' also with spaces '
