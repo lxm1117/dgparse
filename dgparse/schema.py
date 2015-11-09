@@ -26,6 +26,10 @@ from dgparse import exc
 from dgparse.sequtils import NOT_UNAMBIG_DNA, NOT_DNA, AMBIG_CHAR, compute_sha1, MOD_CHAR
 # Start with the primitives and simple elements then build up
 
+import logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
 class SequenceSchema(Schema):
     """
     An array of characters selected from a finite alphabet used
@@ -347,8 +351,8 @@ class DnaOligoSchema(DnaMoleculeSchema):
     @pre_load
     def clean_t_melt(self, data):
         """Parse and clean up the Melting Temperature and handle unicode"""
-        if 't_melt' in data:
-            t_melt = data.pop('t_melt')
+        t_melt = data.pop('t_melt', None)
+        if t_melt:
             if isinstance(t_melt, basestring):
                 value = t_melt.split(u'°')[0]
                 data['t_melt'] = float(value)
