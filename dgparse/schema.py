@@ -26,6 +26,10 @@ from dgparse import exc
 from dgparse.sequtils import NOT_UNAMBIG_DNA, NOT_DNA, AMBIG_CHAR, compute_sha1, MOD_CHAR
 # Start with the primitives and simple elements then build up
 
+import logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
 class SequenceSchema(Schema):
     """
     An array of characters selected from a finite alphabet used
@@ -297,7 +301,7 @@ class DnaOligoSchema(DnaMoleculeSchema):
     strand_count = fields.Integer(default=1, load_only=True)
     concentration_units = fields.String(default=u'uM', load_only=True)
     t_melt = fields.Float(load_only=True)
-    t_melt_method = fields.String(default='Nearest Neighbor', load_only=True)
+    tm_method = fields.String(default='Nearest Neighbor', load_only=True)
     works = fields.Boolean(load_only=True)
     notebook_xref = fields.String(load_only=True)
     sequence = fields.Nested(SequenceSchema, required=True)
@@ -347,8 +351,8 @@ class DnaOligoSchema(DnaMoleculeSchema):
     @pre_load
     def clean_t_melt(self, data):
         """Parse and clean up the Melting Temperature and handle unicode"""
-        if 't_melt' in data:
-            t_melt = data.pop('t_melt')
+        t_melt = data.pop('t_melt', None)
+        if t_melt:
             if isinstance(t_melt, basestring):
                 value = t_melt.split(u'°')[0]
                 data['t_melt'] = float(value)
@@ -377,7 +381,7 @@ class DnaPrimerSchema(DnaOligoSchema):
     is_circular = fields.Boolean(False)
     strand_count = fields.Integer(default=1)
     concentration_units = fields.String(default=u'uM')
-    t_melt_method = fields.String(default='Primer3')
+    tm_method = fields.String(default='Primer3')
     works = fields.Boolean()
     notebook_xref = fields.String()
     sequence = fields.Nested(SequenceSchema)
