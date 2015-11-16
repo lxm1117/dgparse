@@ -11,12 +11,12 @@ import uuid
 
 @pytest.mark.parametrize("name,bases_in,bases_out,expected_errs,expected_mods", [
     ('pass',     'AGTCAGTCAGTC',   'AGTCAGTCAGTC',   {}, []),
-    ('space',    'AGTCAGT CAGTC',  'AGTCAGT CAGTC',  {'sequence': {'bases': ['Non-IUPAC Unambiguous DNA base found at 7']}}, []),
-    ('dash',     'AGTCAGT-CAGTC',  'AGTCAGT-CAGTC',  {'sequence': {'bases': ['Non-IUPAC Unambiguous DNA base found at 7']}}, []),
-    ('ambig',    'AGTCAGTNCAGTC',  'AGTCAGTNCAGTC',  {'sequence': {'bases': ['Non-IUPAC Unambiguous DNA base found at 7']}}, []),
+    ('space',    'AGTCAGT CAGTC',  'AGTCAGT CAGTC',  {'sequence': {'bases': ['Non-IUPAC DNA base found at 7']}}, []),
+    ('dash',     'AGTCAGT-CAGTC',  'AGTCAGT-CAGTC',  {'sequence': {'bases': ['Non-IUPAC DNA base found at 7']}}, []),
+    ('ambig',    'AGTCAGTNCAGTC',  'AGTCAGTNCAGTC',  {}, []),
     ('modone',   'AGTCAGT*CAGTC',  'AGTCAGTCAGTC',   {}, [{'position': 7, 'symbol': '*'}]),
     ('modtwo',   'AGTCAGT*C*GTCC', 'AGTCAGTCGTCC',   {}, [{'position': 7, 'symbol': '*'}, {'position': 9, 'symbol': '*'}]),
-    ('dashmod',  'AGTCAGT*C-GTC',  'AGTCAGTC-GTC',   {'sequence': {'bases': ['Non-IUPAC Unambiguous DNA base found at 8']}}, [{'position': 7, 'symbol': '*'}]), 
+    ('dashmod',  'AGTCAGT*C-GTC',  'AGTCAGTC-GTC',   {'sequence': {'bases': ['Non-IUPAC DNA base found at 8']}}, [{'position': 7, 'symbol': '*'}]), 
 ])
 def test_sequence_schema(name, bases_in, bases_out, expected_errs, expected_mods):
     '''Parser identifies and cleans non-standard chars as expected'''
