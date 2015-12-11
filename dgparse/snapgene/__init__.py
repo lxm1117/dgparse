@@ -24,12 +24,7 @@ def extract_sequence(snap_data):
 
 
 def extract_feature_category(snapfeat):
-    feature_type = snapfeat.pop('type')
-    return {
-        'type_': 'dnafeaturecategory',
-        'name': feature_type,
-        'sha1': feature_type.lower(),  # normalize caps
-    }
+    return snapfeat.pop('type')
 
 
 def extract_feature(annotation_data, bases):
