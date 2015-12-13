@@ -4,6 +4,7 @@ Parse Snap Gene File Format and adapt to DTG Schema.
 """
 import hashlib
 import functools
+import uuid
 
 from dgparse import sequtils
 
@@ -34,7 +35,6 @@ def extract_feature(annotation_data, bases):
     """
     name = annotation_data.pop('name')
     category = extract_feature_category(annotation_data)
-    accession = category['name'] + '/' + name.lower().replace(' ', '_')
     pattern = {'bases': bases, 'sha1': hashlib.sha1(bases).hexdigest()}
     description = annotation_data['Notes'].pop('note', None)
     return {
@@ -42,7 +42,7 @@ def extract_feature(annotation_data, bases):
         'name': name,
         'category': category,
         'description': description,
-        'sha1': accession,
+        'sha1': uuid.uuid4().hex,
         'properties': annotation_data['Notes'],
         'pattern': pattern,
     }
