@@ -10,7 +10,7 @@ import pytest
 
 from dgparse import genbank
 
-def test_parse_fasta():
+def test_parse_genbank_multifeature():
     """Can parse genbank file and retrieve expected features"""
 
     test_data_path = os.path.join(os.path.dirname(__file__), '../../data/genbank/PX330.gbk')
@@ -56,3 +56,12 @@ misc_feature	6302	6308	1	6	EcoRI
         assert expected['category'] == parsed['dnafeature']['category']
         assert expected['name'] == parsed['dnafeature']['name']
         assert int(expected['length']) == parsed['dnafeature']['length']
+
+
+def test_parse_genbank_single_feature():
+    """Can parse a genbank file with a single feature"""
+
+    test_data_path = os.path.join(os.path.dirname(__file__), '../../data/genbank/single_feature.gb')
+    with open(test_data_path, 'rb') as input_fh:
+        ret = genbank.parse(input_fh)
+        parsed_annotations = ret['dnafeatures']

@@ -1,0 +1,9 @@
+LOCUS       m.DnaDesign for tests 16 bp DNA circular UNK 15-DEC-2015
+ACCESSION   pDG4
+FEATURES             Location/Qualifiers
+    testPromoter    5..16
+                     /label="DnaFeature for tests"
+                     /note="A featureful strand, indeed."
+ORIGIN
+         1 aaaacccctt ttgggg
+//
