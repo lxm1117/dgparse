@@ -51,21 +51,25 @@ def parse(open_file):
     })
     result['dnafeatures'] = list() # a list of dnafeature annotations
     for feature in result['features']:
-        annotation = dict()
         unpack = copy.deepcopy(feature)
-        unpack['start'] -= 1 # switch from [1,n] to [0,n) coordinate system
+        annotation = dict()
         for key in 'start', 'end', 'strand':
             annotation[key] = unpack.pop(key)
-        unpack['name'] = pick_a_name(unpack)
-        unpack['description'] = pick_description(unpack),
-        annotation['dnafeature'] = unpack
+        annotation['start'] -= 1 # switch from [1,n] to [0,n) coordinate system
         bases = result['sequence']['bases'][
             annotation['start']:annotation['end']]
         if annotation['strand'] < 0:
             bases = sequtils.get_reverse_complement(bases)
-        annotation['dnafeature']['pattern'] = {
-            'bases': bases,
-            'sha1': hashlib.sha1(bases).hexdigest()
+        annotation['dnafeature'] = {
+            'name': pick_a_name(unpack),
+            'category': unpack.pop('category', None),
+            'description': pick_description(unpack),
+            'length': len(bases),
+            'pattern': {
+                'bases': bases,
+                'sha1': hashlib.sha1(bases).hexdigest()
+            },
         }
+        annotation['dnafeature']['properties'] = unpack # anything else
         result['dnafeatures'].append(annotation)
     return result
