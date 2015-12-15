@@ -45,6 +45,7 @@ def extract_feature(annotation_data, bases):
         'sha1': uuid.uuid4().hex,
         'properties': annotation_data['Notes'],
         'pattern': pattern,
+        'length': len(pattern['bases']),
     }
 
 
