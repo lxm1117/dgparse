@@ -172,6 +172,7 @@ def parse_fasta_header_line(line):
     :param line:
     :return:
     """
+    line = line.strip()
     name = line.split(" ")
     #print "Split results:", name
     return name[0][1:]
