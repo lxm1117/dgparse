@@ -24,6 +24,8 @@ FEATURES             Location/Qualifiers
                      /dnas_title="pUC ori"
                      /vntifkey="33"
                      /label=pUC ori
+     misc_feature    complement(8617..9284)
+                     /label="made up rev pUC ori"
      promoter        1..249
                      /dnas_title="Human U6 Promoter"
                      /vntifkey="29"
