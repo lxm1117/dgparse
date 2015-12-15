@@ -33,7 +33,7 @@ def pick_description(dict_):
 
 
 def parse(open_file):
-    'Schema compatibility for new parser'
+    'Parse an open genbank file and convert it into standard DeskGen format'
     result = main.init(open_file)
     try:
         bases = result.pop('origin')

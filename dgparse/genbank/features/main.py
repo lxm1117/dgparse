@@ -9,8 +9,8 @@ logger = logging.getLogger(__name__)
 
 
 def parse_coord(coord):
-    """Parse the coordinates **as written** and assume true.
-    Any upstream code can transform as needed to adapt.
+    """Parse the coordinates.
+    Coordinate conversion is implemented in main __init__.parse()
     """
     coord_dict = {'strand': -1 if "complement" in coord else 1}
     start, end = map(int, coord.strip('complement()\r\n').split('..'))
