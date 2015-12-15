@@ -79,4 +79,4 @@ def recurse_features(line, lines, out):
         tokens = line.strip().split()
         if tokens[0] in GENBANK_HEADERS:  # fff
             return recurse_features(line, lines, out)
-    return recurse_features(next(lines), lines, out)
+    return recurse_features(line, lines, out)
