@@ -17,7 +17,7 @@ from dgparse import exc
 ))
 def test_parse_fasta(path, expected_name, expected_length):
     """Can parse file and retrieve expected name and length"""
-    test_file_path = os.path.join(os.path.dirname(__file__), '../data/fasta/' + path)
+    test_file_path = os.path.join(os.path.dirname(__file__), '../../data/fasta/' + path)
     with open(test_file_path, 'rb') as test_file:
         ret = fasta.parse(test_file)
         ret_dict = ret if isinstance(ret, dict) else ret[0] # first sequence in file

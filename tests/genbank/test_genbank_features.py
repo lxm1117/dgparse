@@ -13,7 +13,7 @@ from dgparse import genbank
 def test_parse_fasta():
     """Can parse genbank file and retrieve expected features"""
 
-    test_data_path = os.path.join(os.path.dirname(__file__), '../data/genbank/PX330.gbk')
+    test_data_path = os.path.join(os.path.dirname(__file__), '../../data/genbank/PX330.gbk')
     with open(test_data_path, 'rb') as input_fh:
         ret = genbank.parse(input_fh)
         parsed_annotations = ret['dnafeatures']
