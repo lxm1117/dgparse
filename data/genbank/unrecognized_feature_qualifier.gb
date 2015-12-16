@@ -1,8 +1,8 @@
 LOCUS       test 16 bp DNA circular UNK 15-DEC-2015
 ACCESSION   TEST
 FEATURES             Location/Qualifiers
-     unrecognizable_feature_qualifier    5..10
-                     /label="feature with unrecognizable qualifier"
+     misc_feature    5..10
+                     /unrecognizable_feature_qualifier="some value"
 ORIGIN
          1 aaaacccctt ttgggg
 //

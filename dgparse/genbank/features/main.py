@@ -67,15 +67,13 @@ def recurse_features(line, lines, out):
         return line, lines, out
     if len(tokens) == 1:  # Throw it away
         return recurse_features(next(lines), lines, out)
-    if tokens[0].lower() in map(string.lower, FEATURE_TYPES):
-        feature = {'category': tokens[0]}
-        try:
-            feature.update(parse_coord(tokens[1]))
-        except:
-            return recurse_features(next(lines), lines, out)
-        line, lines, feature = recurse_feature(next(lines), lines, feature)
-        out['features'].append(feature)
-        tokens = line.strip().split()
-        if tokens[0] in GENBANK_HEADERS:  # fff
-            return recurse_features(line, lines, out)
+    if tokens[0].lower() not in map(string.lower, FEATURE_TYPES):
+        return line, lines, out
+    feature = {'category': tokens[0]}
+    try:
+        feature.update(parse_coord(tokens[1]))
+    except:
+        return recurse_features(next(lines), lines, out)
+    line, lines, feature = recurse_feature(next(lines), lines, feature)
+    out['features'].append(feature)
     return recurse_features(line, lines, out)

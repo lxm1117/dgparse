@@ -51,29 +51,40 @@ misc_feature	6302	6308	1	6	EcoRI
 
     for expected, parsed in zip(expected_annotations, parsed_annotations):
         assert int(expected['start']) == parsed['start']
+        print "Expected"
+        print expected
+        print "Parsed"
+        print parsed
         assert int(expected['end']) == parsed['end']
         assert int(expected['strand']) == parsed['strand']
         assert expected['category'] == parsed['dnafeature']['category']
         assert expected['name'] == parsed['dnafeature']['name']
         assert int(expected['length']) == parsed['dnafeature']['length']
 
-
 def test_parse_genbank_unrecognized_feature_type():
-    """Can parse a genbank file with an unrecognized feature"""
+    """Can parse a genbank file with an unrecognized feature; feature is skipped"""
 
     test_data_path = os.path.join(os.path.dirname(__file__), '../../data/genbank/unrecognized_feature_type.gb')
     with open(test_data_path, 'rb') as input_fh:
         ret = genbank.parse(input_fh)
-        parsed_annotations = ret['dnafeatures']
+        for data in ret if isinstance(ret, list) else [ret]:
+            print data
+            assert data['locus']
+            assert len(data['dnafeatures']) == 0
 
 
 def test_parse_genbank_unrecognized_feature_qualifier():
-    """Can parse a genbank file with an unrecognized feature qualifier"""
+    """Can parse a genbank file with an unrecognized feature qualifier; qualifier is retained"""
 
     test_data_path = os.path.join(os.path.dirname(__file__), '../../data/genbank/unrecognized_feature_qualifier.gb')
     with open(test_data_path, 'rb') as input_fh:
         ret = genbank.parse(input_fh)
-        parsed_annotations = ret['dnafeatures']
+        for data in ret if isinstance(ret, list) else [ret]:
+            print data
+            assert data['locus']
+            assert len(data['dnafeatures']) == 1
+            annotation = data['dnafeatures'][0]
+            assert annotation['dnafeature']['properties']['unrecognizable_feature_qualifier']
 
 
 def test_parse_genbank_unrecognised_missing_feature_header():
