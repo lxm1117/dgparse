@@ -32,15 +32,16 @@ def pick_description(dict_):
     return note + default
 
 
+def drop_source(feature_dict):
+    if feature_dict.get('category') != 'source':
+        return True
+
+
 def parse(open_file):
     'Parse an open genbank file and convert it into standard DeskGen format'
     result = main.init(open_file)
     try:
         bases = result.pop('origin')
-        def drop_source(feature_dict):
-            if feature_dict.get('category') != 'source':
-                return True
-        result['features'] = filter(drop_source, result['features'])
     except KeyError:
         raise ParserException('No sequence could be parsed')
     result.update({
@@ -50,16 +51,17 @@ def parse(open_file):
         }
     })
     result['dnafeatures'] = list() # a list of dnafeature annotations
-    for feature in result['features']:
+    features = result.get('features', {}) # TODO: pop this, replaced by 'dnafeatures'
+    features = filter(drop_source, features) 
+    for feature in features:
         unpack = copy.deepcopy(feature)
         annotation = dict()
         for key in 'start', 'end', 'strand':
             annotation[key] = unpack.pop(key)
-        annotation['start'] -= 1 # switch from [1,n] to [0,n) coordinate system
         bases = result['sequence']['bases'][
             annotation['start']:annotation['end']]
         if annotation['strand'] < 0:
-            bases = sequtils.get_reverse_complement(bases)
+            bases = sequtils.get_reverse_complement(bases) # assumed pythonic coordinates
         annotation['dnafeature'] = {
             'name': pick_a_name(unpack),
             'category': unpack.pop('category', None),

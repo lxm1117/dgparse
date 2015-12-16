@@ -58,10 +58,65 @@ misc_feature	6302	6308	1	6	EcoRI
         assert int(expected['length']) == parsed['dnafeature']['length']
 
 
-def test_parse_genbank_single_feature():
-    """Can parse a genbank file with a single feature"""
+def test_parse_genbank_unrecognized_feature_type():
+    """Can parse a genbank file with an unrecognized feature"""
 
-    test_data_path = os.path.join(os.path.dirname(__file__), '../../data/genbank/single_feature.gb')
+    test_data_path = os.path.join(os.path.dirname(__file__), '../../data/genbank/unrecognized_feature_type.gb')
     with open(test_data_path, 'rb') as input_fh:
         ret = genbank.parse(input_fh)
         parsed_annotations = ret['dnafeatures']
+
+
+def test_parse_genbank_unrecognized_feature_qualifier():
+    """Can parse a genbank file with an unrecognized feature qualifier"""
+
+    test_data_path = os.path.join(os.path.dirname(__file__), '../../data/genbank/unrecognized_feature_qualifier.gb')
+    with open(test_data_path, 'rb') as input_fh:
+        ret = genbank.parse(input_fh)
+        parsed_annotations = ret['dnafeatures']
+
+
+def test_parse_genbank_unrecognised_missing_feature_header():
+    """Can parse a genbank file with missing feature header"""
+
+    test_data_path = os.path.join(os.path.dirname(__file__), '../../data/genbank/missing_feature_header.gb')
+    with open(test_data_path, 'rb') as input_fh:
+        ret = genbank.parse(input_fh)
+        parsed_annotations = ret['dnafeatures']
+
+
+def test_parse_genbank_no_features():
+    """Can parse a genbank file with feature header but no features"""
+
+    test_data_path = os.path.join(os.path.dirname(__file__), '../../data/genbank/no_features.gb')
+    with open(test_data_path, 'rb') as input_fh:
+        ret = genbank.parse(input_fh)
+        for data in ret if isinstance(ret, list) else [ret]:
+            assert data['locus']
+            assert len(data['dnafeatures']) == 0
+
+
+def test_parse_genbank_missing_one_feature():
+    """Can parse a genbank file with one feature"""
+
+    test_data_path = os.path.join(os.path.dirname(__file__), '../../data/genbank/one_feature.gb')
+    with open(test_data_path, 'rb') as input_fh:
+        ret = genbank.parse(input_fh)
+        for data in ret if isinstance(ret, list) else [ret]:
+            assert data['locus']
+            assert len(data['dnafeatures']) == 1
+            annotation = data['dnafeatures'][0]
+            assert annotation['dnafeature']['pattern']['bases'] == 'CCCCTT'
+
+
+def test_parse_genbank_ambiguous_dna():
+    """Can parse a genbank file with ambiguous DNA chars in the pattern"""
+
+    test_data_path = os.path.join(os.path.dirname(__file__), '../../data/genbank/ambiguous.gb')
+    with open(test_data_path, 'rb') as input_fh:
+        ret = genbank.parse(input_fh)
+        for data in ret if isinstance(ret, list) else [ret]:
+            assert data['locus']
+            assert len(data['dnafeatures']) == 1
+            annotation = data['dnafeatures'][0]
+            assert annotation['dnafeature']['pattern']['bases'] == 'CCMCTT'

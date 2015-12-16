@@ -1,0 +1,6 @@
+LOCUS       test 16 bp DNA circular UNK 15-DEC-2015
+ACCESSION   TEST
+FEATURES             Location/Qualifiers
+ORIGIN
+         1 aaaacccctt ttgggg
+//

@@ -59,7 +59,7 @@ def extract_coordinates(annotation_data):
     # may need to subtract one
     directionality = annotation_data.pop('directionality', 0)
     strand = STRAND[directionality]
-    start = int(range_[0]) - 1  # snap gene correction
+    start = int(range_[0]) - 1 # convert from [1,n] to pythonic [0,n) coordinate system
     end = int(range_[1])
     return start, end, strand
 

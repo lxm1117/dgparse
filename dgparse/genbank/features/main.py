@@ -9,11 +9,10 @@ logger = logging.getLogger(__name__)
 
 
 def parse_coord(coord):
-    """Parse the coordinates.
-    Coordinate conversion is implemented in main __init__.parse()
-    """
+    """Parse the coordinates"""
     coord_dict = {'strand': -1 if "complement" in coord else 1}
-    start, end = map(int, coord.strip('complement()\r\n').split('..'))
+    start, end = map(int, coord.strip('complement()\r\n').split('..')) # !! operator syntax is more extensive see http://www.ddbj.nig.ac.jp/FT/full_index.html#3.4
+    start -= 1 # convert from [1,n] to pythonic [0,n) coordinate system
     coord_dict.update({'start': start, 'end': end})
     if (end - start) < 1:
         raise NullCoordinates
