@@ -308,6 +308,7 @@ class DnaOligoSchema(DnaMoleculeSchema):
     modifications = fields.Nested(SequenceModSchema, many=True, load_only=True)
     delta_g = fields.Float(allow_none=True, load_only=True)
     target = fields.String(load_only=True)
+    category = fields.String(default='oligo')
 
     @pre_load
     def extract_modifications(self, data):
