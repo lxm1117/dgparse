@@ -9,11 +9,10 @@ logger = logging.getLogger(__name__)
 
 
 def parse_coord(coord):
-    """Parse the coordinates **as written** and assume true.
-    Any upstream code can transform as needed to adapt.
-    """
+    """Parse the coordinates"""
     coord_dict = {'strand': -1 if "complement" in coord else 1}
-    start, end = map(int, coord.strip('complement()\r\n').split('..'))
+    start, end = map(int, coord.strip('complement()\r\n').split('..')) # !! operator syntax is more extensive see http://www.ddbj.nig.ac.jp/FT/full_index.html#3.4
+    start -= 1 # convert from [1,n] to pythonic [0,n) coordinate system
     coord_dict.update({'start': start, 'end': end})
     if (end - start) < 1:
         raise NullCoordinates
@@ -68,15 +67,13 @@ def recurse_features(line, lines, out):
         return line, lines, out
     if len(tokens) == 1:  # Throw it away
         return recurse_features(next(lines), lines, out)
-    if tokens[0].lower() in map(string.lower, FEATURE_TYPES):
-        feature = {'category': tokens[0]}
-        try:
-            feature.update(parse_coord(tokens[1]))
-        except:
-            return recurse_features(next(lines), lines, out)
-        line, lines, feature = recurse_feature(next(lines), lines, feature)
-        out['features'].append(feature)
-        tokens = line.strip().split()
-        if tokens[0] in GENBANK_HEADERS:  # fff
-            return recurse_features(line, lines, out)
-    return recurse_features(next(lines), lines, out)
+    if tokens[0].lower() not in map(string.lower, FEATURE_TYPES):
+        return line, lines, out
+    feature = {'category': tokens[0]}
+    try:
+        feature.update(parse_coord(tokens[1]))
+    except:
+        return recurse_features(next(lines), lines, out)
+    line, lines, feature = recurse_feature(next(lines), lines, feature)
+    out['features'].append(feature)
+    return recurse_features(line, lines, out)

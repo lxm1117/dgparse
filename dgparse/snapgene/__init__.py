@@ -4,6 +4,7 @@ Parse Snap Gene File Format and adapt to DTG Schema.
 """
 import hashlib
 import functools
+import uuid
 
 from dgparse import sequtils
 
@@ -24,12 +25,7 @@ def extract_sequence(snap_data):
 
 
 def extract_feature_category(snapfeat):
-    feature_type = snapfeat.pop('type')
-    return {
-        'type_': 'dnafeaturecategory',
-        'name': feature_type,
-        'sha1': feature_type.lower(),  # normalize caps
-    }
+    return snapfeat.pop('type')
 
 
 def extract_feature(annotation_data, bases):
@@ -39,7 +35,6 @@ def extract_feature(annotation_data, bases):
     """
     name = annotation_data.pop('name')
     category = extract_feature_category(annotation_data)
-    accession = category['name'] + '/' + name.lower().replace(' ', '_')
     pattern = {'bases': bases, 'sha1': hashlib.sha1(bases).hexdigest()}
     description = annotation_data['Notes'].pop('note', None)
     return {
@@ -47,9 +42,10 @@ def extract_feature(annotation_data, bases):
         'name': name,
         'category': category,
         'description': description,
-        'sha1': accession,
+        'sha1': uuid.uuid4().hex,
         'properties': annotation_data['Notes'],
         'pattern': pattern,
+        'length': len(pattern['bases']),
     }
 
 
@@ -63,7 +59,7 @@ def extract_coordinates(annotation_data):
     # may need to subtract one
     directionality = annotation_data.pop('directionality', 0)
     strand = STRAND[directionality]
-    start = int(range_[0]) - 1  # snap gene correction
+    start = int(range_[0]) - 1 # convert from [1,n] to pythonic [0,n) coordinate system
     end = int(range_[1])
     return start, end, strand
 
