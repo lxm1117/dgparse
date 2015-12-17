@@ -84,6 +84,13 @@ def extract_annotation(sequence, annotation_data):
     }
 
 
+def drop_source(annotation_dict):
+    dnafeature = annotation_dict.get('dnafeature', None)
+    if dnafeature:
+        if dnafeature.get('category') != 'source':
+            return True
+
+
 def extract_molecule(molecule):
     """
     Extract the DNA molecule own data
@@ -95,6 +102,7 @@ def extract_molecule(molecule):
     extractor = functools.partial(extract_annotation, sequence)
     feature_array = molecule.pop('features', [])
     annotations = map(extractor, feature_array) if feature_array else []
+    annotations = filter(drop_source, annotations) 
     description = molecule.pop('descriptor').get('name', None)
     properties = molecule.pop('notes')
     more_props = molecule.pop('other_properties')

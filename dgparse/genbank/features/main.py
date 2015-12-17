@@ -46,7 +46,8 @@ def recurse_features(line, lines, out):
         # New qualifier, initialize and append
         qualifier_key = qualifier_match.group(1)
         qualifier_val = qualifier_match.group(2).rstrip('"')
-        out['features'][-1].update({qualifier_key: qualifier_val})
+        if qualifier_key not in out['features'][-1]:
+            out['features'][-1].update({qualifier_key: qualifier_val})
         if qualifier_key not in FEATURE_QUALIFIERS:
             logger.info("Qualifier '{0}' not recognised".format(qualifier_key))
         # Assign first qualifier as default feature name
