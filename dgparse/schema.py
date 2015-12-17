@@ -117,7 +117,7 @@ class BaseRepositoryItemSchema(Schema):
     category = fields.String()  # the "Type"
     name = fields.String(required=True)
     repository = fields.Nested(RepositorySchema)  # defines sha1 namespace
-    description = fields.String(required=False)
+    description = fields.String(allow_none=True)
     notes = fields.String(required=False, allow_none=True)
     properties = fields.Raw()  # General Key Value Store
 
