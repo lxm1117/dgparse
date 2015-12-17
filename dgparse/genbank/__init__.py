@@ -11,12 +11,11 @@ def pick_a_name(dict_):
     2) The first occurence of note ==> label ==> name
     3) "Novel" as in a new feature of a known type.
     """
-    # label, then note
-    try:
-        name = dict_.pop('label').strip(':')
-    except KeyError:
-        name = dict_.get('note', 'Novel').strip(':')
-    return name
+    # label, then note, then name, then default
+    for key in ['label', 'note', 'name']:
+        if key in dict_:
+            return dict_.pop(key)
+    return 'Novel'
 
 
 def pick_description(dict_):
@@ -54,6 +53,7 @@ def parse(open_file):
     features = result.get('features', {}) # TODO: pop this, replaced by 'dnafeatures'
     features = filter(drop_source, features) 
     for feature in features:
+        print "Feature %s"%(feature)
         unpack = copy.deepcopy(feature)
         annotation = dict()
         for key in 'start', 'end', 'strand':

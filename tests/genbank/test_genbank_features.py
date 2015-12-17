@@ -10,6 +10,25 @@ import pytest
 
 from dgparse import genbank
 
+@pytest.mark.parametrize("file_name,expected_feature_count", [
+    ('01-lentiCRISPRv2-add.gb', 19),
+    ('02-pIB2-SEC13-mEGFP-snap.gb', 8),
+    ('03-NM_024674-add-construct.gb', 22),
+    ('04-px330-snap.gb', 13),
+    ('05-lentiCas9-Blast-add.gb', 15),
+])
+def test_parse_genbank_multifeature_count(file_name, expected_feature_count):
+    """Obtain expected feature count for some example files"""
+    test_data_path = os.path.join(os.path.dirname(__file__), '../../data/genbank/' + file_name)
+    with open(test_data_path, 'rb') as input_fh:
+        ret = genbank.parse(input_fh)
+        parsed_annotations = ret['dnafeatures']
+        print "Names parsed"
+        for anno in parsed_annotations:
+            print anno['dnafeature']['category'], anno['dnafeature']['name']
+        assert len(parsed_annotations) == expected_feature_count
+    
+
 def test_parse_genbank_multifeature():
     """Can parse genbank file and retrieve expected features"""
 
@@ -51,10 +70,6 @@ misc_feature	6302	6308	1	6	EcoRI
 
     for expected, parsed in zip(expected_annotations, parsed_annotations):
         assert int(expected['start']) == parsed['start']
-        print "Expected"
-        print expected
-        print "Parsed"
-        print parsed
         assert int(expected['end']) == parsed['end']
         assert int(expected['strand']) == parsed['strand']
         assert expected['category'] == parsed['dnafeature']['category']
@@ -62,7 +77,7 @@ misc_feature	6302	6308	1	6	EcoRI
         assert int(expected['length']) == parsed['dnafeature']['length']
 
 def test_parse_genbank_unrecognized_feature_type():
-    """Can parse a genbank file with an unrecognized feature; feature is skipped"""
+    """Can parse a genbank file with an unrecognized feature; feature is retained"""
 
     test_data_path = os.path.join(os.path.dirname(__file__), '../../data/genbank/unrecognized_feature_type.gb')
     with open(test_data_path, 'rb') as input_fh:
@@ -70,7 +85,7 @@ def test_parse_genbank_unrecognized_feature_type():
         for data in ret if isinstance(ret, list) else [ret]:
             print data
             assert data['locus']
-            assert len(data['dnafeatures']) == 0
+            assert len(data['dnafeatures']) == 1
 
 
 def test_parse_genbank_unrecognized_feature_qualifier():
@@ -131,3 +146,16 @@ def test_parse_genbank_ambiguous_dna():
             assert len(data['dnafeatures']) == 1
             annotation = data['dnafeatures'][0]
             assert annotation['dnafeature']['pattern']['bases'] == 'CCMCTT'
+
+
+def test_parse_single_base_coordinate():
+    """Can parse feature coordinates which are only one base long"""
+
+    test_data_path = os.path.join(os.path.dirname(__file__), '../../data/genbank/single_base_feature.gb')
+    with open(test_data_path, 'rb') as input_fh:
+        ret = genbank.parse(input_fh)
+        for data in ret if isinstance(ret, list) else [ret]:
+            assert data['locus']
+            assert len(data['dnafeatures']) == 1
+            annotation = data['dnafeatures'][0]
+            assert annotation['dnafeature']['length'] == 1

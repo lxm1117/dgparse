@@ -95,7 +95,7 @@ def extract_molecule(molecule):
     extractor = functools.partial(extract_annotation, sequence)
     feature_array = molecule.pop('features', [])
     annotations = map(extractor, feature_array) if feature_array else []
-    description = molecule.pop('descriptor')
+    description = molecule.pop('descriptor').get('name', None)
     properties = molecule.pop('notes')
     more_props = molecule.pop('other_properties')
     seq_props = molecule.pop('DNA')  # get the remaining items

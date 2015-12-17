@@ -26,10 +26,6 @@ from dgparse import exc
 from dgparse.sequtils import NOT_UNAMBIG_DNA, NOT_DNA, AMBIG_CHAR, compute_sha1, MOD_CHAR
 # Start with the primitives and simple elements then build up
 
-import logging
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
 class SequenceSchema(Schema):
     """
     An array of characters selected from a finite alphabet used
@@ -117,7 +113,7 @@ class BaseRepositoryItemSchema(Schema):
     category = fields.String()  # the "Type"
     name = fields.String(required=True)
     repository = fields.Nested(RepositorySchema)  # defines sha1 namespace
-    description = fields.String(required=False)
+    description = fields.String(allow_none=True)
     notes = fields.String(required=False, allow_none=True)
     properties = fields.Raw()  # General Key Value Store
 
@@ -274,6 +270,12 @@ class DnaPlasmidSchema(DnaMoleculeSchema):
             data['dnamoleculefile'] = fake_file
         return data
 
+    @pre_load
+    def set_defaults(self, data):
+        data['category'] = 'plasmid'
+        data['is_circular'] = True
+        return data
+
 
 class DnaConstructSchema(DnaMoleculeSchema):
     """
@@ -281,6 +283,12 @@ class DnaConstructSchema(DnaMoleculeSchema):
     """
     is_circular = fields.Boolean(default=False)
     category = fields.String(default='construct')
+
+    @pre_load
+    def set_defaults(self, data):
+        data['category'] = 'construct'
+        data['is_circular'] = False
+        return data
 
 
 class SequenceModSchema(Schema):
@@ -374,6 +382,11 @@ class DnaOligoSchema(DnaMoleculeSchema):
             data.pop('concentration_units')
         return data
 
+    @pre_load
+    def set_defaults(self, data):
+        data['category'] = 'oligo'
+        return data
+
 
 class DnaPrimerSchema(DnaOligoSchema):
     """
@@ -393,6 +406,11 @@ class DnaPrimerSchema(DnaOligoSchema):
     homology_sequence = fields.String(load_only=True)
     priming_sequence = fields.String(load_only=True)
     category = fields.String(default='primer')
+
+    @pre_load
+    def set_defaults(self, data):
+        data['category'] = 'primer'
+        return data
 
 
 class Chromosome(DnaMoleculeSchema):
@@ -537,6 +555,11 @@ class DnaDesignSchema(BaseDesignSchema):
                 data['sequence'] = sequence
         else:
             data['sequence'] = sequence
+        return data
+
+    @pre_load
+    def set_defaults(self, data):
+        data['category'] = 'dnadesign'
         return data
 
 

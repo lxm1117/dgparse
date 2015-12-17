@@ -1,0 +1,338 @@
+LOCUS       Exported                4024 bp ds-DNA     linear   PRI 20-SEP-2015
+DEFINITION  Homo sapiens lin-28 homolog A (C. elegans) (LIN28A), mRNA.
+ACCESSION   NM_024674
+VERSION     .
+KEYWORDS    NM_024674
+SOURCE      Homo sapiens
+  ORGANISM  Homo sapiens
+REFERENCE   1  (bases 1 to 4024)
+  AUTHORS   Jakobiec FA, Kool M, Stagner AM, Pfister SM, Eagle RC, Proia AD, 
+            Korshunov A.
+  TITLE     Intraocular Medulloepitheliomas and Embryonal Tumors With 
+            Multilayered Rosettes of the Brain: Comparative Roles of LIN28A and 
+            C19MC
+  JOURNAL   Am. J. Ophthalmol. 159 (6), 1065-1074 (2015)
+  PUBMED    25748578
+REFERENCE   2  (bases 1 to 4024)
+  AUTHORS   Tu HC, Schwitalla S, Qian Z, LaPier GS, Yermalovich A, Ku YC, Chen 
+            SC, Viswanathan SR, Zhu H, Nishihara R, Inamura K, Kim SA, Morikawa 
+            T, Mima K, Sukawa Y, Yang J, Meredith G, Fuchs CS, Ogino S, Daley 
+            GQ.
+  TITLE     LIN28 cooperates with WNT signaling to drive invasive intestinal and
+            colorectal adenocarcinoma in mice and humans
+  JOURNAL   Genes Dev. 29 (10), 1074-1086 (2015)
+  PUBMED    25956904
+REFERENCE   3  (bases 1 to 4024)
+  AUTHORS   Song H, Xu W, Song J, Liang Y, Fu W, Zhu XC, Li C, Peng JS, Zheng 
+            JN.
+  TITLE     Overexpression of Lin28 inhibits the proliferation, migration and 
+            cell cycle progression and induces apoptosis of BGC-823 gastric 
+            cancer cells
+  JOURNAL   Oncol. Rep. 33 (2), 997-1003 (2015)
+  PUBMED    25515921
+REFERENCE   4  (bases 1 to 4024)
+  AUTHORS   Kim SK, Lee H, Han K, Kim SC, Choi Y, Park SW, Bak G, Lee Y, Choi 
+            JK, Kim TK, Han YM, Lee D.
+  TITLE     SET7/9 methylation of the pluripotency factor LIN28A is a nucleolar 
+            localization mechanism that blocks let-7 biogenesis in human ESCs
+  JOURNAL   Cell Stem Cell 15 (6), 735-749 (2014)
+  PUBMED    25479749
+REFERENCE   5  (bases 1 to 4024)
+  AUTHORS   Viswanathan SR, Powers JT, Einhorn W, Hoshida Y, Ng TL, Toffanin S, 
+            O'Sullivan M, Lu J, Phillips LA, Lockhart VL, Shah SP, Tanwar PS, 
+            Mermel CH, Beroukhim R, Azam M, Teixeira J, Meyerson M, Hughes TP, 
+            Llovet JM, Radich J, Mullighan CG, Golub TR, Sorensen PH, Daley GQ.
+  TITLE     Lin28 promotes transformation and is associated with advanced human 
+            malignancies
+  JOURNAL   Nat. Genet. 41 (7), 843-848 (2009)
+  PUBMED    19483683
+REFERENCE   6  (bases 1 to 4024)
+  AUTHORS   Rybak A, Fuchs H, Smirnova L, Brandt C, Pohl EE, Nitsch R, Wulczyn 
+            FG.
+  TITLE     A feedback loop comprising lin-28 and let-7 controls pre-let-7 
+            maturation during neural stem-cell commitment
+  JOURNAL   Nat. Cell Biol. 10 (8), 987-993 (2008)
+  PUBMED    18604195
+REFERENCE   7  (bases 1 to 4024)
+  AUTHORS   Lee YS, Kim HK, Chung S, Kim KS, Dutta A.
+  TITLE     Depletion of human micro-RNA miR-125b reveals that it is critical 
+            for the proliferation of differentiated cells but not for the 
+            down-regulation of putative targets during differentiation
+  JOURNAL   J. Biol. Chem. 280 (17), 16635-16641 (2005)
+  PUBMED    15722555
+REFERENCE   8  (bases 1 to 4024)
+  AUTHORS   Gerecht-Nir S, Dazard JE, Golan-Mashiach M, Osenberg S, Botvinnik A,
+            Amariglio N, Domany E, Rechavi G, Givol D, Itskovitz-Eldor J.
+  TITLE     Vascular gene expression and phenotypic correlation during 
+            differentiation of human embryonic stem cells
+  JOURNAL   Dev. Dyn. 232 (2), 487-497 (2005)
+  PUBMED    15614775
+REFERENCE   9  (bases 1 to 4024)
+  AUTHORS   Sempere LF, Freemantle S, Pitha-Rowe I, Moss E, Dmitrovsky E, Ambros
+            V.
+  TITLE     Expression profiling of mammalian microRNAs uncovers a subset of 
+            brain-expressed microRNAs with possible roles in murine and human 
+            neuronal differentiation
+  JOURNAL   Genome Biol. 5 (3), R13 (2004)
+  PUBMED    15003116
+REFERENCE   10  (bases 1 to 4024)
+  AUTHORS   Moss EG, Tang L.
+  TITLE     Conservation of the heterochronic regulator Lin-28, its 
+            developmental expression and microRNA complementary sites
+  JOURNAL   Dev. Biol. 258 (2), 432-442 (2003)
+  PUBMED    12798299
+REFERENCE   11  (bases 1 to 4024)
+  AUTHORS   .
+  TITLE     Direct Submission
+  JOURNAL   Exported Tuesday, Dec 15, 2015 from SnapGene 2.8.3
+            http://www.snapgene.com
+COMMENT     REVIEWED REFSEQ: This record has been curated by NCBI staff. The 
+            reference sequence was derived from CN349325.1, BC028566.2 and 
+            AL513365.27.
+            On Sep 17, 2015 this sequence version replaced gi:94536796.
+            Summary: This gene encodes a LIN-28 family RNA-binding protein that 
+            acts as a posttranscriptional regulator of genes involved in 
+            developmental timing and self-renewal in embryonic stem cells. The 
+            encoded protein functions through direct interaction with target 
+            mRNAs and by disrupting the maturation of certain miRNAs involved in
+            embryonic development. This protein prevents the terminal processing
+            of the LET7 family of microRNAs which are major regulators of 
+            cellular growth and differentiation. Aberrant expression of this 
+            gene is associated with cancer progression in multiple tissues. 
+            [provided by RefSeq, Sep 2015].
+            
+            Sequence Note: This RefSeq record was created from transcript and 
+            genomic sequence data to make the sequence consistent with the 
+            reference genome assembly. The genomic coordinates used for the 
+            transcript record were based on transcript alignments.
+            
+            Publication Note:  This RefSeq record includes a subset of the 
+            publications that are available for this gene. Please see the Gene 
+            record to access additional publications.
+            
+            ##Evidence-Data-START##
+            Transcript exon combination :: CN349325.1, BC028566.2 [ECO:0000332] 
+            RNAseq introns              :: single sample supports all introns
+                                           SAMEA1968968, SAMEA2148874
+                                           [ECO:0000348]
+            ##Evidence-Data-END##
+            COMPLETENESS: complete on the 3' end.
+FEATURES             Location/Qualifiers
+     source          1..4024
+                     /organism="Homo sapiens"
+                     /chromosome="1"
+                     /map="1p36.11"
+                     /mol_type="mRNA"
+                     /db_xref="taxon:9606"
+     gene            1..4024
+                     /gene="LIN28A"
+                     /gene_synonym="CSDD1; LIN-28; lin-28A; LIN28; ZCCHC1"
+                     /note="LIN28A"
+                     /note="lin-28 homolog A (C. elegans)"
+                     /db_xref="GeneID:79727"
+                     /db_xref="HGNC:HGNC:15986"
+                     /db_xref="HPRD:17278"
+                     /db_xref="MIM:611043"
+     exon            1..155
+                     /gene="LIN28A"
+                     /gene_synonym="CSDD1; LIN-28; lin-28A; LIN28; ZCCHC1"
+                     /inference="alignment:same species:2.0.8"
+     misc_feature    26..28
+                     /gene="LIN28A"
+                     /gene_synonym="CSDD1; LIN-28; lin-28A; LIN28; ZCCHC1"
+                     /note="upstream in-frame stop codon"
+     CDS             125..754
+                     /codon_start=1
+                     /gene="LIN28A"
+                     /gene_synonym="CSDD1; LIN-28; lin-28A; LIN28; ZCCHC1"
+                     /product="protein lin-28 homolog A"
+                     /note="LIN28A"
+                     /note="zinc finger, CCHC domain containing 1; RNA-binding 
+                     protein LIN-28; zinc finger CCHC domain-containing protein 
+                     1"
+                     /db_xref="GI:13375938"
+                     /db_xref="CCDS:CCDS280.1"
+                     /db_xref="GeneID:79727"
+                     /db_xref="HGNC:HGNC:15986"
+                     /db_xref="HPRD:17278"
+                     /db_xref="MIM:611043"
+                     /protein_id="NP_078950.1"
+                     /translation="MGSVSNQQFAGGCAKAAEEAPEEAPEDAARAADEPQLLHGAGICK
+                     WFNVRMGFGFLSMTARAGVALDPPVDVFVHQSKLHMEGFRSLKEGEAVEFTFKKSAKGL
+                     ESIRVTGPGGVFCIGSERRPKGKSMQKRRSKGDRCYNCGGLDHHAKECKLPPQPKKCHF
+                     CQSISHMVASCPLKAQQGPSAQGKPTYFREEEEEIHSPTLLPEAQN"
+     misc_feature    128..130
+                     /gene="LIN28A"
+                     /gene_synonym="CSDD1; LIN-28; lin-28A; LIN28; ZCCHC1"
+                     /note="N-acetylglycine. {ECO:0000269|PubMed:21406692, 
+                     ECO:0000269|PubMed:22223895}; propagated from 
+                     UniProtKB/Swiss-Prot (Q9H9Z2.1); acetylation site"
+                     /experiment="experimental evidence, no additional details 
+                     recorded"
+     misc_feature    131..133
+                     /gene="LIN28A"
+                     /gene_synonym="CSDD1; LIN-28; lin-28A; LIN28; ZCCHC1"
+                     /note="Phosphoserine. {ECO:0000269|PubMed:21406692}; 
+                     propagated from UniProtKB/Swiss-Prot (Q9H9Z2.1); 
+                     phosphorylation site"
+                     /experiment="experimental evidence, no additional details 
+                     recorded"
+     exon            156..352
+                     /gene="LIN28A"
+                     /gene_synonym="CSDD1; LIN-28; lin-28A; LIN28; ZCCHC1"
+                     /inference="alignment:same species:2.0.8"
+     exon            353..537
+                     /gene="LIN28A"
+                     /gene_synonym="CSDD1; LIN-28; lin-28A; LIN28; ZCCHC1"
+                     /inference="alignment:same species:2.0.8"
+     misc_feature    461..532
+                     /gene="LIN28A"
+                     /gene_synonym="CSDD1; LIN-28; lin-28A; LIN28; ZCCHC1"
+                     /note="propagated from UniProtKB/Swiss-Prot (Q9H9Z2.1); 
+                     Region: Flexible linker"
+                     /experiment="experimental evidence, no additional details 
+                     recorded"
+     misc_feature    482..484
+                     /gene="LIN28A"
+                     /gene_synonym="CSDD1; LIN-28; lin-28A; LIN28; ZCCHC1"
+                     /note="Phosphoserine. {ECO:0000269|PubMed:21406692}; 
+                     propagated from UniProtKB/Swiss-Prot (Q9H9Z2.1); 
+                     phosphorylation site"
+                     /experiment="experimental evidence, no additional details 
+                     recorded"
+     exon            538..4024
+                     /gene="LIN28A"
+                     /gene_synonym="CSDD1; LIN-28; lin-28A; LIN28; ZCCHC1"
+                     /inference="alignment:same species:2.0.8"
+     misc_feature    722..724
+                     /gene="LIN28A"
+                     /gene_synonym="CSDD1; LIN-28; lin-28A; LIN28; ZCCHC1"
+                     /note="Phosphoserine. {ECO:0000269|PubMed:21406692}; 
+                     propagated from UniProtKB/Swiss-Prot (Q9H9Z2.1); 
+                     phosphorylation site"
+                     /experiment="experimental evidence, no additional details 
+                     recorded"
+     STS             815..963
+                     /gene="LIN28A"
+                     /gene_synonym="CSDD1; LIN-28; lin-28A; LIN28; ZCCHC1"
+                     /standard_name="Z94399"
+                     /note="Z94399"
+                     /db_xref="UniSTS:43808"
+     STS             2338..2592
+                     /gene="LIN28A"
+                     /gene_synonym="CSDD1; LIN-28; lin-28A; LIN28; ZCCHC1"
+                     /standard_name="D11S1085"
+                     /note="D11S1085"
+                     /db_xref="UniSTS:4587"
+     STS             2940..3025
+                     /gene="LIN28A"
+                     /gene_synonym="CSDD1; LIN-28; lin-28A; LIN28; ZCCHC1"
+                     /standard_name="D8S2279"
+                     /note="D8S2279"
+                     /db_xref="UniSTS:473907"
+     STS             2953..3064
+                     /gene="LIN28A"
+                     /gene_synonym="CSDD1; LIN-28; lin-28A; LIN28; ZCCHC1"
+                     /standard_name="D10S16"
+                     /note="D10S16"
+                     /db_xref="UniSTS:155756"
+     STS             3007..3111
+                     /gene="LIN28A"
+                     /gene_synonym="CSDD1; LIN-28; lin-28A; LIN28; ZCCHC1"
+                     /standard_name="D11S3114"
+                     /note="D11S3114"
+                     /db_xref="UniSTS:152207"
+     STS             3198..3417
+                     /gene="LIN28A"
+                     /gene_synonym="CSDD1; LIN-28; lin-28A; LIN28; ZCCHC1"
+                     /standard_name="D13S1553"
+                     /note="D13S1553"
+                     /db_xref="UniSTS:473482"
+     STS             3286..3376
+                     /gene="LIN28A"
+                     /gene_synonym="CSDD1; LIN-28; lin-28A; LIN28; ZCCHC1"
+                     /standard_name="D8S2279"
+                     /note="D8S2279"
+                     /db_xref="UniSTS:473907"
+     STS             3800..3975
+                     /gene="LIN28A"
+                     /gene_synonym="CSDD1; LIN-28; lin-28A; LIN28; ZCCHC1"
+                     /standard_name="RH66756"
+                     /note="RH66756"
+                     /db_xref="UniSTS:89576"
+     misc_feature    3995..4000
+                     /gene="LIN28A"
+                     /gene_synonym="CSDD1; LIN-28; lin-28A; LIN28; ZCCHC1"
+     polyA_site      4024
+                     /gene="LIN28A"
+                     /gene_synonym="CSDD1; LIN-28; lin-28A; LIN28; ZCCHC1"
+ORIGIN
+        1 caccgctatt gtgcggggga agatgtagca gcttcttctc cgaaccaacc ctttgccttc
+       61 ggacttctcc ggggccagca gccgcccgac caggggcccg gggccacggg ctcagccgac
+      121 gaccatgggc tccgtgtcca accagcagtt tgcaggtggc tgcgccaagg cggcagaaga
+      181 ggcgcccgag gaggcgccgg aggacgcggc ccgggcggcg gacgagcctc agctgctgca
+      241 cggtgcgggc atctgtaagt ggttcaacgt gcgcatgggg ttcggcttcc tgtccatgac
+      301 cgcccgcgcc ggggtcgcgc tcgacccccc agtggatgtc tttgtgcacc agagtaagct
+      361 gcacatggaa gggttccgga gcttgaagga gggtgaggca gtggagttca cctttaagaa
+      421 gtcagccaag ggtctggaat ccatccgtgt caccggacct ggtggagtat tctgtattgg
+      481 gagtgagagg cggccaaaag gaaagagcat gcagaagcgc agatcaaaag gagacaggtg
+      541 ctacaactgt ggaggtctag atcatcatgc caaggaatgc aagctgccac cccagcccaa
+      601 gaagtgccac ttctgccaga gcatcagcca tatggtagcc tcatgtccgc tgaaggccca
+      661 gcagggccct agtgcacagg gaaagccaac ctactttcga gaggaagaag aagaaatcca
+      721 cagccctacc ctgctcccgg aggcacagaa ttgagccaca atgggtgggg gctattcttt
+      781 tgctatcagg aagttttgag gagcaggcag agtggagaaa gtgggaatag ggtgcattgg
+      841 ggctagttgg cactgccatg tatctcaggc ttgggttcac accatcaccc tttcttccct
+      901 ctaggtgggg ggaaagggtg agtcaaagga actccaacca tgctctgtcc aaatgcaagt
+      961 gagggttctg ggggcaacca ggagggggga atcaccctac aacctgcata ctttgagtct
+     1021 ccatccccag aatttccagc ttttgaaagt ggcctggata gggaagttgt tttcctttta
+     1081 aagaaggata tataataatt cccatgccag agtgaaatga ttaagtataa gaccagattc
+     1141 atggagccaa gccactacat tctgtggaag gagatctctc aggagtaagc attgtttttt
+     1201 tttcacatct tgtatcctca tacccacttt tgggataggg tgctggcagc tgtcccaagc
+     1261 aatgggtaat gatgatggca aaaagggtgt ttgggggaac agctgcagac ctgctgctct
+     1321 atgctcaccc ccgccccatt ctgggccaat gtgattttat ttatttgctc ccttggatac
+     1381 tgcaccttgg gtcccacttt ctccaggatg ccaactgcac tagctgtgtg cgaatgacgt
+     1441 atcttgtgca ttttaacttt ttttccttaa tataaatatt ctggttttgt atttttgtat
+     1501 attttaatct aaggccctca tttcctgcac tgtgttctca ggtacatgag caatctcagg
+     1561 gatagccagc agcagctcca ggtctgcgca gcaggaatta ctttttgttg tttttgccac
+     1621 cgtggagagc aactatttgg agtgcacagc ctattgaact acctcatttt tgccaataag
+     1681 agctggcttt tctgccatag tgtcctcttg aaaccccctc tgccttgaaa atgttttatg
+     1741 ggagactagg ttttaactgg gtggccccat gacttgattg ccttctactg gaagattggg
+     1801 aattagtcta aacaggaaat ggtggtacac agaggctagg agaggctggg cccggtgaaa
+     1861 aggccagaga gcaagccaag attaggtgag ggttgtctaa tcctatggca caggacgtgc
+     1921 tttacatctc cagatctgtt cttcaccaga ttaggttagg cctaccatgt gccacagggt
+     1981 gtgtgtgtgt ttgtaaaact agagttgcta aggataagtt taaagaccaa tacccctgta
+     2041 cttaatcctg tgctgtcgag ggatggatat atgaagtaag gtgagatcct taacctttca
+     2101 aaattttcgg gttccaggga gacacacaag cgagggtttt gtggtgcctg gagcctgtgt
+     2161 cctgccctgc tacagtagtg attaatagtg tcatggtagc taaaggagaa aaagggggtt
+     2221 tcgtttacac gctgtgagat caccgcaaac ctaccttact gtgttgaaac gggacaaatg
+     2281 caatagaacg cattgggtgg tgtgtgtctg atcctgggtt cttgtctccc ctaaatgctg
+     2341 ccccccaagt tactgtattt gtctgggctt tgtaggactt cactacgttg attgctaggt
+     2401 ggcctagttt gtgtaaatat aatgtattgg tctttctccg tgttctttgg gggttttgtt
+     2461 tacaaacttc tttttgtatt gagagaaaaa tagccaaagc atctttgaca gaaggttctg
+     2521 caccaggcaa aaagatctga aacattagtt tggggggccc tcttcttaaa gtggggatct
+     2581 tgaaccatcc tttcttttgt attccccttc ccctattacc tattagacca gatcttctgt
+     2641 cctaaaaact tgtcttctac cctgccctct tttctgttca cccccaaaag aaaacttaca
+     2701 cacccacaca catacacatt tcatgcttgg agtgtctcca caactcttaa atgatgtatg
+     2761 caaaaatact gaagctagga aaaccctcca tcccttgttc ccaacctcct aagtcaagac
+     2821 cattaccatt tctttctttc tttttttttt ttttttaaaa tggagtctca ctgtgtcacc
+     2881 caggctggag tgcagtggca tgatcggctc actgcagcct ctgcctcttg ggttcaagtg
+     2941 attctcctgc ctcagcctcc tgagtagctg ggatttcagg cacccgccac actcagctaa
+     3001 tttttgtatt tttagtagag acggggtttc accatgttgt ccaggctggt ctggaactcc
+     3061 tgacctcagg tgatctgccc accttggctt cccaaagtgc tgggattaca ggcatgagcc
+     3121 accatgctgg gccaaccatt tcttggtgta ttcatgccaa acacttaaga cactgctgta
+     3181 gcccaggcgc ggtggctcac acctgtaatc ccagcacttt ggaaggctga ggcgggcgga
+     3241 tcacaaggtc acgagttcaa aactatcctg gccaacacag tgaaaccccg tctctactaa
+     3301 aatacaaaaa aattagccgg gtgtggtggt gcatgccttt agtcctagct attcaggagg
+     3361 ctgaggcagg ggaatcgctt gaacccgaga ggcagaggtt gcagtgagct gagatcgcac
+     3421 cactgcactc cagcctggtt acagagcaag actctgtctc aaacaaaaca aaacaaaaca
+     3481 aaaacacact actgtatttt ggatggatca aacctcctta attttaattt ctaatcctaa
+     3541 agtaaagaga tgcaattggg ggccttccat gtagaaagtg gggtcaggag gccaagaaag
+     3601 ggaatatgaa tgtatatcca agtcactcag gaacttttat gcaggtgcta gaaactttat
+     3661 gtcaaagtgg ccacaagatt gtttaatagg agacgaacga atgtaactcc atgtttactg
+     3721 ctaaaaacca aagctttgtg taaaatcttg aatttatggg gcgggagggt aggaaagcct
+     3781 gtacctgtct gtttttttcc tgatcctttt ccctcattcc tgaactgcag gagactgagc
+     3841 ccctttgggc tttggtgacc ccatcactgg ggtgtgttta tttgatggtt gattttgctg
+     3901 tactgggtac ttcctttccc attttctaat cattttttaa cacaagctga ctcttccctt
+     3961 cccttctcct ttccctggga aaatacaatg aataaataaa gacttattgg tacgcaaact
+     4021 gtca
+//
