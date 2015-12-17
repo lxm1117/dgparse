@@ -10,8 +10,16 @@ logger = logging.getLogger(__name__)
 
 def parse_coord(coord):
     """Parse the coordinates"""
-    coord_dict = {'strand': -1 if "complement" in coord else 1}
-    start, end = map(int, coord.strip('complement()\r\n').split('..')) # !! operator syntax is more extensive see http://www.ddbj.nig.ac.jp/FT/full_index.html#3.4
+    # For full syntax see http://www.ddbj.nig.ac.jp/FT/full_index.html#3.4
+    # Suffice here to parse the max and min values
+    coord_dict = {'strand': -1 if "complement" in coord else 1}    
+    start = None
+    end = None
+    for pos in re.findall(r'\d+', coord):
+        if start is None or int(pos) < start:
+            start = int(pos)
+        if end is None or int(pos) > end:
+            end = int(pos)
     start -= 1 # convert from [1,n] to pythonic [0,n) coordinate system
     coord_dict.update({'start': start, 'end': end})
     if (end - start) < 1:
@@ -19,61 +27,32 @@ def parse_coord(coord):
     return coord_dict
 
 
-def recurse_qualifier(line, lines, feature, qualifier):
-    break_conditions = (
-        any(map(lambda H: H in line, GENBANK_HEADERS)),  # next header
-        any(map(lambda F: F in line, FEATURE_TYPES)),  # next feature
-    )
-    if any(break_conditions):
-        return line, lines, feature
-    if bool(re.match(r'^/\w+=', line.strip())):  # next qualifier
-        return recurse_feature(line, lines, feature)
-    else:
-        feature[qualifier] = ' '.join([feature[qualifier],
-                                       line.strip(' "\r\n')])
-    return recurse_qualifier(next(lines), lines, feature, qualifier)
-
-
-def recurse_feature(line, lines, feature):
-    'Handle blank lines in features, manage qualifier parsing'
-    tokens = line.strip().split()
-    if not tokens:
-        return recurse_feature(next(lines), lines, feature)
-    qualifier_match = re.match(r'^(/\w+=)', line.strip())
-    if qualifier_match:
-        qualifier_key = qualifier_match.group(0)
-        if qualifier_key not in FEATURE_QUALIFIERS:
-            logger.info("Qualifier '{0}' not recognised".format(qualifier_key))
-        qualifier = qualifier_key.strip('/=')
-        qualifier_value = line.split('=')[-1].strip('"\r\n')
-        # Don't lose info on the double-note case
-        if qualifier == 'note' and 'note' in feature:
-            # rename the first note to the label, so it get's mapped to name
-            feature['label'] = feature['note']
-            # the new note takes the 'note' attribute
-            feature['note'] = qualifier_value
-        else:
-            feature.update({qualifier: qualifier_value})
-        return recurse_qualifier(next(lines), lines, feature, qualifier)
-    return line, lines, feature
-
-
 def recurse_features(line, lines, out):
     'Handle blank lines, manage feature parsing'
     tokens = line.strip().split()
-    if not tokens:
-        return recurse_features(next(lines), lines, out)
     if tokens[0] in GENBANK_HEADERS:
         return line, lines, out
-    if len(tokens) == 1:  # Throw it away
-        return recurse_features(next(lines), lines, out)
-    if tokens[0].lower() not in map(string.lower, FEATURE_TYPES):
-        return line, lines, out
-    feature = {'category': tokens[0]}
-    try:
-        feature.update(parse_coord(tokens[1]))
-    except:
-        return recurse_features(next(lines), lines, out)
-    line, lines, feature = recurse_feature(next(lines), lines, feature)
-    out['features'].append(feature)
-    return recurse_features(line, lines, out)
+    # Offsets per http://www.ddbj.nig.ac.jp/FT/full_index.html#3.4
+    feature_key = line[5:20].strip()
+    feature_content = line[21:].strip()
+    qualifier_match = re.match(r'/(\w+)=\"(.*)', feature_content)
+    if feature_key:
+        # New feature, instantiate, initialize qualifier, append
+        out['features'].append({'category': feature_key})
+        out['features'][-1].update(parse_coord(feature_content))
+        if feature_key not in FEATURE_TYPES:
+            logger.info("Feature '{0}' not recognised".format(feature_key))
+    elif qualifier_match:
+        # New qualifier, initialize and append
+        qualifier_key = qualifier_match.group(1)
+        qualifier_val = qualifier_match.group(2).rstrip('"')
+        out['features'][-1].update({qualifier_key: qualifier_val})
+        if qualifier_key not in FEATURE_QUALIFIERS:
+            logger.info("Qualifier '{0}' not recognised".format(qualifier_key))
+        # Assign first qualifier as default feature name
+        if 'name' not in out['features'][-1]:
+            out['features'][-1].update({'name': qualifier_val})
+    else:
+        pass
+        # Multiline qualifier, ignore remainder
+    return recurse_features(next(lines), lines, out)
