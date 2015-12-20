@@ -159,3 +159,19 @@ def test_parse_single_base_coordinate():
             assert len(data['dnafeatures']) == 1
             annotation = data['dnafeatures'][0]
             assert annotation['dnafeature']['length'] == 1
+
+
+def test_feature_spans_plasmid_coordinate_origin():
+    """Can parse feature spanning the origin of plasmid circular coordinate system"""
+
+    test_data_path = os.path.join(os.path.dirname(__file__), '../../data/genbank/span_circular.gb')
+    with open(test_data_path, 'rb') as input_fh:
+        ret = genbank.parse(input_fh)
+        for data in ret if isinstance(ret, list) else [ret]:
+            assert data['locus']
+            assert len(data['dnafeatures']) == 1
+            annotation = data['dnafeatures'][0]
+            assert annotation['dnafeature']['length'] == 20
+            assert int(annotation['start']) == 20
+            assert int(annotation['end']) == 10
+            assert annotation['dnafeature']['pattern']['bases'] == 'GGGGGGGGGGAAAAAAAAAA'
