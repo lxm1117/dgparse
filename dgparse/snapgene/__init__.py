@@ -76,6 +76,8 @@ def extract_annotation(sequence, is_circular, annotation_data):
     elif is_circular:
         # Feature spans replication origin
         bases = sequence['bases'][start:] + sequence['bases'][:end]
+    if not bases:
+        raise ParserException('No bases could be parsed for a feature')
     if strand < 0:
         bases = sequtils.get_reverse_complement(bases)
     dnafeature = extract_feature(annotation_data, bases)

@@ -68,6 +68,8 @@ def parse(open_file):
             # Feature spans replication origin
             bases = result['sequence']['bases'][annotation['start']:] + \
                     result['sequence']['bases'][:annotation['end']]
+        if not bases:
+            raise ParserException('No bases could be parsed for a feature')
         if annotation['strand'] < 0:
             bases = sequtils.get_reverse_complement(bases) # assumed pythonic coordinates
         annotation['dnafeature'] = {

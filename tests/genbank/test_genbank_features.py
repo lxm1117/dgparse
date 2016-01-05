@@ -8,7 +8,7 @@ import io
 import csv
 import pytest
 
-from dgparse import genbank
+from dgparse import genbank, exc
 
 @pytest.mark.parametrize("file_name,expected_feature_count", [
     ('01-lentiCRISPRv2-add.gb', 19),
@@ -175,3 +175,11 @@ def test_feature_spans_plasmid_coordinate_origin():
             assert int(annotation['start']) == 20
             assert int(annotation['end']) == 10
             assert annotation['dnafeature']['pattern']['bases'] == 'GGGGGGGGGGAAAAAAAAAA'
+
+
+def test_parse_invalid_coordinate():
+    """Can parse feature coordinates which are only one base long"""
+
+    test_data_path = os.path.join(os.path.dirname(__file__), '../../data/genbank/invalid_feature_coordinates.gb')
+    with open(test_data_path, 'rb') as input_fh:
+        pytest.raises(exc.ParserException, genbank.parse, input_fh)
