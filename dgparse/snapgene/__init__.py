@@ -64,14 +64,20 @@ def extract_coordinates(annotation_data):
     return start, end, strand
 
 
-def extract_annotation(sequence, annotation_data):
+def extract_annotation(sequence, is_circular, annotation_data):
     """
     Extract the list of annotated features in this sequence
     :return:
     """
     # TODO this object will also need properties to store formatting info
     start, end, strand = extract_coordinates(annotation_data)
-    bases = sequence['bases'][start:end]
+    if start < end:
+        bases = sequence['bases'][start:end]
+    elif is_circular:
+        # Feature spans replication origin
+        bases = sequence['bases'][start:] + sequence['bases'][:end]
+    if not bases:
+        raise ParserException('No bases could be parsed for a feature')
     if strand < 0:
         bases = sequtils.get_reverse_complement(bases)
     dnafeature = extract_feature(annotation_data, bases)
@@ -84,6 +90,13 @@ def extract_annotation(sequence, annotation_data):
     }
 
 
+def drop_source(annotation_dict):
+    dnafeature = annotation_dict.get('dnafeature', None)
+    if dnafeature:
+        if dnafeature.get('category') != 'source':
+            return True
+
+
 def extract_molecule(molecule):
     """
     Extract the DNA molecule own data
@@ -92,9 +105,10 @@ def extract_molecule(molecule):
     """
     is_circular = (molecule['DNA'].pop('topology') == 'circular')
     sequence = extract_sequence(molecule)
-    extractor = functools.partial(extract_annotation, sequence)
+    extractor = functools.partial(extract_annotation, sequence, is_circular)
     feature_array = molecule.pop('features', [])
     annotations = map(extractor, feature_array) if feature_array else []
+    annotations = filter(drop_source, annotations) 
     description = molecule.pop('descriptor').get('name', None)
     properties = molecule.pop('notes')
     more_props = molecule.pop('other_properties')

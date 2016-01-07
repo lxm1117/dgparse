@@ -49,6 +49,10 @@ def parse(open_file):
             'sha1': hashlib.sha1(bases).hexdigest(),
         }
     })
+    try:
+        result['is_circular'] = result['locus']['orientation']
+    except KeyError:
+        raise ParserException('No orientation could be parsed')
     result['dnafeatures'] = list() # a list of dnafeature annotations
     features = result.get('features', {}) # TODO: pop this, replaced by 'dnafeatures'
     features = filter(drop_source, features) 
@@ -58,8 +62,14 @@ def parse(open_file):
         annotation = dict()
         for key in 'start', 'end', 'strand':
             annotation[key] = unpack.pop(key)
-        bases = result['sequence']['bases'][
-            annotation['start']:annotation['end']]
+        if annotation['start'] < annotation['end']:
+            bases = result['sequence']['bases'][annotation['start']:annotation['end']]
+        elif result['is_circular']:
+            # Feature spans replication origin
+            bases = result['sequence']['bases'][annotation['start']:] + \
+                    result['sequence']['bases'][:annotation['end']]
+        if not bases:
+            raise ParserException('No bases could be parsed for a feature')
         if annotation['strand'] < 0:
             bases = sequtils.get_reverse_complement(bases) # assumed pythonic coordinates
         annotation['dnafeature'] = {

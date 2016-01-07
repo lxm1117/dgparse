@@ -11,19 +11,20 @@ logger = logging.getLogger(__name__)
 def parse_coord(coord):
     """Parse the coordinates"""
     # For full syntax see http://www.ddbj.nig.ac.jp/FT/full_index.html#3.4
-    # Suffice here to parse the max and min values
+    # Suffice here to parse the first and last values
     coord_dict = {'strand': -1 if "complement" in coord else 1}    
     start = None
     end = None
     for pos in re.findall(r'\d+', coord):
-        if start is None or int(pos) < start:
+        if start is None:
             start = int(pos)
-        if end is None or int(pos) > end:
-            end = int(pos)
+        end = int(pos)
+    # Note start > end and even start == end is possible for features which 
+    # span the origin of a plasmid circular coordinate system
+    if start == None or end == None:
+        raise NullCoordinates
     start -= 1 # convert from [1,n] to pythonic [0,n) coordinate system
     coord_dict.update({'start': start, 'end': end})
-    if (end - start) < 1:
-        raise NullCoordinates
     return coord_dict
 
 
@@ -46,7 +47,8 @@ def recurse_features(line, lines, out):
         # New qualifier, initialize and append
         qualifier_key = qualifier_match.group(1)
         qualifier_val = qualifier_match.group(2).rstrip('"')
-        out['features'][-1].update({qualifier_key: qualifier_val})
+        if qualifier_key not in out['features'][-1]:
+            out['features'][-1].update({qualifier_key: qualifier_val})
         if qualifier_key not in FEATURE_QUALIFIERS:
             logger.info("Qualifier '{0}' not recognised".format(qualifier_key))
         # Assign first qualifier as default feature name
