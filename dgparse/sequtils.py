@@ -141,3 +141,12 @@ rev_comp = get_reverse_complement
 comp = get_complement
 
 
+def dotsetter(tokens, value, result):
+    """Set an attribute in a nested JSON blob"""
+    key = tokens.pop()
+    if tokens:
+        if key not in result:
+            result[key] = dict()
+        dotsetter(tokens, value, result[key])
+    else:
+        result.update({key: value})

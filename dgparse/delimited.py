@@ -8,17 +8,7 @@ import csv
 import os
 import functools
 
-
-
-def dotsetter(tokens, value, result):
-    """Set an attribute in a nested JSON blob"""
-    key = tokens.pop()
-    if tokens:
-        if key not in result:
-            result[key] = dict()
-        dotsetter(tokens, value, result[key])
-    else:
-        result.update({key: value})
+from .sequtils import dotsetter
 
 
 def clean_record(basename, record):

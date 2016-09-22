@@ -9,6 +9,8 @@ import logging
 
 import openpyxl
 
+from .sequtils import dotsetter
+
 log = logging.getLogger(__file__)
 
 
@@ -28,11 +30,9 @@ def row_to_dict(headers, constants, row_data):
         else:
             continue
         if '.' in key:
-            parent_key, child_key = key.split('.')
-            if parent_key in record:
-                record[parent_key].update({child_key: value})
-            else:
-                record[parent_key] = {child_key: value}
+            tokens = key.split('.')
+            tokens.reverse()
+            dotsetter(tokens, value, record)
         else:
             record[key] = value
     return record
@@ -44,7 +44,7 @@ def parse(open_file):
     sheets = wbook.get_sheet_names()  # get the types of records included
     for sheet in sheets:
         wsheet = wbook[sheet]  # name of sheet is always the record type
-        if not wsheet.rows or len(wsheet.rows) == 0:
+        if not wsheet.rows or wsheet.max_row < 1:
             continue
         headers = wsheet.rows[0]  # always the attributes
         record_factory = partial(row_to_dict, headers, {})  # no constants yet

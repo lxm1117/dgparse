@@ -27,9 +27,12 @@ def test_sequence_schema(name, bases_in, bases_out, expected_errs, expected_mods
     }
     validator = schema.DnaOligoSchema()
     loaded, errors = validator.load(raw)
-    print loaded
-    print errors
     json.dumps(loaded, indent=4)
     assert errors == expected_errs
     assert loaded['modifications'] == expected_mods
-    assert loaded['sequence']['bases'] == bases_out
+    if not expected_errs:
+        # In marshmallow 2.9.1 erroneous fields are NOT returned
+        # This should have always been the case.
+        # Therefore the original data not the validated object should be inspected
+        # for errors.
+        assert loaded['sequence']['bases'] == bases_out

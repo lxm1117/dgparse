@@ -55,7 +55,7 @@ class SequenceSchema(Schema):
         if hit:
             msg = "Non-IUPAC DNA base found at {0}".format(hit.regs[0][0])
             raise exc.IllegalCharacter(msg)
-
+        return obj
 
 class PatternSchema(SequenceSchema):
     """
