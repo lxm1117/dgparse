@@ -12,8 +12,9 @@ Only attributes which are of general **END USER** interest should be shown here.
 Implementation should be hidden.
 
 Also, these Objects are essentially descriptive in nature. They don't actually
-do the heavy lifting of storage. Instead a shared unmarshall (constructor) method
-is called that returns a dictionary (or optionally dictionary-like) data structure.
+do the heavy lifting of storage. Instead a shared unmarshall (constructor)
+method is called that returns a dictionary (or optionally dictionary-like) data
+structure.
 
 Ultimately this module should be automatically generated from the backend
 Schema.
@@ -23,7 +24,7 @@ import re
 from marshmallow import Schema, fields, pre_load, validates, pre_dump
 
 from dgparse import exc
-from dgparse.sequtils import NOT_UNAMBIG_DNA, NOT_DNA, AMBIG_CHAR, compute_sha1, MOD_CHAR
+from dgparse.sequtils import NOT_UNAMBIG_DNA, NOT_DNA, compute_sha1, MOD_CHAR
 # Start with the primitives and simple elements then build up
 
 class SequenceSchema(Schema):
@@ -35,7 +36,7 @@ class SequenceSchema(Schema):
     altered provided the same interface is supported.
     """
     sha1 = fields.String(load_only=True)
-    alphabet = fields.String(default=b'ACGT', load_only=True)  # Must be in lexographic order
+    alphabet = fields.String(default=b'ACGT', load_only=True)  # Must be in lexographic order  NOQA
     bases = fields.String()  # really a property
 
     @pre_load
@@ -85,14 +86,6 @@ class BaseUserSchema(Schema):
     email = fields.Email()
 
 
-class RepositorySchema(Schema):
-    """
-    Represents a collection of biological objects either in vitro, such as
-    an Inventory or in vivo such as a Genome
-    """
-    name = fields.String(required=True)
-
-
 class CoordinatesSchema(Schema):
     """
     Absolute Coordinates in a molecule
@@ -101,7 +94,7 @@ class CoordinatesSchema(Schema):
     strand = fields.Integer(required=True)
 
 
-class BaseRepositoryItemSchema(Schema):
+class BaseRecordSchema(Schema):
     """Base Inventory Item Class that defines attributes present on all
     repository items.
     The User is always assumed to be the current user writing or running the
@@ -112,8 +105,7 @@ class BaseRepositoryItemSchema(Schema):
     modified = fields.String()
     category = fields.String()  # the "Type"
     name = fields.String(required=True)
-    repository = fields.Nested(RepositorySchema)  # defines sha1 namespace
-    description = fields.String(allow_none=True)
+    description = fields.String(required=False)
     notes = fields.String(required=False, allow_none=True)
     properties = fields.Raw()  # General Key Value Store
 
@@ -150,7 +142,7 @@ class BaseRepositoryItemSchema(Schema):
                 obj['properties'][key] = obj.pop(key)
 
 
-class BaseRepositoryFileSchema(BaseRepositoryItemSchema):
+class BaseRepositoryFileSchema(BaseRecordSchema):
     """
     The Source files uploaded for various items.
     """
@@ -170,7 +162,7 @@ class SequencingReadFile(BaseRepositoryFileSchema):
     molecule_accession = fields.String(required=True)  # pseudo fkey back to molecule
 
 
-class BaseAnnotationSchema(BaseRepositoryItemSchema):
+class BaseAnnotationSchema(BaseRecordSchema):
     """
     Represents an annotation of a region of a molecule, something that has
     coordinates in a molecule.
@@ -187,7 +179,7 @@ class BaseAnnotationSchema(BaseRepositoryItemSchema):
     sequence = fields.Nested(SequenceSchema)
 
 
-class BaseMoleculeSchema(BaseRepositoryItemSchema):
+class BaseMoleculeSchema(BaseRecordSchema):
     """
     Represents the record of some sort of biologically important Molecule.
     """
@@ -440,7 +432,7 @@ class ExonSchema(BaseAnnotationSchema):
     """
 
 
-class PolypeptideSchema(BaseRepositoryItemSchema):
+class PolypeptideSchema(BaseRecordSchema):
     """
     Represents a protein
     """
@@ -452,7 +444,7 @@ class NucleaseSchema(PolypeptideSchema):
     """
 
 
-class BaseCutSiteSchema(BaseRepositoryItemSchema):
+class BaseCutSiteSchema(BaseRecordSchema):
     """
     The target of a nuclease is the cut site
     """
@@ -484,7 +476,7 @@ class GuideRnaCutSchema(BaseCutSiteSchema):
     gc_region = None
 
 
-class BaseFeatureSchema(BaseRepositoryItemSchema):
+class BaseFeatureSchema(BaseRecordSchema):
     """
     The basic definition of a biological part, a functional unit of a molecule.
     """
@@ -524,7 +516,7 @@ class DnaFeatureSchema(BaseFeatureSchema):
         return data
 
 
-class BaseDesignSchema(BaseRepositoryItemSchema):
+class BaseDesignSchema(BaseRecordSchema):
     """
     A category of DNAMolecule that has not yet by physically constructed.
     These are used to represent the goal molecule of a genome editing or cloning
@@ -569,14 +561,14 @@ class BaseRestrictionEnzymeSchema(NucleaseSchema):
     """
 
 
-class BaseExperimentItemSchema(BaseRepositoryItemSchema):
+class BaseExperimentItemSchema(BaseRecordSchema):
     """
     A step in a magical laboratory quest.
     """
     objects = fields.Raw()
 
 
-class BaseExperimentSchema(BaseRepositoryItemSchema):
+class BaseExperimentSchema(BaseRecordSchema):
     """
     A magical laboratory quest.
     """
