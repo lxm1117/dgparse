@@ -46,10 +46,10 @@ def parse(open_file):
         wsheet = wbook[sheet]  # name of sheet is always the record type
         if not wsheet.rows or wsheet.max_row < 1:
             continue
-        headers = wsheet.rows[0]  # always the attributes
+        headers = wsheet[1]  # always the attributes
         record_factory = partial(row_to_dict, headers, {})  # no constants yet
         # This is dumb, but simpler than the broken comprehension
-        for row in wsheet.rows[1:]:
+        for row in wsheet.iter_rows(min_row=2):
             if row:
                 record = record_factory(row)
                 if record:
