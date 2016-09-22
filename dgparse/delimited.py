@@ -8,19 +8,33 @@ import csv
 import os
 import functools
 
+
+
+def dotsetter(tokens, value, result):
+    """Set an attribute in a nested JSON blob"""
+    key = tokens.pop()
+    if tokens:
+        if key not in result:
+            result[key] = dict()
+        dotsetter(tokens, value, result[key])
+    else:
+        result.update({key: value})
+
+
 def clean_record(basename, record):
+    """Clean the extracted record and nest fields"""
     result = {'__class__': basename.split('.')[0]}
     for key, value in record.iteritems():
         value = '' if value is None else value
+        value = True if value in {'True', 'true', 'TRUE'} else value
+        value = False if value in {'False', 'false', 'FALSE'} else value
         if key is '':
             msg = "{0} contains a NonRecord Entry {1}".format(basename, record)
             result['ERROR'] = msg
         if '.' in key:
-            parent_attr, child_attr = key.split('.')
-            if parent_attr in result:
-                result[parent_attr][child_attr] = value
-            else:
-                result[parent_attr] = {child_attr: value}
+            tokens = key.split('.')
+            tokens.reverse()  # we pop tokens so this is critical
+            dotsetter(tokens, value, result)
         else:
             result[key] = value
     return result
