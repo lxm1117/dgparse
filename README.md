@@ -1,4 +1,4 @@
-Desktop Genetics Parsing Library
+Desktop Genetics Parsing Library  [![Build Status](https://travis-ci.org/DeskGen/dgparse.svg?branch=master)](https://travis-ci.org/DeskGen/dgparse)
 ================================
 
 So many file formats, so little time
