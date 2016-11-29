@@ -11,7 +11,8 @@ from dgparse import excel
 
 @pytest.fixture(params=[
     '../data/excel/oligos.xlsx',
-    '../data/excel/primers.xlsx'
+    '../data/excel/primers.xlsx',
+    'testdata/int-valued-column.xlsx'
 ])
 def record_buffer(request):
     """Contains an OPEN test file or buffer"""
