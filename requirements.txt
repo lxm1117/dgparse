@@ -1,3 +1,3 @@
 pytest
--e openpyxl>=2.4
+openpyxl>=2.4
 marshmallow>=2.0.0b4
