@@ -8,7 +8,7 @@ setup(
     install_requires=[
         'pytest',
         'click',
-        'openpyxl',
+        'openpyxl>=2.4.0',
         'xlsxwriter',
         'marshmallow>=2.0.0b4',
     ],
