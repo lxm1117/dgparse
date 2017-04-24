@@ -240,7 +240,7 @@ class DnaPlasmidSchema(DnaMoleculeSchema):
     """
     is_available = fields.Bool(load_only=True)
     category = fields.String(default='plasmid')
-    is_circular = fields.Boolean(True)
+    is_circular = fields.Boolean(default=True)
     integration_locus = fields.String()
     carrier_strain = fields.String()
     dnamoleculefile = fields.Nested(DnaMoleculeFileSchema, dump_only=True)
@@ -297,7 +297,7 @@ class DnaOligoSchema(DnaMoleculeSchema):
     """
     #sha1 must start with o
     external_identifier = fields.String(load_only=True)
-    is_circular = fields.Boolean(False, load_only=True)  # for now
+    is_circular = fields.Boolean(default=False, load_only=True)  # for now
     strand_count = fields.Integer(default=1, load_only=True)
     concentration_units = fields.String(default=u'uM', load_only=True)
     t_melt = fields.Float(load_only=True)
@@ -384,7 +384,7 @@ class DnaPrimerSchema(DnaOligoSchema):
     """
     A DNA Oligo that is used to prime a PCR reaction.
     """
-    is_circular = fields.Boolean(False)
+    is_circular = fields.Boolean(default=False)
     strand_count = fields.Integer(default=1)
     concentration_units = fields.String(default=u'uM')
     tm_method = fields.String(default='Primer3')
