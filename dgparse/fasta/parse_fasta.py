@@ -6,8 +6,6 @@ import hashlib
 import logging
 
 
-from exceptions import UnicodeDecodeError
-from exceptions import TypeError
 from dgparse.sequtils import DNA_CHAR
 from dgparse.sequtils import NOT_DNA
 
@@ -53,13 +51,13 @@ def parse_fasta_str(fasta_str, default={}):
                 # Should we use SeqRecord default for no ID?
                 name = u"Plasmid"
                 if count > 0:
-                    name = name + "-" + unicode(count)
+                    name = name + u"-" + unicode(count)
                 count += 1
-            seqrec['name'] = name
+            seqrec[u'name'] = name
             records[line] = seqrec  # index by header line
             current_header = line
         elif line and (line[0] in DNA_CHAR):
-            clean_line = line.strip('{}/ \n\\')
+            clean_line = line.strip(u'{}/ \n\\')
             if not current_header:
                 message = ('This file does not containa valid FASTA header '
                            'line. Please include >Name on the first line of '

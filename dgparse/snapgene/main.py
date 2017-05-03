@@ -220,5 +220,5 @@ def main():
     with open(args.SnapGeneFile, "r") as f:
         mySnapgene = parse_snapgene(f)
 
-    print json.dumps(mySnapgene, sort_keys=True, indent=4,
-                     separators=(',', ': '))
+    print(json.dumps(mySnapgene, sort_keys=True, indent=4,
+                     separators=(',', ': ')))

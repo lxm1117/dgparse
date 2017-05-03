@@ -57,7 +57,6 @@ def parse(open_file):
     features = result.get('features', {}) # TODO: pop this, replaced by 'dnafeatures'
     features = filter(drop_source, features) 
     for feature in features:
-        print "Feature %s"%(feature)
         unpack = copy.deepcopy(feature)
         annotation = dict()
         for key in 'start', 'end', 'strand':

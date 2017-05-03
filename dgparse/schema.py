@@ -19,12 +19,13 @@ structure.
 Ultimately this module should be automatically generated from the backend
 Schema.
 """
+import datetime
 import json
 import re
 from marshmallow import Schema, fields, pre_load, validates, pre_dump
 
 from dgparse import exc
-from dgparse.sequtils import NOT_UNAMBIG_DNA, NOT_DNA, compute_sha1, MOD_CHAR
+from dgparse.sequtils import NOT_DNA, compute_sha1, MOD_CHAR
 # Start with the primitives and simple elements then build up
 
 class SequenceSchema(Schema):
@@ -35,6 +36,8 @@ class SequenceSchema(Schema):
     Sequence is a child attribute so the underlying implementation may be
     altered provided the same interface is supported.
     """
+    key = fields.String(required=False)
+    length = fields.Integer(required=False)
     sha1 = fields.String(load_only=True)
     alphabet = fields.String(default=b'ACGT', load_only=True)  # Must be in lexographic order  NOQA
     bases = fields.String()  # really a property
@@ -240,7 +243,7 @@ class DnaPlasmidSchema(DnaMoleculeSchema):
     """
     is_available = fields.Bool(load_only=True)
     category = fields.String(default='plasmid')
-    is_circular = fields.Boolean(True)
+    is_circular = fields.Boolean(default=True)
     integration_locus = fields.String()
     carrier_strain = fields.String()
     dnamoleculefile = fields.Nested(DnaMoleculeFileSchema, dump_only=True)
@@ -297,7 +300,7 @@ class DnaOligoSchema(DnaMoleculeSchema):
     """
     #sha1 must start with o
     external_identifier = fields.String(load_only=True)
-    is_circular = fields.Boolean(False, load_only=True)  # for now
+    is_circular = fields.Boolean(default=False, load_only=True)  # for now
     strand_count = fields.Integer(default=1, load_only=True)
     concentration_units = fields.String(default=u'uM', load_only=True)
     t_melt = fields.Float(load_only=True)
@@ -384,7 +387,7 @@ class DnaPrimerSchema(DnaOligoSchema):
     """
     A DNA Oligo that is used to prime a PCR reaction.
     """
-    is_circular = fields.Boolean(False)
+    is_circular = fields.Boolean(default=False)
     strand_count = fields.Integer(default=1)
     concentration_units = fields.String(default=u'uM')
     tm_method = fields.String(default='Primer3')
@@ -573,3 +576,99 @@ class BaseExperimentSchema(BaseRecordSchema):
     A magical laboratory quest.
     """
     items = fields.Nested(BaseExperimentItemSchema, many=True)
+
+
+class EntityAttributeSchema(Schema):
+    """Base classe for db entities.
+    defines core fields of all attribute types
+    entity_id references the parent entity
+    rank integer rank among peer attributes of this type use
+    for sorting and consistent ordering
+    key the lable given to a particular instance of an attribute
+    """
+    rank = fields.Integer(default=0)
+    key = fields.String(nullable=False)
+
+
+class RelationSchema(Schema):
+    """Stores an edge in the entity graph"""
+    url = fields.String(nullable=False)
+    subject_url = fields.String()
+    key = fields.String(nullable=False)
+    predicate = fields.Raw()
+    object_url = fields.String()
+
+class PropertySchema(EntityAttributeSchema):
+    """
+    A Property of a Entity. Used to store JSON values.
+    """
+    value = fields.Raw()
+
+
+class LabelSchema(EntityAttributeSchema):
+    """Stores simple strings about an entity"""
+    value = fields.String()
+
+
+class MeasureSchema(EntityAttributeSchema):
+    """Stores numerical data about an entity"""
+    value = fields.Float(nullable=False)
+    units = fields.String()
+    method = fields.Raw()
+    fmt = fields.String()
+
+
+class EventSchema(EntityAttributeSchema):
+    """Stores arbitrary events"""
+    datetime = fields.DateTime(default=datetime.datetime.utcnow)
+    payload = fields.Raw(nullable=True)
+
+
+class StreamSchema(EntityAttributeSchema):
+    """Represents a large sequence file stored on the file system"""
+    alphabet = fields.String(default='ACGT')
+    length = fields.Integer(nullable=False)
+    sha1 = fields.String(nullable=False)
+    url = fields.String(nullable=False)
+
+
+class FileSchema(EntityAttributeSchema):
+    """Stores arbitrary data files"""
+    url = fields.String(nullable=False)
+    content_size = fields.Integer()
+    format_ = fields.String()
+
+
+class CoordinateSchema(EntityAttributeSchema):
+    """New style coordinates
+    entity_id FK to the entity which has these coordinates
+    basis_id FK to the entity in which start_end occur
+    depth optional int to resolve overlapping coordinates
+    """
+    basis_url = fields.String(nullable=False)
+    strand = fields.Integer(nullable=False)
+    start_end = fields.NUMRANGE(nullable=False)
+    depth = fields.Integer(nullable=False, default=0)
+
+
+class EntitySchema(Schema):
+    """
+    Represents a generic bioLOGical entity
+    """
+    user = fields.Nested(BaseUserSchema)
+    organisation = fields.Nested(BaseOrganisationSchema)
+    accesscontrollist = fields.Raw()
+    url = fields.String(nullable=False)
+    category = fields.String(nullable=False)
+    name = fields.String(nullable=False)
+    rank = fields.Integer(default=0)
+    sequences = fields.Dict()
+    stream = fields.Dict()
+    files = fields.Dict()
+    properties = fields.Dict()
+    coordinates = fields.Dict()
+    events = fields.Dict()
+    labels = fields.Dict()
+    measures = fields.Dict()
+    relations = fields.Nested(RelationSchema, many=True)
+

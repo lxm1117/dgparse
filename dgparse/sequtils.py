@@ -70,7 +70,7 @@ DNA_COMPLEMENTS = {
     "N": "N",
 }
 
-ASCII_DNA_COMP = {str(k): str(v) for k, v in DNA_COMPLEMENTS.iteritems()}
+ASCII_DNA_COMP = {str(k): str(v) for k, v in DNA_COMPLEMENTS.items()}
 
 AMBIGUOUS_CODES = {
     'W': ['A', 'T'],
@@ -98,7 +98,7 @@ MOD_CHAR = set("*")
 NOT_DNA = re.compile(r"[^ACGTacgtMmRrWwSsYyKkVvHhDdBbXxNn]")
 
 UNICODE_TABLE = dict((ord(key), value) for key, value in
-                DNA_COMPLEMENTS.iteritems())
+                DNA_COMPLEMENTS.items())
 
 
 def get_complement(seq_str):
